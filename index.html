@@ -2452,9 +2452,9 @@ function editFiche() {
 }
 
 // ============================================================
-// EXPORT PDF — Pagination intelligente : remplissage optimal,
-// coupure uniquement entre éléments logiques (jamais au milieu d'un texte).
-// Bandeaux violet foncé #2a1f4e.
+// EXPORT PDF — Smart-slice : flux continu, coupure intelligente
+// entre éléments (jamais au milieu d'une ligne de texte).
+// Chaque page A4 est remplie au maximum.
 // ============================================================
 async function exportPDF() {
   const f = fiches.find(x => x.id === viewingFicheId);
@@ -2462,245 +2462,237 @@ async function exportPDF() {
 
   notify('⏳ Génération du PDF...');
   const dateFormatted = f.date ? new Date(f.date).toLocaleDateString('fr-FR') : '';
+  const V = '#2a1f4e';
 
-  const VIOLET = '#2a1f4e';
-
-  // ── CSS partagé ──────────────────────────────────────────────
   const SHARED_CSS = `
   *{box-sizing:border-box;margin:0;padding:0;}
-  body{font-family:Arial,sans-serif;font-size:11px;color:#111;background:white;}
-  .mtitle{background:${VIOLET};color:white;text-align:center;font-weight:bold;font-size:14px;padding:9px 0;margin-bottom:0;}
-  .topcols{display:flex;border:1px solid #bbb;margin-bottom:0;}
-  .topcol{flex:1;padding:8px 10px;}
+  body{font-family:Arial,Helvetica,sans-serif;font-size:9px;color:#111;background:white;line-height:1.3;}
+  .mtitle{background:${V};color:white;text-align:center;font-weight:bold;font-size:12px;padding:6px 0;}
+  .topcols{display:flex;border:1px solid #bbb;}
+  .topcol{flex:1;padding:5px 7px;}
   .topcol:first-child{border-right:1px solid #bbb;}
-  .colhdr{background:${VIOLET};color:white;font-weight:bold;font-size:10px;text-align:center;padding:5px 0;margin:-8px -10px 8px -10px;}
-  .ifield{margin-bottom:6px;font-size:10px;}
-  .ifield b{font-size:10px;}
-  .osec{margin-bottom:8px;}
-  .osec b{font-size:10px;display:block;margin-bottom:3px;}
-  .osec ul{padding-left:14px;font-size:10px;}
-  .osec li{margin-bottom:2px;}
-  .exbar{background:${VIOLET};color:white;font-weight:bold;text-align:center;padding:6px 0;font-size:12px;margin-bottom:0;}
-  .exblock{border-bottom:1px solid #ddd;padding:8px 0 6px 0;}
-  .extitle{font-weight:bold;font-size:11px;margin-bottom:5px;background:${VIOLET}11;padding:4px 6px;border-left:3px solid ${VIOLET};}
-  .excols{display:flex;gap:14px;}
-  .exleft{flex:0 0 54%;}
+  .colhdr{background:${V};color:white;font-weight:bold;font-size:8px;text-align:center;padding:3px 0;margin:-5px -7px 5px -7px;}
+  .ifield{margin-bottom:2px;font-size:8.5px;line-height:1.2;}
+  .ifield b{font-size:8.5px;}
+  .osec{margin-bottom:4px;}
+  .osec b{font-size:8.5px;display:block;margin-bottom:1px;}
+  .osec ul{padding-left:12px;font-size:8.5px;}
+  .osec li{margin-bottom:1px;}
+  .exbar{background:${V};color:white;font-weight:bold;text-align:center;padding:4px 0;font-size:10px;}
+  .exblock{border:1px solid ${V}33;padding:5px 6px;margin-top:5px;border-radius:3px;}
+  .extitle{font-weight:bold;font-size:9px;background:${V};color:white;padding:2px 6px;border-radius:2px;margin-bottom:3px;}
+  .excols{display:flex;gap:8px;}
+  .exleft{flex:0 0 56%;}
   .exright{flex:1;}
-  .f{margin-bottom:5px;font-size:10px;line-height:1.4;}
-  .sep{color:#888;font-size:10px;margin-bottom:4px;}
-  .cline{font-size:10px;margin-bottom:2px;}
-  .ctab{width:100%;border-collapse:collapse;font-size:10px;margin-top:4px;}
-  .ctab th{font-weight:bold;text-align:left;padding:2px 0;font-size:10px;}
-  .ctab td{vertical-align:top;padding:1px 4px 1px 0;width:50%;font-size:10px;}
-  .sbox{border:1px solid #ccc;min-height:115px;display:flex;align-items:center;justify-content:center;overflow:hidden;margin-bottom:4px;}
-  .vtab{width:100%;border-collapse:collapse;font-size:10px;}
-  .vtab th{background:${VIOLET};color:white;font-weight:bold;text-align:center;border:1px solid ${VIOLET};padding:4px;}
-  .vtab td{border:1px solid #bbb;padding:6px 4px;vertical-align:top;width:50%;min-height:28px;font-size:10px;}
-  .footer{font-size:8px;color:#999;font-style:italic;}
+  .f{margin-bottom:2px;font-size:8.5px;line-height:1.3;}
+  .f b{font-size:8.5px;}
+  .cline{font-size:8px;margin-bottom:1px;line-height:1.25;}
+  .ctab{width:100%;border-collapse:collapse;font-size:8px;margin-top:2px;}
+  .ctab th{font-weight:bold;text-align:left;padding:1px 2px;font-size:8px;color:${V};border-bottom:1px solid #ddd;}
+  .ctab td{vertical-align:top;padding:1px 2px;font-size:8px;line-height:1.2;}
+  .sbox{border:1px solid #ccc;height:60px;display:flex;align-items:center;justify-content:center;overflow:hidden;border-radius:2px;margin-bottom:2px;}
+  .vtab{width:100%;border-collapse:collapse;font-size:8px;}
+  .vtab th{background:${V};color:white;font-weight:bold;text-align:center;border:1px solid ${V};padding:2px;font-size:7px;}
+  .vtab td{border:1px solid #bbb;padding:2px 3px;vertical-align:top;width:50%;font-size:8px;line-height:1.2;}
+  .footer{font-size:7px;color:#999;font-style:italic;}
+  /* Marqueurs de coupure */
+  .cut{display:block;height:0;overflow:hidden;}
   `;
 
   const A4W = 794;
   const A4H = 1123;
-  const PAD = 22;
-  const FOOTER_H = 24;
-  const USABLE = A4H - PAD * 2 - FOOTER_H;
+  const PAD = 16;
+  const FOOTER_H = 18;
+  const SLICE_H = A4H - PAD * 2 - FOOTER_H;
 
-  // ── Rendu d'un exercice — découpé en sous-blocs ──────────────
-  // Chaque exercice produit un TABLEAU de sous-blocs HTML,
-  // permettant la coupure entre sous-blocs (mais jamais au milieu).
-  function renderExerciceBlocs(ex, idx) {
-    const cList = (ex.consignes && ex.consignes.filter(c=>c).length) ? ex.consignes.filter(c=>c) : ['','',''];
-    const consHTML = cList.map(c=>`<div class="cline">&#10004;&nbsp;${c}</div>`).join('');
+  // ── Rendu exercice avec marqueurs de coupure ─────────────────
+  // On insère des <div class="cut"> entre chaque sous-section
+  // pour que le scanner puisse couper entre eux.
+  function renderExercice(ex, idx) {
+    const cList = (ex.consignes||[]).filter(c=>c);
+    const consHTML = cList.map(c=>`<div class="cline">✓ ${c}</div>`).join('');
     const rLines = ex.criteresReussite ? ex.criteresReussite.split('\n').filter(Boolean) : [];
     const zLines = ex.criteresRealisation ? ex.criteresRealisation.split('\n').filter(Boolean) : [];
     const maxC = Math.max(rLines.length, zLines.length, 1);
     const critRows = Array.from({length:maxC},(_,i)=>`<tr><td>${rLines[i]?'• '+rLines[i]:''}</td><td>${zLines[i]?'• '+zLines[i]:''}</td></tr>`).join('');
-    const schemaImg = ex.schema
-      ? `<img src="${ex.schema}" style="width:100%;max-height:115px;object-fit:contain;display:block;">`
-      : `<div style="width:100%;height:115px;"></div>`;
+    const hasSchema = ex.schema && ex.schema.length > 0;
+    const schemaHTML = hasSchema
+      ? `<div class="f"><b>Schéma :</b></div><div class="sbox"><img src="${ex.schema}" style="width:100%;max-height:58px;object-fit:contain;"></div>`
+      : '';
 
-    // Sous-bloc 1 : titre + infos + descriptif + consignes (partie gauche)
-    // + schéma + variables (partie droite)  → c'est le cœur, on le garde entier
-    const fullExHTML = `
+    return `<div class="cut"></div>
     <div class="exblock">
-      <div class="extitle">Exercice n°${idx+1} : ${ex.titre||''}</div>
+      <div class="extitle">Ex. ${idx+1} — ${ex.titre||''} (${ex.duree||'?'} · ${ex.phase||''})</div>
       <div class="excols">
         <div class="exleft">
-          <div class="f"><b>Durée :</b> ${ex.duree?ex.duree+' min':''}</div>
-          <div class="f"><b>Organisation :</b><br>${ex.organisation||''}</div>
-          <div class="f"><b>Matériel :</b><br>${ex.materiel||''}</div>
-          <div class="sep">--</div>
-          <div class="f"><b>Descriptif :</b><br>${ex.descriptif||''}</div>
-          <div class="f"><b>Consignes à donner :</b><br>${consHTML}</div>
-          <table class="ctab"><thead><tr><th>Critères de réussite :</th><th>Critère de réalisation :</th></tr></thead><tbody>${critRows}</tbody></table>
+          <div class="f"><b>Orga :</b> ${ex.organisation||''} | <b>Mat :</b> ${ex.materiel||''}</div>
+          <div class="f"><b>Descriptif :</b> ${ex.descriptif||''}</div>
+          ${consHTML ? `<div class="f"><b>Consignes :</b></div>${consHTML}` : ''}
+          <table class="ctab"><thead><tr><th>Critères réussite</th><th>Critères réalisation</th></tr></thead><tbody>${critRows}</tbody></table>
         </div>
         <div class="exright">
-          <div class="f"><b>Schéma :</b></div>
-          <div class="sbox">${schemaImg}</div>
-          <div class="f" style="margin-top:6px"><b>Variables de difficulté :</b></div>
+          ${schemaHTML}
+          <div class="f"><b>Variables :</b></div>
           <table class="vtab"><thead><tr><th>Débutant</th><th>Avancé</th></tr></thead><tbody><tr><td>${ex.varDebutant||''}</td><td>${ex.varAvance||''}</td></tr></tbody></table>
         </div>
       </div>
     </div>`;
-
-    return fullExHTML;
   }
 
-  // ── Construction du header ───────────────────────────────────
+  // ── Header ───────────────────────────────────────────────────
   const objLines = f.objSeance ? f.objSeance.split('\n').filter(Boolean) : [''];
-  const objHTML = objLines.map(l=>`<li>Être capable de ${l}</li>`).join('');
+  const objHTML = objLines.map(l=>`<li>${l}</li>`).join('');
   const valHTML = f.valeurs&&f.valeurs.length ? f.valeurs.map(v=>`<li>${v}</li>`).join('') : '';
 
   const headerHTML = `
-    <div class="mtitle">FICHE SÉANCE – (${f.sportName||'nom du sport'})</div>
+    <div class="mtitle">FICHE SÉANCE – ${f.sportName||'Sport'}</div>
     <div class="topcols">
       <div class="topcol">
         <div class="colhdr">INFORMATIONS GÉNÉRALES</div>
-        <div class="ifield"><b>Nom de la séance :</b><br>${f.nom||''}</div>
-        <div class="ifield"><b>Discipline / Thématique :</b><br>${f.sportName||''}</div>
-        <div class="ifield"><b>Date :</b><br>${dateFormatted}</div>
-        <div class="ifield"><b>Durée totale :</b><br>${f.duree?f.duree+' min':''}</div>
-        <div class="ifield"><b>Lieu / Matériel :</b><br>${f.lieu||''}</div>
-        <div class="ifield"><b>Éducateur(s) :</b><br>${f.educateur||''}</div>
-        <div class="ifield"><b>Public (âge / niveau / effectif) :</b><br>${f.public||''}</div>
+        <div class="ifield"><b>Séance :</b> ${f.nom||''}</div>
+        <div class="ifield"><b>Sport :</b> ${f.sportName||''} | <b>Date :</b> ${dateFormatted} | <b>Durée :</b> ${f.duree||''}</div>
+        <div class="ifield"><b>Lieu :</b> ${f.lieu||''}</div>
+        <div class="ifield"><b>Éducateur :</b> ${f.educateur||''} | <b>Public :</b> ${f.public||''}</div>
       </div>
       <div class="topcol">
-        <div class="colhdr">OBJECTIFS ET VALEURS MORALE</div>
-        <div class="osec"><b>Objectif de la séance :</b><ul>${objHTML}</ul></div>
-        <div class="osec"><b>Objectif du cycle :</b><div style="font-size:10px">${f.objCycle||''}</div></div>
-        <div class="osec"><b>Valeurs morales :</b><ul>${valHTML}</ul></div>
+        <div class="colhdr">OBJECTIFS & VALEURS</div>
+        <div class="osec"><b>Obj. séance :</b><ul>${objHTML}</ul></div>
+        <div class="osec"><b>Obj. cycle :</b> <span style="font-size:8px">${f.objCycle||''}</span></div>
+        <div class="osec"><b>Valeurs :</b><ul>${valHTML}</ul></div>
       </div>
     </div>
-    <div class="exbar">DESCRIPTION DES EXERCICES</div>`;
+    <div class="exbar">EXERCICES</div>
+    <div class="cut"></div>`;
 
-  // ── Tous les blocs logiques (header + exercices) ─────────────
-  const allBlocs = [headerHTML];
-  (f.exercices||[]).forEach((ex,i) => {
-    allBlocs.push(renderExerciceBlocs(ex, i));
+  const exHTMLs = (f.exercices||[]).map((ex,i) => renderExercice(ex, i));
+  const fullHTML = headerHTML + exHTMLs.join('');
+
+  // ── Étape 1 : Rendre dans un iframe long, scanner les points de coupure
+  const cutPoints = await new Promise(resolve => {
+    const iframe = document.createElement('iframe');
+    iframe.style.cssText = `position:fixed;left:-9999px;top:0;width:${A4W}px;height:99999px;border:none;`;
+    document.body.appendChild(iframe);
+    iframe.onload = () => {
+      setTimeout(() => {
+        const doc = iframe.contentDocument;
+        const container = doc.getElementById('content');
+        if (!container) { resolve([]); return; }
+
+        // Collecter tous les .cut et les .exblock comme points de coupure
+        const cuts = [];
+        // Ajouter position 0
+        cuts.push(0);
+
+        // Scanner tous les éléments .cut et .exblock
+        const markers = container.querySelectorAll('.cut, .exblock, .extitle, .topcols, .exbar');
+        markers.forEach(el => {
+          const top = el.getBoundingClientRect().top - container.getBoundingClientRect().top;
+          cuts.push(Math.floor(top));
+        });
+
+        // Aussi scanner tous les divs de premier et second niveau comme points possibles
+        container.querySelectorAll('.f, .cline, .ifield, .osec, tr').forEach(el => {
+          const top = el.getBoundingClientRect().top - container.getBoundingClientRect().top;
+          cuts.push(Math.floor(top));
+        });
+
+        // Hauteur totale
+        const totalH = container.scrollHeight;
+        cuts.push(totalH);
+
+        // Dédupliquer et trier
+        const unique = [...new Set(cuts)].sort((a,b) => a - b);
+        resolve({ cuts: unique, totalH });
+        document.body.removeChild(iframe);
+      }, 350);
+    };
+    iframe.srcdoc = `<!DOCTYPE html><html><head><meta charset="UTF-8"><style>${SHARED_CSS}body{width:${A4W}px;padding:0 ${PAD}px;}</style></head><body><div id="content">${fullHTML}</div></body></html>`;
   });
 
-  // ── Mesurer la hauteur de chaque bloc ────────────────────────
-  async function measureHeight(innerHTML) {
-    return new Promise(resolve => {
-      const iframe = document.createElement('iframe');
-      iframe.style.cssText = `position:fixed;left:-9999px;top:0;width:${A4W}px;height:99999px;border:none;`;
-      document.body.appendChild(iframe);
-      iframe.onload = () => {
-        setTimeout(() => {
-          const el = iframe.contentDocument.getElementById('m');
-          resolve(el ? el.scrollHeight : 0);
-          document.body.removeChild(iframe);
-        }, 200);
-      };
-      iframe.srcdoc = `<!DOCTYPE html><html><head><meta charset="UTF-8"><style>${SHARED_CSS}body{width:${A4W}px;padding:0 ${PAD}px;}</style></head><body><div id="m">${innerHTML}</div></body></html>`;
-    });
+  if (!cutPoints || !cutPoints.cuts) {
+    notify('❌ Erreur PDF');
+    return;
   }
 
-  const blocHeights = [];
-  for (const bloc of allBlocs) {
-    blocHeights.push(await measureHeight(bloc));
-  }
+  const { cuts, totalH } = cutPoints;
 
-  // ── Paginer : remplir au max sans couper un bloc ─────────────
-  // Si un bloc est trop grand pour la page entière, on le force
-  // (cas rare) et il débordera sur la page suivante via le système
-  // de capture par tranche.
-  const pages = []; // chaque page = { blocs: [{html,h},...], usedH }
-  let curBlocs = [];
-  let curH = 0;
+  // ── Étape 2 : Déterminer les tranches de pages ───────────────
+  // Pour chaque page, on cherche le point de coupure le plus avancé
+  // qui reste dans la hauteur SLICE_H.
+  const slices = []; // [{start, end}]
+  let pageStart = 0;
 
-  allBlocs.forEach((html, i) => {
-    const h = blocHeights[i];
-    if (curH + h > USABLE && curBlocs.length > 0) {
-      // La page courante est pleine, on la ferme
-      pages.push({ blocs: [...curBlocs], usedH: curH });
-      curBlocs = [];
-      curH = 0;
+  while (pageStart < totalH) {
+    const pageEnd = pageStart + SLICE_H;
+
+    if (pageEnd >= totalH) {
+      slices.push({ start: pageStart, end: totalH });
+      break;
     }
-    curBlocs.push({ html, h });
-    curH += h;
-  });
-  if (curBlocs.length > 0) pages.push({ blocs: curBlocs, usedH: curH });
 
-  // ── Vérifier si des blocs débordent d'une page entière ──────
-  // Si oui, on utilise le système de tranche (scroll) pour ce bloc
-  const totalPages = pages.length;
+    // Trouver le meilleur point de coupure <= pageEnd
+    let bestCut = pageStart; // fallback
+    for (let c = 0; c < cuts.length; c++) {
+      if (cuts[c] <= pageEnd && cuts[c] > pageStart) {
+        bestCut = cuts[c];
+      }
+      if (cuts[c] > pageEnd) break;
+    }
 
-  // ── Capturer chaque page ─────────────────────────────────────
+    // Si aucun point de coupure trouvé (bloc géant), forcer la coupure
+    if (bestCut <= pageStart) {
+      bestCut = pageEnd;
+    }
+
+    slices.push({ start: pageStart, end: bestCut });
+    pageStart = bestCut;
+  }
+
+  const totalPages = slices.length;
+  console.log('[PDF] Smart-slice:', totalH + 'px total,', totalPages, 'pages,', 'SLICE_H=' + SLICE_H);
+  slices.forEach((s,i) => console.log(`  Page ${i+1}: ${s.start}-${s.end} (${s.end-s.start}px)`));
+
+  // ── Étape 3 : Capturer chaque tranche ────────────────────────
   const { jsPDF } = window.jspdf;
   const docPDF = new jsPDF({ unit: 'mm', format: 'a4' });
   const pdfW = docPDF.internal.pageSize.getWidth();
   const pdfH = docPDF.internal.pageSize.getHeight();
 
-  for (let i = 0; i < pages.length; i++) {
+  for (let i = 0; i < slices.length; i++) {
     if (i > 0) docPDF.addPage();
-    const page = pages[i];
-    const blocs = page.blocs;
-    const contentH = page.usedH;
-
-    // Vérifier si un bloc unique dépasse la page → mode tranche
-    if (blocs.length === 1 && blocs[0].h > USABLE) {
-      // Bloc géant : on le rend en entier et on capture par tranche
-      const giantHTML = blocs[0].html;
-      const giantH = blocs[0].h;
-      const slices = Math.ceil(giantH / USABLE);
-
-      for (let s = 0; s < slices; s++) {
-        if (s > 0 || i > 0) { if (s > 0) docPDF.addPage(); }
-        const yOff = s * USABLE;
-        const canvas = await new Promise(resolve => {
-          const iframe = document.createElement('iframe');
-          iframe.style.cssText = `position:fixed;left:-9999px;top:0;width:${A4W}px;height:${A4H}px;border:none;`;
-          document.body.appendChild(iframe);
-          const footerHTML = `<div class="footer" style="position:absolute;bottom:6px;left:${PAD}px;right:${PAD}px;display:flex;justify-content:space-between;">
-            <span>MSC Sport — ${f.sportName} — ${f.nom}</span>
-            <span>${i+1+s}/${totalPages + slices - 1}</span>
-          </div>`;
-          iframe.onload = async () => {
-            await new Promise(r => setTimeout(r, 400));
-            const c = await html2canvas(iframe.contentDocument.body, {
-              scale: 2, useCORS: true, allowTaint: true,
-              width: A4W, height: A4H, backgroundColor: '#ffffff', logging: false,
-            });
-            document.body.removeChild(iframe);
-            resolve(c);
-          };
-          iframe.srcdoc = `<!DOCTYPE html><html><head><meta charset="UTF-8"><style>
-            ${SHARED_CSS}
-            body{width:${A4W}px;height:${A4H}px;position:relative;overflow:hidden;padding:0;}
-            #clip{position:absolute;top:${PAD}px;left:0;right:0;bottom:${FOOTER_H+PAD}px;overflow:hidden;}
-            #inner{padding:0 ${PAD}px;margin-top:-${yOff}px;}
-          </style></head><body><div id="clip"><div id="inner">${giantHTML}</div></div>${footerHTML}</body></html>`;
-        });
-        docPDF.addImage(canvas.toDataURL('image/jpeg', 0.95), 'JPEG', 0, 0, pdfW, pdfH);
-      }
-      continue;
-    }
-
-    // Mode normal : tous les blocs tiennent sur la page
-    const bodyHTML = blocs.map(b => b.html).join('');
+    const slice = slices[i];
 
     const canvas = await new Promise(resolve => {
       const iframe = document.createElement('iframe');
       iframe.style.cssText = `position:fixed;left:-9999px;top:0;width:${A4W}px;height:${A4H}px;border:none;`;
       document.body.appendChild(iframe);
-      const footerHTML = `<div class="footer" style="position:absolute;bottom:6px;left:${PAD}px;right:${PAD}px;display:flex;justify-content:space-between;">
+
+      const footerHTML = `<div class="footer" style="position:absolute;bottom:3px;left:${PAD}px;right:${PAD}px;display:flex;justify-content:space-between;">
         <span>MSC Sport — ${f.sportName} — ${f.nom}</span>
         <span>${i+1}/${totalPages}</span>
       </div>`;
+
       iframe.onload = async () => {
         await new Promise(r => setTimeout(r, 400));
         const c = await html2canvas(iframe.contentDocument.body, {
-          scale: 2, useCORS: true, allowTaint: true,
-          width: A4W, height: A4H, backgroundColor: '#ffffff', logging: false,
+          scale: 2,
+          useCORS: true,
+          allowTaint: true,
+          width: A4W,
+          height: A4H,
+          backgroundColor: '#ffffff',
+          logging: false,
         });
         document.body.removeChild(iframe);
         resolve(c);
       };
+
       iframe.srcdoc = `<!DOCTYPE html><html><head><meta charset="UTF-8"><style>
         ${SHARED_CSS}
-        body{width:${A4W}px;height:${A4H}px;padding:${PAD}px;position:relative;overflow:hidden;}
-      </style></head><body>${bodyHTML}${footerHTML}</body></html>`;
+        body{width:${A4W}px;height:${A4H}px;position:relative;overflow:hidden;padding:0;}
+        #clip{position:absolute;top:${PAD}px;left:0;right:0;bottom:${FOOTER_H + PAD}px;overflow:hidden;}
+        #inner{padding:0 ${PAD}px;margin-top:-${slice.start}px;}
+      </style></head><body><div id="clip"><div id="inner">${fullHTML}</div></div>${footerHTML}</body></html>`;
     });
 
     docPDF.addImage(canvas.toDataURL('image/jpeg', 0.95), 'JPEG', 0, 0, pdfW, pdfH);
