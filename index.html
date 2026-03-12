@@ -2452,7 +2452,8 @@ function editFiche() {
 }
 
 // ============================================================
-// EXPORT PDF — HTML → html2canvas → jsPDF (rendu fidèle modèle)
+// EXPORT PDF — Flux continu : tout le contenu dans un long document,
+// découpé en tranches A4 sans saut de page forcé, remplissage optimisé.
 // ============================================================
 async function exportPDF() {
   const f = fiches.find(x => x.id === viewingFicheId);
@@ -2461,7 +2462,7 @@ async function exportPDF() {
   notify('⏳ Génération du PDF...');
   const dateFormatted = f.date ? new Date(f.date).toLocaleDateString('fr-FR') : '';
 
-  // ── CSS partagé pour toutes les pages ────────────────────────
+  // ── CSS partagé ──────────────────────────────────────────────
   const SHARED_CSS = `
   *{box-sizing:border-box;margin:0;padding:0;}
   body{font-family:Arial,sans-serif;font-size:11px;color:#111;background:white;}
@@ -2492,12 +2493,13 @@ async function exportPDF() {
   .vtab{width:100%;border-collapse:collapse;font-size:10px;}
   .vtab th{background:#ddd;font-weight:bold;text-align:center;border:1px solid #bbb;padding:4px;}
   .vtab td{border:1px solid #bbb;padding:6px 4px;vertical-align:top;width:50%;min-height:28px;font-size:10px;}
-  .footer{font-size:8px;color:#999;font-style:italic;margin-top:8px;}
+  .footer{font-size:8px;color:#999;font-style:italic;}
   `;
 
   const A4W = 794;
   const A4H = 1123;
-  const PAD = 22; // padding intérieur de chaque page
+  const PAD = 22;
+  const FOOTER_H = 24;
 
   // ── Rendu d'un exercice ──────────────────────────────────────
   function renderExercice(ex, idx) {
@@ -2533,7 +2535,7 @@ async function exportPDF() {
     </div>`;
   }
 
-  // ── Construire les blocs de contenu ─────────────────────────
+  // ── Construire tout le contenu en un seul flux HTML ──────────
   const objLines = f.objSeance ? f.objSeance.split('\n').filter(Boolean) : [''];
   const objHTML = objLines.map(l=>`<li>Être capable de ${l}</li>`).join('');
   const valHTML = f.valeurs&&f.valeurs.length ? f.valeurs.map(v=>`<li>${v}</li>`).join('') : '';
@@ -2561,77 +2563,45 @@ async function exportPDF() {
     <div class="exbar">DESCRIPTION DES EXERCICES</div>`;
 
   const exerciceHTMLs = (f.exercices||[]).map((ex,i) => renderExercice(ex,i));
+  const fullContentHTML = headerHTML + exerciceHTMLs.join('');
 
-  // ── Mesurer la hauteur d'un bloc via iframe temporaire ──────
-  async function measureHeight(innerHTML) {
-    return new Promise(resolve => {
-      const iframe = document.createElement('iframe');
-      iframe.style.cssText = `position:fixed;left:-9999px;top:0;width:${A4W}px;height:${A4H}px;border:none;`;
-      document.body.appendChild(iframe);
-      iframe.onload = () => {
-        setTimeout(() => {
-          const el = iframe.contentDocument.getElementById('measure');
-          resolve(el ? el.scrollHeight : 0);
-          document.body.removeChild(iframe);
-        }, 200);
-      };
-      iframe.srcdoc = `<!DOCTYPE html><html><head><meta charset="UTF-8"><style>${SHARED_CSS}body{width:${A4W}px;padding:${PAD}px;}</style></head><body><div id="measure">${innerHTML}</div></body></html>`;
-    });
-  }
+  // ── Étape 1 : Rendre tout le contenu dans un iframe long ────
+  // On mesure la hauteur totale puis on découpe en tranches A4
+  const CONTENT_W = A4W - PAD * 2;
+  const SLICE_H = A4H - PAD * 2 - FOOTER_H; // hauteur utile par page
 
-  // Mesurer le header
-  const headerH = await measureHeight(headerHTML);
-
-  // Mesurer chaque exercice
-  const exHeights = [];
-  for (const exHTML of exerciceHTMLs) {
-    const h = await measureHeight(exHTML);
-    exHeights.push(h);
-  }
-
-  const USABLE = A4H - PAD * 2; // zone utilisable dans une page
-  const FOOTER_H = 20;
-
-  // ── Assembler les pages ──────────────────────────────────────
-  // Chaque page = { blocs: [html,...], usedH: number }
-  const pages = [];
-  let currentPage = [];
-  let usedH = 0;
-
-  // Ajouter le header sur la première page
-  currentPage.push({ html: headerHTML, h: headerH });
-  usedH = headerH;
-
-  // Ajouter les exercices
-  exerciceHTMLs.forEach((exHTML, i) => {
-    const h = exHeights[i];
-    if (usedH + h + FOOTER_H > USABLE && currentPage.length > 0) {
-      pages.push({ blocs: [...currentPage], usedH });
-      currentPage = [];
-      usedH = 0;
-    }
-    currentPage.push({ html: exHTML, h });
-    usedH += h;
+  // Créer l'iframe de mesure avec tout le contenu
+  const totalH = await new Promise(resolve => {
+    const iframe = document.createElement('iframe');
+    iframe.style.cssText = `position:fixed;left:-9999px;top:0;width:${A4W}px;height:99999px;border:none;`;
+    document.body.appendChild(iframe);
+    iframe.onload = () => {
+      setTimeout(() => {
+        const el = iframe.contentDocument.getElementById('content');
+        resolve(el ? el.scrollHeight : 0);
+        document.body.removeChild(iframe);
+      }, 300);
+    };
+    iframe.srcdoc = `<!DOCTYPE html><html><head><meta charset="UTF-8"><style>${SHARED_CSS}body{width:${A4W}px;padding:0 ${PAD}px;}</style></head><body><div id="content">${fullContentHTML}</div></body></html>`;
   });
-  if (currentPage.length > 0) pages.push({ blocs: currentPage, usedH });
 
-  const totalPages = pages.length;
+  const totalPages = Math.max(1, Math.ceil(totalH / SLICE_H));
 
-  // ── Capturer chaque page en canvas → jsPDF ──────────────────
+  // ── Étape 2 : Capturer chaque tranche ────────────────────────
   const { jsPDF } = window.jspdf;
   const docPDF = new jsPDF({ unit: 'mm', format: 'a4' });
   const pdfW = docPDF.internal.pageSize.getWidth();
   const pdfH = docPDF.internal.pageSize.getHeight();
 
-  async function capturePageHTML(bodyHTML, pageNum) {
-    return new Promise(resolve => {
+  for (let i = 0; i < totalPages; i++) {
+    if (i > 0) docPDF.addPage();
+
+    const yOffset = i * SLICE_H;
+
+    const canvas = await new Promise(resolve => {
       const iframe = document.createElement('iframe');
       iframe.style.cssText = `position:fixed;left:-9999px;top:0;width:${A4W}px;height:${A4H}px;border:none;`;
       document.body.appendChild(iframe);
-      const footerHTML = `<div class="footer" style="position:absolute;bottom:${PAD}px;left:${PAD}px;right:${PAD}px;display:flex;justify-content:space-between;">
-        <span>MSC Sport — ${f.sportName} — ${f.nom}</span>
-        <span>${pageNum}/${totalPages}</span>
-      </div>`;
       iframe.onload = async () => {
         await new Promise(r => setTimeout(r, 400));
         const canvas = await html2canvas(iframe.contentDocument.body, {
@@ -2646,35 +2616,20 @@ async function exportPDF() {
         document.body.removeChild(iframe);
         resolve(canvas);
       };
+      // Le contenu est décalé vers le haut via margin-top négatif
+      // pour afficher la tranche correspondante à cette page
+      const footerHTML = `<div class="footer" style="position:absolute;bottom:6px;left:${PAD}px;right:${PAD}px;display:flex;justify-content:space-between;">
+        <span>MSC Sport — ${f.sportName} — ${f.nom}</span>
+        <span>${i+1}/${totalPages}</span>
+      </div>`;
       iframe.srcdoc = `<!DOCTYPE html><html><head><meta charset="UTF-8"><style>
         ${SHARED_CSS}
-        body{width:${A4W}px;height:${A4H}px;padding:${PAD}px;position:relative;overflow:hidden;}
-      </style></head><body>${bodyHTML}${footerHTML}</body></html>`;
+        body{width:${A4W}px;height:${A4H}px;position:relative;overflow:hidden;padding:0;}
+        #clip{position:absolute;top:${PAD}px;left:0;right:0;bottom:${FOOTER_H + PAD}px;overflow:hidden;}
+        #inner{padding:0 ${PAD}px;margin-top:-${yOffset}px;}
+      </style></head><body><div id="clip"><div id="inner">${fullContentHTML}</div></div>${footerHTML}</body></html>`;
     });
-  }
 
-  for (let i = 0; i < pages.length; i++) {
-    if (i > 0) docPDF.addPage();
-    const page = pages[i];
-    const blocs = page.blocs;
-    const contentH = page.usedH;
-    const freeSpace = USABLE - FOOTER_H - contentH;
-
-    // Nombre de gaps entre blocs (après chaque bloc sauf le dernier)
-    const gapCount = blocs.length - 1;
-    // On distribue l'espace libre en gaps, plafonné à 40px max par gap pour éviter un aspect trop aéré
-    const gapPx = gapCount > 0 ? Math.min(Math.floor(freeSpace / gapCount), 40) : 0;
-
-    // Injecter le gap comme margin-bottom sur chaque bloc sauf le dernier
-    const bodyHTML = blocs.map((b, idx) => {
-      if (idx < blocs.length - 1 && gapPx > 0) {
-        // Ajoute un margin-bottom au bloc via un wrapper div
-        return `<div style="margin-bottom:${gapPx}px">${b.html}</div>`;
-      }
-      return b.html;
-    }).join('');
-
-    const canvas = await capturePageHTML(bodyHTML, i + 1);
     docPDF.addImage(canvas.toDataURL('image/jpeg', 0.95), 'JPEG', 0, 0, pdfW, pdfH);
   }
 
