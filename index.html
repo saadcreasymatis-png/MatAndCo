@@ -2537,9 +2537,9 @@ async function exportPDF() {
   /* EXERCICES */
   .exblock{border-bottom:1.5px solid #ddd;padding:10px 0 8px 0;}
   .extitle{font-weight:bold;font-size:11px;margin-bottom:6px;background:${V}11;padding:4px 8px;border-left:3px solid ${V};}
-  .excols{display:flex;gap:14px;}
+  .excols{display:flex;gap:14px;align-items:stretch;}
   .exleft{flex:0 0 54%;}
-  .exright{flex:1;}
+  .exright{flex:1;display:flex;flex-direction:column;}
   .f{margin-bottom:5px;font-size:10px;line-height:1.35;}
   .f b{font-size:10px;}
   .sep{color:#888;font-size:9px;margin-bottom:4px;}
@@ -2561,7 +2561,7 @@ async function exportPDF() {
   const FOOTER_H = 20;
   const SLICE_H = A4H - PAD * 2 - FOOTER_H;
 
-  // ── Rendu exercice : chaque champ sur sa propre ligne ────────
+  // ── Rendu exercice : schéma = toute la colonne droite, variables en bas pleine largeur ──
   function renderExercice(ex, idx) {
     const cList = (ex.consignes||[]).filter(c=>c);
     const consHTML = cList.map(c=>`<div class="cline">✓ ${c}</div>`).join('');
@@ -2570,8 +2570,8 @@ async function exportPDF() {
     const maxC = Math.max(rLines.length, zLines.length, 1);
     const critRows = Array.from({length:maxC},(_,i)=>`<tr><td>${rLines[i]?'• '+rLines[i]:''}</td><td>${zLines[i]?'• '+zLines[i]:''}</td></tr>`).join('');
     const schemaImg = ex.schema
-      ? `<img src="${ex.schema}" style="width:100%;max-height:100px;object-fit:contain;display:block;">`
-      : `<div style="width:100%;height:100px;"></div>`;
+      ? `<img src="${ex.schema}" style="width:100%;height:100%;object-fit:contain;display:block;">`
+      : `<div style="width:100%;height:100%;"></div>`;
 
     return `<div class="cut"></div>
     <div class="exblock">
@@ -2587,16 +2587,22 @@ async function exportPDF() {
           <div class="cut"></div>
           <div class="f"><b>Consignes à donner :</b></div>
           ${consHTML}
-          <div class="cut"></div>
+        </div>
+        <div class="exright">
+          <div class="f"><b>Schéma :</b></div>
+          <div class="sbox" style="flex:1;min-height:160px;">${schemaImg}</div>
+        </div>
+      </div>
+      <div class="cut"></div>
+      <div style="display:flex;gap:14px;margin-top:6px;">
+        <div style="flex:0 0 54%;">
           <table class="ctab">
             <thead><tr><th>Critères de réussite :</th><th>Critères de réalisation :</th></tr></thead>
             <tbody>${critRows}</tbody>
           </table>
         </div>
-        <div class="exright">
-          <div class="f"><b>Schéma :</b></div>
-          <div class="sbox">${schemaImg}</div>
-          <div class="f" style="margin-top:6px"><b>Variables de difficulté :</b></div>
+        <div style="flex:1;">
+          <div class="f"><b>Variables de difficulté :</b></div>
           <table class="vtab">
             <thead><tr><th>Débutant</th><th>Avancé</th></tr></thead>
             <tbody><tr><td>${ex.varDebutant||''}</td><td>${ex.varAvance||''}</td></tr></tbody>
