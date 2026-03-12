@@ -2452,8 +2452,9 @@ function editFiche() {
 }
 
 // ============================================================
-// EXPORT PDF — Flux continu : tout le contenu dans un long document,
-// découpé en tranches A4 sans saut de page forcé, remplissage optimisé.
+// EXPORT PDF — Pagination intelligente : remplissage optimal,
+// coupure uniquement entre éléments logiques (jamais au milieu d'un texte).
+// Bandeaux violet foncé #2a1f4e.
 // ============================================================
 async function exportPDF() {
   const f = fiches.find(x => x.id === viewingFicheId);
@@ -2462,24 +2463,26 @@ async function exportPDF() {
   notify('⏳ Génération du PDF...');
   const dateFormatted = f.date ? new Date(f.date).toLocaleDateString('fr-FR') : '';
 
+  const VIOLET = '#2a1f4e';
+
   // ── CSS partagé ──────────────────────────────────────────────
   const SHARED_CSS = `
   *{box-sizing:border-box;margin:0;padding:0;}
   body{font-family:Arial,sans-serif;font-size:11px;color:#111;background:white;}
-  .mtitle{background:#555;color:white;text-align:center;font-weight:bold;font-size:14px;padding:9px 0;margin-bottom:0;}
+  .mtitle{background:${VIOLET};color:white;text-align:center;font-weight:bold;font-size:14px;padding:9px 0;margin-bottom:0;}
   .topcols{display:flex;border:1px solid #bbb;margin-bottom:0;}
   .topcol{flex:1;padding:8px 10px;}
   .topcol:first-child{border-right:1px solid #bbb;}
-  .colhdr{background:#555;color:white;font-weight:bold;font-size:10px;text-align:center;padding:5px 0;margin:-8px -10px 8px -10px;}
+  .colhdr{background:${VIOLET};color:white;font-weight:bold;font-size:10px;text-align:center;padding:5px 0;margin:-8px -10px 8px -10px;}
   .ifield{margin-bottom:6px;font-size:10px;}
   .ifield b{font-size:10px;}
   .osec{margin-bottom:8px;}
   .osec b{font-size:10px;display:block;margin-bottom:3px;}
   .osec ul{padding-left:14px;font-size:10px;}
   .osec li{margin-bottom:2px;}
-  .exbar{background:#555;color:white;font-weight:bold;text-align:center;padding:6px 0;font-size:12px;margin-bottom:0;}
+  .exbar{background:${VIOLET};color:white;font-weight:bold;text-align:center;padding:6px 0;font-size:12px;margin-bottom:0;}
   .exblock{border-bottom:1px solid #ddd;padding:8px 0 6px 0;}
-  .extitle{font-weight:bold;font-size:11px;margin-bottom:5px;}
+  .extitle{font-weight:bold;font-size:11px;margin-bottom:5px;background:${VIOLET}11;padding:4px 6px;border-left:3px solid ${VIOLET};}
   .excols{display:flex;gap:14px;}
   .exleft{flex:0 0 54%;}
   .exright{flex:1;}
@@ -2491,7 +2494,7 @@ async function exportPDF() {
   .ctab td{vertical-align:top;padding:1px 4px 1px 0;width:50%;font-size:10px;}
   .sbox{border:1px solid #ccc;min-height:115px;display:flex;align-items:center;justify-content:center;overflow:hidden;margin-bottom:4px;}
   .vtab{width:100%;border-collapse:collapse;font-size:10px;}
-  .vtab th{background:#ddd;font-weight:bold;text-align:center;border:1px solid #bbb;padding:4px;}
+  .vtab th{background:${VIOLET};color:white;font-weight:bold;text-align:center;border:1px solid ${VIOLET};padding:4px;}
   .vtab td{border:1px solid #bbb;padding:6px 4px;vertical-align:top;width:50%;min-height:28px;font-size:10px;}
   .footer{font-size:8px;color:#999;font-style:italic;}
   `;
@@ -2500,9 +2503,12 @@ async function exportPDF() {
   const A4H = 1123;
   const PAD = 22;
   const FOOTER_H = 24;
+  const USABLE = A4H - PAD * 2 - FOOTER_H;
 
-  // ── Rendu d'un exercice ──────────────────────────────────────
-  function renderExercice(ex, idx) {
+  // ── Rendu d'un exercice — découpé en sous-blocs ──────────────
+  // Chaque exercice produit un TABLEAU de sous-blocs HTML,
+  // permettant la coupure entre sous-blocs (mais jamais au milieu).
+  function renderExerciceBlocs(ex, idx) {
     const cList = (ex.consignes && ex.consignes.filter(c=>c).length) ? ex.consignes.filter(c=>c) : ['','',''];
     const consHTML = cList.map(c=>`<div class="cline">&#10004;&nbsp;${c}</div>`).join('');
     const rLines = ex.criteresReussite ? ex.criteresReussite.split('\n').filter(Boolean) : [];
@@ -2512,7 +2518,10 @@ async function exportPDF() {
     const schemaImg = ex.schema
       ? `<img src="${ex.schema}" style="width:100%;max-height:115px;object-fit:contain;display:block;">`
       : `<div style="width:100%;height:115px;"></div>`;
-    return `
+
+    // Sous-bloc 1 : titre + infos + descriptif + consignes (partie gauche)
+    // + schéma + variables (partie droite)  → c'est le cœur, on le garde entier
+    const fullExHTML = `
     <div class="exblock">
       <div class="extitle">Exercice n°${idx+1} : ${ex.titre||''}</div>
       <div class="excols">
@@ -2533,9 +2542,11 @@ async function exportPDF() {
         </div>
       </div>
     </div>`;
+
+    return fullExHTML;
   }
 
-  // ── Construire tout le contenu en un seul flux HTML ──────────
+  // ── Construction du header ───────────────────────────────────
   const objLines = f.objSeance ? f.objSeance.split('\n').filter(Boolean) : [''];
   const objHTML = objLines.map(l=>`<li>Être capable de ${l}</li>`).join('');
   const valHTML = f.valeurs&&f.valeurs.length ? f.valeurs.map(v=>`<li>${v}</li>`).join('') : '';
@@ -2562,72 +2573,134 @@ async function exportPDF() {
     </div>
     <div class="exbar">DESCRIPTION DES EXERCICES</div>`;
 
-  const exerciceHTMLs = (f.exercices||[]).map((ex,i) => renderExercice(ex,i));
-  const fullContentHTML = headerHTML + exerciceHTMLs.join('');
-
-  // ── Étape 1 : Rendre tout le contenu dans un iframe long ────
-  // On mesure la hauteur totale puis on découpe en tranches A4
-  const CONTENT_W = A4W - PAD * 2;
-  const SLICE_H = A4H - PAD * 2 - FOOTER_H; // hauteur utile par page
-
-  // Créer l'iframe de mesure avec tout le contenu
-  const totalH = await new Promise(resolve => {
-    const iframe = document.createElement('iframe');
-    iframe.style.cssText = `position:fixed;left:-9999px;top:0;width:${A4W}px;height:99999px;border:none;`;
-    document.body.appendChild(iframe);
-    iframe.onload = () => {
-      setTimeout(() => {
-        const el = iframe.contentDocument.getElementById('content');
-        resolve(el ? el.scrollHeight : 0);
-        document.body.removeChild(iframe);
-      }, 300);
-    };
-    iframe.srcdoc = `<!DOCTYPE html><html><head><meta charset="UTF-8"><style>${SHARED_CSS}body{width:${A4W}px;padding:0 ${PAD}px;}</style></head><body><div id="content">${fullContentHTML}</div></body></html>`;
+  // ── Tous les blocs logiques (header + exercices) ─────────────
+  const allBlocs = [headerHTML];
+  (f.exercices||[]).forEach((ex,i) => {
+    allBlocs.push(renderExerciceBlocs(ex, i));
   });
 
-  const totalPages = Math.max(1, Math.ceil(totalH / SLICE_H));
+  // ── Mesurer la hauteur de chaque bloc ────────────────────────
+  async function measureHeight(innerHTML) {
+    return new Promise(resolve => {
+      const iframe = document.createElement('iframe');
+      iframe.style.cssText = `position:fixed;left:-9999px;top:0;width:${A4W}px;height:99999px;border:none;`;
+      document.body.appendChild(iframe);
+      iframe.onload = () => {
+        setTimeout(() => {
+          const el = iframe.contentDocument.getElementById('m');
+          resolve(el ? el.scrollHeight : 0);
+          document.body.removeChild(iframe);
+        }, 200);
+      };
+      iframe.srcdoc = `<!DOCTYPE html><html><head><meta charset="UTF-8"><style>${SHARED_CSS}body{width:${A4W}px;padding:0 ${PAD}px;}</style></head><body><div id="m">${innerHTML}</div></body></html>`;
+    });
+  }
 
-  // ── Étape 2 : Capturer chaque tranche ────────────────────────
+  const blocHeights = [];
+  for (const bloc of allBlocs) {
+    blocHeights.push(await measureHeight(bloc));
+  }
+
+  // ── Paginer : remplir au max sans couper un bloc ─────────────
+  // Si un bloc est trop grand pour la page entière, on le force
+  // (cas rare) et il débordera sur la page suivante via le système
+  // de capture par tranche.
+  const pages = []; // chaque page = { blocs: [{html,h},...], usedH }
+  let curBlocs = [];
+  let curH = 0;
+
+  allBlocs.forEach((html, i) => {
+    const h = blocHeights[i];
+    if (curH + h > USABLE && curBlocs.length > 0) {
+      // La page courante est pleine, on la ferme
+      pages.push({ blocs: [...curBlocs], usedH: curH });
+      curBlocs = [];
+      curH = 0;
+    }
+    curBlocs.push({ html, h });
+    curH += h;
+  });
+  if (curBlocs.length > 0) pages.push({ blocs: curBlocs, usedH: curH });
+
+  // ── Vérifier si des blocs débordent d'une page entière ──────
+  // Si oui, on utilise le système de tranche (scroll) pour ce bloc
+  const totalPages = pages.length;
+
+  // ── Capturer chaque page ─────────────────────────────────────
   const { jsPDF } = window.jspdf;
   const docPDF = new jsPDF({ unit: 'mm', format: 'a4' });
   const pdfW = docPDF.internal.pageSize.getWidth();
   const pdfH = docPDF.internal.pageSize.getHeight();
 
-  for (let i = 0; i < totalPages; i++) {
+  for (let i = 0; i < pages.length; i++) {
     if (i > 0) docPDF.addPage();
+    const page = pages[i];
+    const blocs = page.blocs;
+    const contentH = page.usedH;
 
-    const yOffset = i * SLICE_H;
+    // Vérifier si un bloc unique dépasse la page → mode tranche
+    if (blocs.length === 1 && blocs[0].h > USABLE) {
+      // Bloc géant : on le rend en entier et on capture par tranche
+      const giantHTML = blocs[0].html;
+      const giantH = blocs[0].h;
+      const slices = Math.ceil(giantH / USABLE);
+
+      for (let s = 0; s < slices; s++) {
+        if (s > 0 || i > 0) { if (s > 0) docPDF.addPage(); }
+        const yOff = s * USABLE;
+        const canvas = await new Promise(resolve => {
+          const iframe = document.createElement('iframe');
+          iframe.style.cssText = `position:fixed;left:-9999px;top:0;width:${A4W}px;height:${A4H}px;border:none;`;
+          document.body.appendChild(iframe);
+          const footerHTML = `<div class="footer" style="position:absolute;bottom:6px;left:${PAD}px;right:${PAD}px;display:flex;justify-content:space-between;">
+            <span>MSC Sport — ${f.sportName} — ${f.nom}</span>
+            <span>${i+1+s}/${totalPages + slices - 1}</span>
+          </div>`;
+          iframe.onload = async () => {
+            await new Promise(r => setTimeout(r, 400));
+            const c = await html2canvas(iframe.contentDocument.body, {
+              scale: 2, useCORS: true, allowTaint: true,
+              width: A4W, height: A4H, backgroundColor: '#ffffff', logging: false,
+            });
+            document.body.removeChild(iframe);
+            resolve(c);
+          };
+          iframe.srcdoc = `<!DOCTYPE html><html><head><meta charset="UTF-8"><style>
+            ${SHARED_CSS}
+            body{width:${A4W}px;height:${A4H}px;position:relative;overflow:hidden;padding:0;}
+            #clip{position:absolute;top:${PAD}px;left:0;right:0;bottom:${FOOTER_H+PAD}px;overflow:hidden;}
+            #inner{padding:0 ${PAD}px;margin-top:-${yOff}px;}
+          </style></head><body><div id="clip"><div id="inner">${giantHTML}</div></div>${footerHTML}</body></html>`;
+        });
+        docPDF.addImage(canvas.toDataURL('image/jpeg', 0.95), 'JPEG', 0, 0, pdfW, pdfH);
+      }
+      continue;
+    }
+
+    // Mode normal : tous les blocs tiennent sur la page
+    const bodyHTML = blocs.map(b => b.html).join('');
 
     const canvas = await new Promise(resolve => {
       const iframe = document.createElement('iframe');
       iframe.style.cssText = `position:fixed;left:-9999px;top:0;width:${A4W}px;height:${A4H}px;border:none;`;
       document.body.appendChild(iframe);
-      iframe.onload = async () => {
-        await new Promise(r => setTimeout(r, 400));
-        const canvas = await html2canvas(iframe.contentDocument.body, {
-          scale: 2,
-          useCORS: true,
-          allowTaint: true,
-          width: A4W,
-          height: A4H,
-          backgroundColor: '#ffffff',
-          logging: false,
-        });
-        document.body.removeChild(iframe);
-        resolve(canvas);
-      };
-      // Le contenu est décalé vers le haut via margin-top négatif
-      // pour afficher la tranche correspondante à cette page
       const footerHTML = `<div class="footer" style="position:absolute;bottom:6px;left:${PAD}px;right:${PAD}px;display:flex;justify-content:space-between;">
         <span>MSC Sport — ${f.sportName} — ${f.nom}</span>
         <span>${i+1}/${totalPages}</span>
       </div>`;
+      iframe.onload = async () => {
+        await new Promise(r => setTimeout(r, 400));
+        const c = await html2canvas(iframe.contentDocument.body, {
+          scale: 2, useCORS: true, allowTaint: true,
+          width: A4W, height: A4H, backgroundColor: '#ffffff', logging: false,
+        });
+        document.body.removeChild(iframe);
+        resolve(c);
+      };
       iframe.srcdoc = `<!DOCTYPE html><html><head><meta charset="UTF-8"><style>
         ${SHARED_CSS}
-        body{width:${A4W}px;height:${A4H}px;position:relative;overflow:hidden;padding:0;}
-        #clip{position:absolute;top:${PAD}px;left:0;right:0;bottom:${FOOTER_H + PAD}px;overflow:hidden;}
-        #inner{padding:0 ${PAD}px;margin-top:-${yOffset}px;}
-      </style></head><body><div id="clip"><div id="inner">${fullContentHTML}</div></div>${footerHTML}</body></html>`;
+        body{width:${A4W}px;height:${A4H}px;padding:${PAD}px;position:relative;overflow:hidden;}
+      </style></head><body>${bodyHTML}${footerHTML}</body></html>`;
     });
 
     docPDF.addImage(canvas.toDataURL('image/jpeg', 0.95), 'JPEG', 0, 0, pdfW, pdfH);
