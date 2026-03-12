@@ -1112,7 +1112,7 @@
     </div>
 
     <div style="height:8px"></div>
-    <div class="section-title" style="margin-bottom:10px">✏️ Dessin libre</div>
+    <div class="section-title" style="margin-bottom:10px">✏️ Dessin libre / 📷 Image</div>
     <div class="canvas-tools">
       <button class="tool-btn active" id="tool-draw" onclick="setTool('draw')" title="Dessiner">✏️</button>
       <button class="tool-btn" id="tool-erase" onclick="setTool('erase')" title="Effacer">🧹</button>
@@ -1121,8 +1121,10 @@
       <div class="color-dot" style="background:#f5a623" onclick="setColor('#f5a623',this)"></div>
       <div class="color-dot" style="background:#2980b9" onclick="setColor('#2980b9',this)"></div>
       <div class="color-dot" style="background:#1a2420" onclick="setColor('#1a2420',this)"></div>
-      <button class="tool-btn" onclick="clearCanvas()" title="Tout effacer" style="margin-left:auto">🗑</button>
+      <button class="tool-btn" onclick="importSchemaImage()" title="Importer une image" style="margin-left:auto">📷</button>
+      <button class="tool-btn" onclick="clearCanvas()" title="Tout effacer">🗑</button>
     </div>
+    <input type="file" id="schema-image-input" accept="image/*" style="display:none" onchange="handleSchemaImageImport(event)">
     <div class="canvas-container">
       <canvas id="schema-canvas" width="340" height="200"></canvas>
     </div>
@@ -1599,8 +1601,59 @@ function clearCanvas() {
 }
 
 // ============================================================
-// AI SCHEMA GENERATOR
+// IMPORT IMAGE SCHEMA
 // ============================================================
+function importSchemaImage() {
+  const input = document.getElementById('schema-image-input');
+  input.value = '';
+  input.click();
+}
+
+function handleSchemaImageImport(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  // Vérifier que c'est une image
+  if (!file.type.startsWith('image/')) {
+    notify('❌ Ce fichier n\'est pas une image');
+    return;
+  }
+
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const img = new Image();
+    img.onload = function() {
+      // Dessiner l'image sur le canvas en la redimensionnant pour qu'elle tienne
+      const c = document.getElementById('schema-canvas');
+      const cx = c.getContext('2d');
+
+      // Effacer le canvas
+      cx.clearRect(0, 0, c.width, c.height);
+
+      // Calculer les dimensions pour que l'image tienne dans le canvas
+      // en conservant le ratio
+      const ratio = Math.min(c.width / img.width, c.height / img.height);
+      const w = img.width * ratio;
+      const h = img.height * ratio;
+      const x = (c.width - w) / 2;
+      const y = (c.height - h) / 2;
+
+      // Fond blanc
+      cx.fillStyle = '#ffffff';
+      cx.fillRect(0, 0, c.width, c.height);
+
+      // Dessiner l'image centrée
+      cx.drawImage(img, x, y, w, h);
+
+      notify('📷 Image importée dans le schéma !');
+    };
+    img.onerror = function() {
+      notify('❌ Impossible de charger l\'image');
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
 let aiSchemaPublic = 'Adolescents 13-17 ans';
 let lastAiSvg = null;
 
