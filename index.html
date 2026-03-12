@@ -2452,9 +2452,8 @@ function editFiche() {
 }
 
 // ============================================================
-// EXPORT PDF — Smart-slice : flux continu, coupure intelligente
-// entre éléments (jamais au milieu d'une ligne de texte).
-// Chaque page A4 est remplie au maximum.
+// EXPORT PDF — Smart-slice + layout lisible.
+// Chaque champ sur sa ligne, polices normales, coupure intelligente.
 // ============================================================
 async function exportPDF() {
   const f = fiches.find(x => x.id === viewingFicheId);
@@ -2466,48 +2465,50 @@ async function exportPDF() {
 
   const SHARED_CSS = `
   *{box-sizing:border-box;margin:0;padding:0;}
-  body{font-family:Arial,Helvetica,sans-serif;font-size:9px;color:#111;background:white;line-height:1.3;}
-  .mtitle{background:${V};color:white;text-align:center;font-weight:bold;font-size:12px;padding:6px 0;}
+  body{font-family:Arial,Helvetica,sans-serif;font-size:10px;color:#111;background:white;line-height:1.35;}
+
+  /* HEADER */
+  .mtitle{background:${V};color:white;text-align:center;font-weight:bold;font-size:13px;padding:8px 0;}
   .topcols{display:flex;border:1px solid #bbb;}
-  .topcol{flex:1;padding:5px 7px;}
+  .topcol{flex:1;padding:8px 10px;}
   .topcol:first-child{border-right:1px solid #bbb;}
-  .colhdr{background:${V};color:white;font-weight:bold;font-size:8px;text-align:center;padding:3px 0;margin:-5px -7px 5px -7px;}
-  .ifield{margin-bottom:2px;font-size:8.5px;line-height:1.2;}
-  .ifield b{font-size:8.5px;}
-  .osec{margin-bottom:4px;}
-  .osec b{font-size:8.5px;display:block;margin-bottom:1px;}
-  .osec ul{padding-left:12px;font-size:8.5px;}
-  .osec li{margin-bottom:1px;}
-  .exbar{background:${V};color:white;font-weight:bold;text-align:center;padding:4px 0;font-size:10px;}
-  .exblock{border:1px solid ${V}33;padding:5px 6px;margin-top:5px;border-radius:3px;}
-  .extitle{font-weight:bold;font-size:9px;background:${V};color:white;padding:2px 6px;border-radius:2px;margin-bottom:3px;}
-  .excols{display:flex;gap:8px;}
-  .exleft{flex:0 0 56%;}
+  .colhdr{background:${V};color:white;font-weight:bold;font-size:9px;text-align:center;padding:4px 0;margin:-8px -10px 8px -10px;letter-spacing:0.3px;}
+  .ifield{margin-bottom:5px;font-size:10px;line-height:1.3;}
+  .ifield b{font-size:10px;}
+  .osec{margin-bottom:6px;}
+  .osec b{font-size:10px;display:block;margin-bottom:2px;}
+  .osec ul{padding-left:14px;font-size:10px;}
+  .osec li{margin-bottom:2px;}
+  .exbar{background:${V};color:white;font-weight:bold;text-align:center;padding:5px 0;font-size:11px;}
+
+  /* EXERCICES */
+  .exblock{border-bottom:1.5px solid #ddd;padding:10px 0 8px 0;}
+  .extitle{font-weight:bold;font-size:11px;margin-bottom:6px;background:${V}11;padding:4px 8px;border-left:3px solid ${V};}
+  .excols{display:flex;gap:14px;}
+  .exleft{flex:0 0 54%;}
   .exright{flex:1;}
-  .f{margin-bottom:2px;font-size:8.5px;line-height:1.3;}
-  .f b{font-size:8.5px;}
-  .cline{font-size:8px;margin-bottom:1px;line-height:1.25;}
-  .ctab{width:100%;border-collapse:collapse;font-size:8px;margin-top:2px;}
-  .ctab th{font-weight:bold;text-align:left;padding:1px 2px;font-size:8px;color:${V};border-bottom:1px solid #ddd;}
-  .ctab td{vertical-align:top;padding:1px 2px;font-size:8px;line-height:1.2;}
-  .sbox{border:1px solid #ccc;height:60px;display:flex;align-items:center;justify-content:center;overflow:hidden;border-radius:2px;margin-bottom:2px;}
-  .vtab{width:100%;border-collapse:collapse;font-size:8px;}
-  .vtab th{background:${V};color:white;font-weight:bold;text-align:center;border:1px solid ${V};padding:2px;font-size:7px;}
-  .vtab td{border:1px solid #bbb;padding:2px 3px;vertical-align:top;width:50%;font-size:8px;line-height:1.2;}
-  .footer{font-size:7px;color:#999;font-style:italic;}
-  /* Marqueurs de coupure */
+  .f{margin-bottom:5px;font-size:10px;line-height:1.35;}
+  .f b{font-size:10px;}
+  .sep{color:#888;font-size:9px;margin-bottom:4px;}
+  .cline{font-size:10px;margin-bottom:2px;line-height:1.3;}
+  .ctab{width:100%;border-collapse:collapse;font-size:10px;margin-top:4px;}
+  .ctab th{font-weight:bold;text-align:left;padding:2px 0;font-size:10px;color:${V};}
+  .ctab td{vertical-align:top;padding:2px 4px 2px 0;width:50%;font-size:10px;line-height:1.3;}
+  .sbox{border:1px solid #ccc;min-height:100px;display:flex;align-items:center;justify-content:center;overflow:hidden;margin-bottom:4px;border-radius:3px;}
+  .vtab{width:100%;border-collapse:collapse;font-size:10px;}
+  .vtab th{background:${V};color:white;font-weight:bold;text-align:center;border:1px solid ${V};padding:3px;font-size:9px;}
+  .vtab td{border:1px solid #bbb;padding:5px 4px;vertical-align:top;width:50%;min-height:24px;font-size:10px;line-height:1.3;}
+  .footer{font-size:8px;color:#999;font-style:italic;}
   .cut{display:block;height:0;overflow:hidden;}
   `;
 
   const A4W = 794;
   const A4H = 1123;
-  const PAD = 16;
-  const FOOTER_H = 18;
+  const PAD = 20;
+  const FOOTER_H = 20;
   const SLICE_H = A4H - PAD * 2 - FOOTER_H;
 
-  // ── Rendu exercice avec marqueurs de coupure ─────────────────
-  // On insère des <div class="cut"> entre chaque sous-section
-  // pour que le scanner puisse couper entre eux.
+  // ── Rendu exercice : chaque champ sur sa propre ligne ────────
   function renderExercice(ex, idx) {
     const cList = (ex.consignes||[]).filter(c=>c);
     const consHTML = cList.map(c=>`<div class="cline">✓ ${c}</div>`).join('');
@@ -2515,25 +2516,38 @@ async function exportPDF() {
     const zLines = ex.criteresRealisation ? ex.criteresRealisation.split('\n').filter(Boolean) : [];
     const maxC = Math.max(rLines.length, zLines.length, 1);
     const critRows = Array.from({length:maxC},(_,i)=>`<tr><td>${rLines[i]?'• '+rLines[i]:''}</td><td>${zLines[i]?'• '+zLines[i]:''}</td></tr>`).join('');
-    const hasSchema = ex.schema && ex.schema.length > 0;
-    const schemaHTML = hasSchema
-      ? `<div class="f"><b>Schéma :</b></div><div class="sbox"><img src="${ex.schema}" style="width:100%;max-height:58px;object-fit:contain;"></div>`
-      : '';
+    const schemaImg = ex.schema
+      ? `<img src="${ex.schema}" style="width:100%;max-height:100px;object-fit:contain;display:block;">`
+      : `<div style="width:100%;height:100px;"></div>`;
 
     return `<div class="cut"></div>
     <div class="exblock">
-      <div class="extitle">Ex. ${idx+1} — ${ex.titre||''} (${ex.duree||'?'} · ${ex.phase||''})</div>
+      <div class="extitle">Exercice n°${idx+1} : ${ex.titre||''}</div>
       <div class="excols">
         <div class="exleft">
-          <div class="f"><b>Orga :</b> ${ex.organisation||''} | <b>Mat :</b> ${ex.materiel||''}</div>
-          <div class="f"><b>Descriptif :</b> ${ex.descriptif||''}</div>
-          ${consHTML ? `<div class="f"><b>Consignes :</b></div>${consHTML}` : ''}
-          <table class="ctab"><thead><tr><th>Critères réussite</th><th>Critères réalisation</th></tr></thead><tbody>${critRows}</tbody></table>
+          <div class="f"><b>Durée :</b> ${ex.duree||''}</div>
+          <div class="f"><b>Phase :</b> ${ex.phase||''}</div>
+          <div class="f"><b>Organisation :</b><br>${ex.organisation||''}</div>
+          <div class="f"><b>Matériel :</b><br>${ex.materiel||''}</div>
+          <div class="sep">—</div>
+          <div class="f"><b>Descriptif :</b><br>${ex.descriptif||''}</div>
+          <div class="cut"></div>
+          <div class="f"><b>Consignes à donner :</b></div>
+          ${consHTML}
+          <div class="cut"></div>
+          <table class="ctab">
+            <thead><tr><th>Critères de réussite :</th><th>Critères de réalisation :</th></tr></thead>
+            <tbody>${critRows}</tbody>
+          </table>
         </div>
         <div class="exright">
-          ${schemaHTML}
-          <div class="f"><b>Variables :</b></div>
-          <table class="vtab"><thead><tr><th>Débutant</th><th>Avancé</th></tr></thead><tbody><tr><td>${ex.varDebutant||''}</td><td>${ex.varAvance||''}</td></tr></tbody></table>
+          <div class="f"><b>Schéma :</b></div>
+          <div class="sbox">${schemaImg}</div>
+          <div class="f" style="margin-top:6px"><b>Variables de difficulté :</b></div>
+          <table class="vtab">
+            <thead><tr><th>Débutant</th><th>Avancé</th></tr></thead>
+            <tbody><tr><td>${ex.varDebutant||''}</td><td>${ex.varAvance||''}</td></tr></tbody>
+          </table>
         </div>
       </div>
     </div>`;
@@ -2541,27 +2555,30 @@ async function exportPDF() {
 
   // ── Header ───────────────────────────────────────────────────
   const objLines = f.objSeance ? f.objSeance.split('\n').filter(Boolean) : [''];
-  const objHTML = objLines.map(l=>`<li>${l}</li>`).join('');
+  const objHTML = objLines.map(l=>`<li>Être capable de ${l}</li>`).join('');
   const valHTML = f.valeurs&&f.valeurs.length ? f.valeurs.map(v=>`<li>${v}</li>`).join('') : '';
 
   const headerHTML = `
-    <div class="mtitle">FICHE SÉANCE – ${f.sportName||'Sport'}</div>
+    <div class="mtitle">FICHE SÉANCE – (${f.sportName||'nom du sport'})</div>
     <div class="topcols">
       <div class="topcol">
         <div class="colhdr">INFORMATIONS GÉNÉRALES</div>
-        <div class="ifield"><b>Séance :</b> ${f.nom||''}</div>
-        <div class="ifield"><b>Sport :</b> ${f.sportName||''} | <b>Date :</b> ${dateFormatted} | <b>Durée :</b> ${f.duree||''}</div>
-        <div class="ifield"><b>Lieu :</b> ${f.lieu||''}</div>
-        <div class="ifield"><b>Éducateur :</b> ${f.educateur||''} | <b>Public :</b> ${f.public||''}</div>
+        <div class="ifield"><b>Nom de la séance :</b><br>${f.nom||''}</div>
+        <div class="ifield"><b>Discipline / Thématique :</b><br>${f.sportName||''}</div>
+        <div class="ifield"><b>Date :</b><br>${dateFormatted}</div>
+        <div class="ifield"><b>Durée totale :</b><br>${f.duree||''}</div>
+        <div class="ifield"><b>Lieu / Matériel :</b><br>${f.lieu||''}</div>
+        <div class="ifield"><b>Éducateur(s) :</b><br>${f.educateur||''}</div>
+        <div class="ifield"><b>Public (âge / niveau / effectif) :</b><br>${f.public||''}</div>
       </div>
       <div class="topcol">
-        <div class="colhdr">OBJECTIFS & VALEURS</div>
-        <div class="osec"><b>Obj. séance :</b><ul>${objHTML}</ul></div>
-        <div class="osec"><b>Obj. cycle :</b> <span style="font-size:8px">${f.objCycle||''}</span></div>
-        <div class="osec"><b>Valeurs :</b><ul>${valHTML}</ul></div>
+        <div class="colhdr">OBJECTIFS ET VALEURS MORALE</div>
+        <div class="osec"><b>Objectif de la séance :</b><ul>${objHTML}</ul></div>
+        <div class="osec"><b>Objectif du cycle :</b><div style="font-size:10px">${f.objCycle||''}</div></div>
+        <div class="osec"><b>Valeurs morales :</b><ul>${valHTML}</ul></div>
       </div>
     </div>
-    <div class="exbar">EXERCICES</div>
+    <div class="exbar">DESCRIPTION DES EXERCICES</div>
     <div class="cut"></div>`;
 
   const exHTMLs = (f.exercices||[]).map((ex,i) => renderExercice(ex, i));
