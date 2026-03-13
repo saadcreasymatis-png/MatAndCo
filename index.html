@@ -940,6 +940,10 @@
 
       <label>Matériel général</label>
       <input type="text" id="materiel-seance" placeholder="Ex: Tapis, enceinte, cônes...">
+
+      <!-- MODIFICATION: Ajout du champ Point de vigilance -->
+      <label>⚠️ Point de vigilance</label>
+      <textarea id="vigilance-seance" placeholder="Ex: Attention aux surfaces glissantes, prévoir de l'eau pour les seniors..." style="min-height:60px"></textarea>
     </div>
     <button class="btn btn-primary" onclick="nextStep()">Suivant →</button>
   </div>
@@ -1291,7 +1295,8 @@ function resetForm() {
   currentFicheId = null;
 
   document.querySelectorAll('.step-content').forEach((el,i) => el.style.display = i===0 ? 'block' : 'none');
-  ['nom-seance','duree-seance','lieu-seance','edu-seance','public-seance','materiel-seance','obj-seance','obj-cycle'].forEach(id => {
+  // MODIFICATION: Ajout de vigilance-seance dans la liste des champs à réinitialiser
+  ['nom-seance','duree-seance','lieu-seance','edu-seance','public-seance','materiel-seance','vigilance-seance','obj-seance','obj-cycle'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.value = '';
   });
@@ -2154,6 +2159,8 @@ function renderRecap() {
       <div class="preview-label">Public</div>
       <div class="preview-val">${document.getElementById('public-seance').value||'-'}</div>
     </div>
+    <!-- MODIFICATION: Affichage du Point de vigilance dans le récapitulatif -->
+    ${document.getElementById('vigilance-seance').value ? `<div class="preview-section" style="margin-top:8px;padding:10px;background:#fff3e0;border-left:3px solid #ff9800;border-radius:4px"><div class="preview-label" style="color:#e65100">⚠️ Point de vigilance</div><div class="preview-val" style="color:#e65100">${document.getElementById('vigilance-seance').value}</div></div>` : ''}
     ${selectedValeurs.length ? `<div class="preview-section"><div class="preview-label">Valeurs morales</div><div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:4px">${selectedValeurs.map(v=>`<span class="tag">${v}</span>`).join('')}</div></div>` : ''}
     <div class="sep"></div>
     <div class="preview-label" style="margin-bottom:8px">${exercices.length} exercice${exercices.length!==1?'s':''}</div>
@@ -2185,6 +2192,8 @@ function saveFiche() {
     educateur: document.getElementById('edu-seance').value,
     public: document.getElementById('public-seance').value,
     materiel: document.getElementById('materiel-seance').value,
+    // MODIFICATION: Ajout du champ vigilance (Point de vigilance)
+    vigilance: document.getElementById('vigilance-seance').value,
     objSeance: document.getElementById('obj-seance').value,
     objCycle: document.getElementById('obj-cycle').value,
     valeurs: [...selectedValeurs],
@@ -2275,7 +2284,8 @@ function assignCycle(ficheId, e) {
   e.stopPropagation();
   const f = fiches.find(x => x.id === ficheId);
   if (!f) return;
-  const sportCycles = cycles.filter(c => c.sportId === f.sportId);
+  // MODIFICATION: Utiliser f.sport au lieu de f.sportId
+  const sportCycles = cycles.filter(c => c.sportId === f.sport);
   if (!sportCycles.length) { notify('Créez d\'abord un cycle dans ce dossier sport'); return; }
   const opts = sportCycles.map((c,i) => `${i+1}. ${c.nom}`).join('\n');
   const currentIdx = sportCycles.findIndex(c => c.ficheIds.includes(ficheId));
@@ -2299,10 +2309,11 @@ function renderFiches() {
   }
   empty.style.display = 'none';
 
-  // Grouper les fiches par sport
+  // MODIFICATION: Grouper les fiches par sport (utiliser f.sport au lieu de f.sportId)
+  // Organisation: 1 sport = 1 dossier contenant les fiches associées
   const groups = {};
   fiches.forEach(f => {
-    const key = f.sportId || 'autre';
+    const key = f.sport || 'autre';
     if (!groups[key]) groups[key] = { name: f.sportName||'Autre', emoji: f.sportEmoji||'🏅', fiches: [] };
     groups[key].fiches.push(f);
   });
@@ -2383,6 +2394,8 @@ function viewFiche(id) {
         <div><div class="preview-label">Public</div><div class="preview-val">${f.public||'-'}</div></div>
       </div>
       ${f.materiel ? `<div class="preview-label">Matériel</div><div class="preview-val">${f.materiel}</div>` : ''}
+      <!-- MODIFICATION: Affichage du Point de vigilance -->
+      ${f.vigilance ? `<div style="margin-top:10px;padding:10px;background:#fff3e0;border-left:3px solid #ff9800;border-radius:4px"><div class="preview-label" style="color:#e65100">⚠️ Point de vigilance</div><div class="preview-val" style="color:#e65100">${f.vigilance}</div></div>` : ''}
     </div>
 
     ${(f.objSeance||f.objCycle||f.valeurs?.length) ? `
@@ -2479,6 +2492,8 @@ function editFiche() {
   document.getElementById('edu-seance').value     = f.educateur  || '';
   document.getElementById('public-seance').value  = f.public     || '';
   document.getElementById('materiel-seance').value= f.materiel   || '';
+  // MODIFICATION: Charger le champ Point de vigilance lors de l'édition
+  document.getElementById('vigilance-seance').value= f.vigilance || '';
 
   // 4. Remplir étape 1 : Objectifs & Valeurs
   document.getElementById('obj-seance').value = f.objSeance || '';
@@ -2629,6 +2644,7 @@ async function exportPDF() {
         <div class="ifield"><b>Lieu / Matériel :</b><br>${f.lieu||''}</div>
         <div class="ifield"><b>Éducateur(s) :</b><br>${f.educateur||''}</div>
         <div class="ifield"><b>Public (âge / niveau / effectif) :</b><br>${f.public||''}</div>
+        ${f.vigilance ? `<div class="ifield" style="background:#fff3e0;padding:6px;border-left:3px solid #ff9800;margin-top:6px"><b style="color:#e65100">⚠️ Point de vigilance :</b><br><span style="color:#e65100">${f.vigilance}</span></div>` : ''}
       </div>
       <div class="topcol">
         <div class="colhdr">OBJECTIFS ET VALEURS MORALE</div>
@@ -3316,6 +3332,298 @@ function notify(msg) {
     });
     localStorage.setItem('cycles', JSON.stringify(existingCycles));
   }
+})();
+
+// ============================================================
+// MODIFICATION: INJECTION DES 12 NOUVEAUX SPORTS AVEC CYCLES DE 6 SÉANCES
+// Famille AJS: Ultimate, Tchoukball, Kinball, Dodgeball
+// Famille APEN: Pilates, Cross Training, Stretching, Circuit Training  
+// Famille APEC: Course d'orientation, Escalade, Tir à l'arc, Slackline
+// Progression: Initiation → Intermédiaire (6 séances par sport)
+// ============================================================
+(function injectNewSportsCycles() {
+  const existing = JSON.parse(localStorage.getItem('fiches') || '[]');
+  const alreadyInjected = existing.some(f => f.id && f.id.startsWith('new-sport-'));
+  if (alreadyInjected) return;
+
+  const sportsStored = JSON.parse(localStorage.getItem('sports') || '[]');
+  const existingCycles = JSON.parse(localStorage.getItem('cycles') || '[]');
+
+  // Définition des 12 sports répartis en 3 familles
+  const newSportsData = [
+    // AJS (Activités Jeux Sportifs)
+    { id: 'ultimate', name: 'Ultimate', emoji: '🥏', famille: 'AJS' },
+    { id: 'tchoukball', name: 'Tchoukball', emoji: '🤾', famille: 'AJS' },
+    { id: 'kinball', name: 'Kinball', emoji: '🔵', famille: 'AJS' },
+    { id: 'dodgeball', name: 'Dodgeball', emoji: '🎯', famille: 'AJS' },
+    // APEN (Activités Physiques d'Entretien)
+    { id: 'pilates', name: 'Pilates', emoji: '🧘', famille: 'APEN' },
+    { id: 'cross-training', name: 'Cross Training', emoji: '💪', famille: 'APEN' },
+    { id: 'stretching', name: 'Stretching', emoji: '🤸', famille: 'APEN' },
+    { id: 'circuit-training', name: 'Circuit Training', emoji: '🏋️', famille: 'APEN' },
+    // APEC (Activités Physiques Éducatives et de Coopération)
+    { id: 'course-orientation', name: 'Course d\'orientation', emoji: '🧭', famille: 'APEC' },
+    { id: 'escalade', name: 'Escalade', emoji: '🧗', famille: 'APEC' },
+    { id: 'tir-arc', name: 'Tir à l\'arc', emoji: '🏹', famille: 'APEC' },
+    { id: 'slackline', name: 'Slackline', emoji: '⚖️', famille: 'APEC' },
+  ];
+
+  // Ajouter les sports au localStorage s'ils n'existent pas
+  newSportsData.forEach(sport => {
+    if (!sportsStored.some(s => s.id === sport.id)) {
+      sportsStored.push({ id: sport.id, name: sport.name, emoji: sport.emoji });
+    }
+  });
+  localStorage.setItem('sports', JSON.stringify(sportsStored));
+
+  // Structure des 6 séances progressives
+  const seancesStructure = [
+    { num: 1, titre: 'Découverte', niveau: 'Initiation', obj: 'Découvrir l\'activité et ses règles fondamentales' },
+    { num: 2, titre: 'Bases techniques', niveau: 'Initiation', obj: 'Acquérir les gestes techniques de base' },
+    { num: 3, titre: 'Consolidation', niveau: 'Initiation avancée', obj: 'Consolider et renforcer les acquis techniques' },
+    { num: 4, titre: 'Situations de jeu', niveau: 'Intermédiaire', obj: 'Appliquer les techniques en situation réelle' },
+    { num: 5, titre: 'Perfectionnement', niveau: 'Intermédiaire', obj: 'Perfectionner et automatiser les acquis' },
+    { num: 6, titre: 'Évaluation & Autonomie', niveau: 'Intermédiaire avancé', obj: 'Démontrer une pratique autonome et évaluer sa progression' },
+  ];
+
+  // Données spécifiques par sport
+  const sportsDetails = {
+    'ultimate': {
+      materiel: 'Disques (frisbees), chasubles, cônes, plots',
+      lieu: 'Terrain extérieur ou gymnase',
+      public: 'Adolescents/Adultes, 12-16 participants',
+      valeurs: ['Fair-play', 'Coopération', 'Respect'],
+      vigilance: 'Échauffement des épaules indispensable. Auto-arbitrage obligatoire.',
+      exercicesBase: [
+        { phase: 'Échauffement', titre: 'Manipulation du disque', duree: '10 min' },
+        { phase: 'Corps de séance', titre: 'Technique de lancer revers/coup droit', duree: '20 min' },
+        { phase: 'Corps de séance', titre: 'Jeu collectif avec règles adaptées', duree: '20 min' },
+        { phase: 'Retour au calme', titre: 'Étirements et Spirit Circle', duree: '10 min' },
+      ]
+    },
+    'tchoukball': {
+      materiel: 'Ballons de tchoukball, cadres de rebond (2), chasubles',
+      lieu: 'Gymnase',
+      public: 'Adolescents/Adultes, 12-14 participants',
+      valeurs: ['Fair-play', 'Respect', 'Non-violence'],
+      vigilance: 'Cadres stables. Réception du ballon après rebond à anticiper.',
+      exercicesBase: [
+        { phase: 'Échauffement', titre: 'Passes et manipulation ballon', duree: '10 min' },
+        { phase: 'Corps de séance', titre: 'Technique de tir sur cadre', duree: '20 min' },
+        { phase: 'Corps de séance', titre: 'Situations de jeu et défense', duree: '20 min' },
+        { phase: 'Retour au calme', titre: 'Étirements et bilan', duree: '10 min' },
+      ]
+    },
+    'kinball': {
+      materiel: 'Ballon Kinball (1.22m diamètre), chasubles 3 couleurs',
+      lieu: 'Gymnase',
+      public: 'Tous publics, 12-15 participants (3 équipes)',
+      valeurs: ['Coopération', 'Inclusion', 'Solidarité'],
+      vigilance: 'Attention au ballon volumineux. Coordination des 3 équipes.',
+      exercicesBase: [
+        { phase: 'Échauffement', titre: 'Manipulation du ballon géant', duree: '10 min' },
+        { phase: 'Corps de séance', titre: 'Technique de frappe et appel', duree: '20 min' },
+        { phase: 'Corps de séance', titre: 'Match à 3 équipes', duree: '20 min' },
+        { phase: 'Retour au calme', titre: 'Étirements et bilan collectif', duree: '10 min' },
+      ]
+    },
+    'dodgeball': {
+      materiel: 'Ballons mousse (6-8), chasubles, cônes',
+      lieu: 'Gymnase',
+      public: 'Tous publics, 12-20 participants',
+      valeurs: ['Fair-play', 'Réactivité', 'Engagement'],
+      vigilance: 'Utiliser uniquement des ballons mousse. Tirs au-dessus des épaules interdits.',
+      exercicesBase: [
+        { phase: 'Échauffement', titre: 'Jeu d\'esquive et réactivité', duree: '10 min' },
+        { phase: 'Corps de séance', titre: 'Technique de lancer et esquive', duree: '15 min' },
+        { phase: 'Corps de séance', titre: 'Match avec règles progressives', duree: '25 min' },
+        { phase: 'Retour au calme', titre: 'Étirements', duree: '10 min' },
+      ]
+    },
+    'pilates': {
+      materiel: 'Tapis de sol, balles, élastiques, coussins',
+      lieu: 'Salle de cours',
+      public: 'Adultes tous niveaux, 10-15 participants',
+      valeurs: ['Concentration', 'Bien-être', 'Respect du corps'],
+      vigilance: 'Respecter les limites du corps. Contre-indications dorsales à vérifier.',
+      exercicesBase: [
+        { phase: 'Échauffement', titre: 'Respiration et activation du centre', duree: '10 min' },
+        { phase: 'Corps de séance', titre: 'Exercices au sol (fondamentaux)', duree: '25 min' },
+        { phase: 'Corps de séance', titre: 'Renforcement profond', duree: '15 min' },
+        { phase: 'Retour au calme', titre: 'Étirements et relaxation', duree: '10 min' },
+      ]
+    },
+    'cross-training': {
+      materiel: 'Kettlebells, cordes, barres, box, tapis',
+      lieu: 'Salle de sport ou extérieur',
+      public: 'Adultes, 8-12 participants',
+      valeurs: ['Dépassement de soi', 'Persévérance', 'Entraide'],
+      vigilance: 'Technique avant intensité. Hydratation régulière. Adapter les charges.',
+      exercicesBase: [
+        { phase: 'Échauffement', titre: 'Mobilité et activation cardio', duree: '10 min' },
+        { phase: 'Corps de séance', titre: 'Technique des mouvements fonctionnels', duree: '20 min' },
+        { phase: 'Corps de séance', titre: 'WOD (Workout of the Day) adapté', duree: '20 min' },
+        { phase: 'Retour au calme', titre: 'Récupération et étirements', duree: '10 min' },
+      ]
+    },
+    'stretching': {
+      materiel: 'Tapis, sangles, coussins',
+      lieu: 'Salle de cours',
+      public: 'Tous publics, 10-15 participants',
+      valeurs: ['Bien-être', 'Patience', 'Écoute du corps'],
+      vigilance: 'Ne jamais forcer. Respiration continue. Adapter à chaque participant.',
+      exercicesBase: [
+        { phase: 'Échauffement', titre: 'Activation douce et respiration', duree: '8 min' },
+        { phase: 'Corps de séance', titre: 'Étirements chaîne postérieure', duree: '20 min' },
+        { phase: 'Corps de séance', titre: 'Étirements chaîne antérieure', duree: '17 min' },
+        { phase: 'Retour au calme', titre: 'Relaxation guidée', duree: '15 min' },
+      ]
+    },
+    'circuit-training': {
+      materiel: 'Cônes, steps, haltères, élastiques, chronomètre',
+      lieu: 'Gymnase ou extérieur',
+      public: 'Adultes, 10-16 participants',
+      valeurs: ['Engagement', 'Persévérance', 'Solidarité'],
+      vigilance: 'Technique correcte à chaque atelier. Gérer l\'intensité individuellement.',
+      exercicesBase: [
+        { phase: 'Échauffement', titre: 'Activation cardio progressive', duree: '10 min' },
+        { phase: 'Corps de séance', titre: 'Circuit 6-8 ateliers', duree: '30 min' },
+        { phase: 'Corps de séance', titre: 'Finisher collectif', duree: '10 min' },
+        { phase: 'Retour au calme', titre: 'Étirements complets', duree: '10 min' },
+      ]
+    },
+    'course-orientation': {
+      materiel: 'Cartes, boussoles, balises, poinçons, chronomètre',
+      lieu: 'Parc ou forêt',
+      public: 'Tous publics, 10-20 participants',
+      valeurs: ['Autonomie', 'Réflexion', 'Confiance'],
+      vigilance: 'Délimiter le terrain. Binômes pour sécurité. Check-point retour.',
+      exercicesBase: [
+        { phase: 'Échauffement', titre: 'Lecture de carte et orientation', duree: '15 min' },
+        { phase: 'Corps de séance', titre: 'Parcours guidé puis autonome', duree: '30 min' },
+        { phase: 'Corps de séance', titre: 'Course aux balises', duree: '10 min' },
+        { phase: 'Retour au calme', titre: 'Débriefing et correction', duree: '5 min' },
+      ]
+    },
+    'escalade': {
+      materiel: 'Mur d\'escalade, baudriers, cordes, mousquetons, crash pads',
+      lieu: 'SAE (Salle d\'Escalade) ou bloc',
+      public: 'Tous publics, 8-12 participants',
+      valeurs: ['Confiance', 'Dépassement de soi', 'Sécurité'],
+      vigilance: 'Vérification systématique du matériel. Assurage obligatoire en moulinette.',
+      exercicesBase: [
+        { phase: 'Échauffement', titre: 'Mobilité et traversées basses', duree: '15 min' },
+        { phase: 'Corps de séance', titre: 'Technique de grimpe et assurage', duree: '25 min' },
+        { phase: 'Corps de séance', titre: 'Voies progressives', duree: '15 min' },
+        { phase: 'Retour au calme', titre: 'Étirements et rangement', duree: '5 min' },
+      ]
+    },
+    'tir-arc': {
+      materiel: 'Arcs, flèches, cibles, protège-bras, plastrons',
+      lieu: 'Pas de tir homologué',
+      public: 'Tous publics à partir de 10 ans, 6-10 participants',
+      valeurs: ['Concentration', 'Maîtrise de soi', 'Respect des règles'],
+      vigilance: 'Zone de tir sécurisée. Ne jamais passer devant les tireurs. Récupération collective.',
+      exercicesBase: [
+        { phase: 'Échauffement', titre: 'Sécurité et échauffement spécifique', duree: '15 min' },
+        { phase: 'Corps de séance', titre: 'Technique de base (posture, visée)', duree: '25 min' },
+        { phase: 'Corps de séance', titre: 'Séries de tir et correction', duree: '15 min' },
+        { phase: 'Retour au calme', titre: 'Rangement et bilan', duree: '5 min' },
+      ]
+    },
+    'slackline': {
+      materiel: 'Slacklines, arbres ou poteaux, crash pads',
+      lieu: 'Parc ou gymnase',
+      public: 'Tous publics, 8-12 participants',
+      valeurs: ['Persévérance', 'Concentration', 'Confiance'],
+      vigilance: 'Hauteur limitée. Crash pads obligatoires. Parade entre participants.',
+      exercicesBase: [
+        { phase: 'Échauffement', titre: 'Proprioception et équilibre au sol', duree: '10 min' },
+        { phase: 'Corps de séance', titre: 'Montée et équilibre statique', duree: '20 min' },
+        { phase: 'Corps de séance', titre: 'Marche sur slackline', duree: '20 min' },
+        { phase: 'Retour au calme', titre: 'Étirements et relaxation', duree: '10 min' },
+      ]
+    },
+  };
+
+  // Générer les fiches pour chaque sport
+  const nouvelleFiches = [];
+  const nouveauxCycles = [];
+
+  newSportsData.forEach(sport => {
+    const details = sportsDetails[sport.id];
+    const ficheIds = [];
+    
+    seancesStructure.forEach((seance, idx) => {
+      const ficheId = `new-sport-${sport.id}-seance-${seance.num}`;
+      ficheIds.push(ficheId);
+      
+      // Adapter les exercices selon le niveau de la séance
+      const exercices = details.exercicesBase.map((ex, exIdx) => ({
+        titre: `${ex.titre} — Niveau ${seance.niveau}`,
+        duree: ex.duree,
+        phase: ex.phase,
+        organisation: seance.num <= 2 ? 'Groupe complet avec démonstrations' : 
+                      seance.num <= 4 ? 'Ateliers et situations de jeu' : 
+                      'Autonomie avec validation',
+        materiel: details.materiel,
+        descriptif: `Progression ${seance.titre.toLowerCase()} : ${seance.obj}. Adaptation du contenu au niveau ${seance.niveau}.`,
+        consignes: [
+          seance.num === 1 ? 'Observer et imiter' : 'Appliquer les acquis',
+          'Respecter les consignes de sécurité',
+          seance.num >= 4 ? 'Prendre des initiatives' : 'Demander de l\'aide si besoin'
+        ],
+        criteresReussite: `Atteindre le niveau ${seance.niveau} sur les critères techniques`,
+        criteresRealisation: 'Engagement, progression visible, respect des consignes',
+        varDebutant: 'Simplification des exercices, accompagnement renforcé',
+        varAvance: 'Complexification, responsabilisation',
+        schema: null,
+        aiSvg: null,
+      }));
+
+      nouvelleFiches.push({
+        id: ficheId,
+        nom: `Séance ${seance.num} — ${seance.titre}`,
+        sport: sport.id,
+        sportName: sport.name,
+        sportEmoji: sport.emoji,
+        date: new Date(2026, 0, 8 + (idx * 7)).toISOString().split('T')[0],
+        duree: '60 min',
+        lieu: details.lieu,
+        educateur: 'Éducateur sportif',
+        public: details.public,
+        materiel: details.materiel,
+        vigilance: details.vigilance,
+        objSeance: seance.obj,
+        objCycle: `Progresser de l\'initiation au niveau intermédiaire en ${sport.name}.`,
+        valeurs: details.valeurs,
+        createdAt: new Date().toISOString(),
+        exercices: exercices,
+      });
+    });
+
+    // Créer le cycle pour ce sport
+    nouveauxCycles.push({
+      id: `cycle-new-${sport.id}`,
+      sportId: sport.id,
+      nom: `Cycle ${sport.name} — ${sport.famille}`,
+      ficheIds: ficheIds,
+    });
+  });
+
+  // Ajouter les fiches au localStorage
+  nouvelleFiches.forEach(f => existing.unshift(f));
+  localStorage.setItem('fiches', JSON.stringify(existing));
+
+  // Ajouter les cycles au localStorage
+  nouveauxCycles.forEach(c => {
+    if (!existingCycles.some(ec => ec.id === c.id)) {
+      existingCycles.push(c);
+    }
+  });
+  localStorage.setItem('cycles', JSON.stringify(existingCycles));
+
+  console.log('[Mat&Co] 12 nouveaux sports injectés avec 6 séances chacun (72 fiches au total)');
 })();
 
 
