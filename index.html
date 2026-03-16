@@ -1703,23 +1703,51 @@ async function generateAiSchema() {
   await new Promise(r => setTimeout(r, 500));
 
   try {
-    const svgCode = buildSmartSVG({ titre, organisation, descriptif, materiel, phase, consignesText, userPrompt, allText, public: aiSchemaPublic });
+    let svgCode;
+    
+    // MODIFICATION: Utiliser le style EHPAD/Gym Douce pour les seniors
+    if (isSeniorPublic(aiSchemaPublic, descriptif + ' ' + titre)) {
+      // Générer un schéma style EHPAD avec personnages seniors sur chaise
+      const consignesList = consignes.filter(c => c.trim());
+      svgCode = buildEHPADSchema(consignesList, titre, phase);
+      
+      // Légende spécifique EHPAD
+      legendArea.style.display = 'flex';
+      legendArea.innerHTML = `
+        <div class="ai-legend-item">
+          <div class="ai-legend-dot" style="background:#4A90D9"></div>
+          <span>Mouvement / Direction</span>
+        </div>
+        <div class="ai-legend-item">
+          <div class="ai-legend-dot" style="background:#FFDAB9"></div>
+          <span>Participant</span>
+        </div>
+        <div class="ai-legend-item">
+          <div class="ai-legend-dot" style="background:#8B5A2B"></div>
+          <span>Chaise</span>
+        </div>`;
+    } else {
+      // Schéma sportif classique
+      svgCode = buildSmartSVG({ titre, organisation, descriptif, materiel, phase, consignesText, userPrompt, allText, public: aiSchemaPublic });
+      
+      // Build legend
+      const legendItems = buildLegend(allText);
+      if (legendItems.length) {
+        legendArea.style.display = 'flex';
+        legendArea.innerHTML = legendItems.map(i => `
+          <div class="ai-legend-item">
+            <div class="ai-legend-dot" style="background:${i.color}"></div>
+            <span>${i.label}</span>
+          </div>`).join('');
+      }
+    }
+    
     lastAiSvg = svgCode;
     preview.innerHTML = svgCode;
-
-    // Build legend
-    const legendItems = buildLegend(allText);
-    if (legendItems.length) {
-      legendArea.style.display = 'flex';
-      legendArea.innerHTML = legendItems.map(i => `
-        <div class="ai-legend-item">
-          <div class="ai-legend-dot" style="background:${i.color}"></div>
-          <span>${i.label}</span>
-        </div>`).join('');
-    }
     actions.style.display = 'flex';
     notify('✨ Schéma généré !');
   } catch(err) {
+    console.error('Erreur génération schéma:', err);
     preview.innerHTML = `<div class="ai-schema-empty"><div class="ai-schema-empty-icon">😔</div><div>Erreur génération</div></div>`;
     notify('❌ Erreur génération');
   }
@@ -1785,7 +1813,285 @@ function makeDefs() {
     <marker id="arrk" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
       <path d="M0,0 L0,6 L8,3 z" fill="#7f8c8d"/>
     </marker>
+    <!-- MODIFICATION: Flèches style EHPAD -->
+    <marker id="arrow-ehpad" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
+      <path d="M0,0 L0,10 L10,5 z" fill="#4A90D9"/>
+    </marker>
   </defs>`;
+}
+
+// ============================================================
+// MODIFICATION: GÉNÉRATEUR DE SCHÉMAS STYLE EHPAD / GYM DOUCE
+// Style visuel: personnages seniors assis sur chaise, flèches bleues
+// Palette: Bleu #4A90D9, Beige #F5F0E8, Gris doux
+// ============================================================
+
+// Dessine un personnage senior assis sur une chaise (style cartoon EHPAD)
+function drawSeniorOnChair(x, y, scale = 1, action = 'neutral', hairColor = '#9CA3AF') {
+  const s = scale;
+  // Chaise
+  const chair = `
+    <rect x="${x-20*s}" y="${y+10*s}" width="40*${s}" height="35*${s}" rx="3" fill="#8B5A2B" opacity="0.9"/>
+    <rect x="${x-18*s}" y="${y+8*s}" width="36*${s}" height="8*${s}" rx="2" fill="#A0522D"/>
+    <rect x="${x-22*s}" y="${y+45*s}" width="6*${s}" height="20*${s}" fill="#8B5A2B"/>
+    <rect x="${x+16*s}" y="${y+45*s}" width="6*${s}" height="20*${s}" fill="#8B5A2B"/>
+  `;
+  
+  // Corps du personnage
+  const body = `
+    <ellipse cx="${x}" cy="${y+5*s}" rx="${14*s}" ry="${18*s}" fill="#4A90D9"/>
+  `;
+  
+  // Tête
+  const head = `
+    <circle cx="${x}" cy="${y-25*s}" r="${12*s}" fill="#FFDAB9"/>
+    <ellipse cx="${x}" cy="${y-35*s}" rx="${14*s}" ry="${8*s}" fill="${hairColor}"/>
+  `;
+  
+  // Visage souriant
+  const face = `
+    <circle cx="${x-4*s}" cy="${y-27*s}" r="${2*s}" fill="#333"/>
+    <circle cx="${x+4*s}" cy="${y-27*s}" r="${2*s}" fill="#333"/>
+    <path d="M${x-5*s},${y-20*s} Q${x},${y-16*s} ${x+5*s},${y-20*s}" fill="none" stroke="#333" stroke-width="${1.5*s}" stroke-linecap="round"/>
+  `;
+  
+  // Bras selon l'action
+  let arms = '';
+  if (action === 'arms-up') {
+    arms = `
+      <line x1="${x-12*s}" y1="${y-5*s}" x2="${x-25*s}" y2="${y-35*s}" stroke="#FFDAB9" stroke-width="${6*s}" stroke-linecap="round"/>
+      <line x1="${x+12*s}" y1="${y-5*s}" x2="${x+25*s}" y2="${y-35*s}" stroke="#FFDAB9" stroke-width="${6*s}" stroke-linecap="round"/>
+      <circle cx="${x-25*s}" cy="${y-35*s}" r="${4*s}" fill="#FFDAB9"/>
+      <circle cx="${x+25*s}" cy="${y-35*s}" r="${4*s}" fill="#FFDAB9"/>
+    `;
+  } else if (action === 'arms-front') {
+    arms = `
+      <line x1="${x-12*s}" y1="${y}" x2="${x-35*s}" y2="${y-10*s}" stroke="#FFDAB9" stroke-width="${6*s}" stroke-linecap="round"/>
+      <line x1="${x+12*s}" y1="${y}" x2="${x+35*s}" y2="${y-10*s}" stroke="#FFDAB9" stroke-width="${6*s}" stroke-linecap="round"/>
+      <circle cx="${x-35*s}" cy="${y-10*s}" r="${4*s}" fill="#FFDAB9"/>
+      <circle cx="${x+35*s}" cy="${y-10*s}" r="${4*s}" fill="#FFDAB9"/>
+    `;
+  } else if (action === 'rotation') {
+    arms = `
+      <line x1="${x-12*s}" y1="${y}" x2="${x-30*s}" y2="${y+5*s}" stroke="#FFDAB9" stroke-width="${6*s}" stroke-linecap="round"/>
+      <line x1="${x+12*s}" y1="${y}" x2="${x+30*s}" y2="${y-15*s}" stroke="#FFDAB9" stroke-width="${6*s}" stroke-linecap="round"/>
+    `;
+  } else if (action === 'hands') {
+    arms = `
+      <line x1="${x-12*s}" y1="${y+5*s}" x2="${x-20*s}" y2="${y+25*s}" stroke="#FFDAB9" stroke-width="${6*s}" stroke-linecap="round"/>
+      <line x1="${x+12*s}" y1="${y+5*s}" x2="${x+20*s}" y2="${y+25*s}" stroke="#FFDAB9" stroke-width="${6*s}" stroke-linecap="round"/>
+    `;
+  } else if (action === 'leg-extend') {
+    arms = `
+      <line x1="${x-12*s}" y1="${y+5*s}" x2="${x-25*s}" y2="${y+20*s}" stroke="#FFDAB9" stroke-width="${6*s}" stroke-linecap="round"/>
+      <line x1="${x+12*s}" y1="${y+5*s}" x2="${x+25*s}" y2="${y+20*s}" stroke="#FFDAB9" stroke-width="${6*s}" stroke-linecap="round"/>
+    `;
+  } else {
+    arms = `
+      <line x1="${x-12*s}" y1="${y+5*s}" x2="${x-22*s}" y2="${y+25*s}" stroke="#FFDAB9" stroke-width="${6*s}" stroke-linecap="round"/>
+      <line x1="${x+12*s}" y1="${y+5*s}" x2="${x+22*s}" y2="${y+25*s}" stroke="#FFDAB9" stroke-width="${6*s}" stroke-linecap="round"/>
+    `;
+  }
+  
+  // Jambes
+  let legs = '';
+  if (action === 'leg-extend') {
+    legs = `
+      <line x1="${x-8*s}" y1="${y+25*s}" x2="${x-8*s}" y2="${y+50*s}" stroke="#333" stroke-width="${7*s}" stroke-linecap="round"/>
+      <line x1="${x+8*s}" y1="${y+25*s}" x2="${x+40*s}" y2="${y+35*s}" stroke="#333" stroke-width="${7*s}" stroke-linecap="round"/>
+      <ellipse cx="${x+45*s}" cy="${y+35*s}" rx="${6*s}" ry="${4*s}" fill="#333"/>
+    `;
+  } else {
+    legs = `
+      <line x1="${x-8*s}" y1="${y+25*s}" x2="${x-8*s}" y2="${y+50*s}" stroke="#333" stroke-width="${7*s}" stroke-linecap="round"/>
+      <line x1="${x+8*s}" y1="${y+25*s}" x2="${x+8*s}" y2="${y+50*s}" stroke="#333" stroke-width="${7*s}" stroke-linecap="round"/>
+      <ellipse cx="${x-8*s}" cy="${y+52*s}" rx="${6*s}" ry="${4*s}" fill="#333"/>
+      <ellipse cx="${x+8*s}" cy="${y+52*s}" rx="${6*s}" ry="${4*s}" fill="#333"/>
+    `;
+  }
+  
+  return chair + legs + body + arms + head + face;
+}
+
+// Dessine une flèche de mouvement style EHPAD
+function drawMovementArrow(x1, y1, x2, y2, curved = false, double = false) {
+  const color = '#4A90D9';
+  if (curved) {
+    const mx = (x1 + x2) / 2;
+    const my = Math.min(y1, y2) - 20;
+    return `
+      <path d="M${x1},${y1} Q${mx},${my} ${x2},${y2}" fill="none" stroke="${color}" stroke-width="3" marker-end="url(#arrow-ehpad)"/>
+      ${double ? `<path d="M${x2},${y2} Q${mx},${my+40} ${x1},${y1}" fill="none" stroke="${color}" stroke-width="3" marker-end="url(#arrow-ehpad)"/>` : ''}
+    `;
+  }
+  return `
+    <line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${color}" stroke-width="3" marker-end="url(#arrow-ehpad)"/>
+    ${double ? `<line x1="${x2}" y1="${y2+10}" x2="${x1}" y2="${y1+10}" stroke="${color}" stroke-width="3" marker-end="url(#arrow-ehpad)"/>` : ''}
+  `;
+}
+
+// Dessine une flèche circulaire (rotation)
+function drawRotationArrow(cx, cy, radius, startAngle, endAngle) {
+  const color = '#4A90D9';
+  const start = {
+    x: cx + radius * Math.cos(startAngle * Math.PI / 180),
+    y: cy + radius * Math.sin(startAngle * Math.PI / 180)
+  };
+  const end = {
+    x: cx + radius * Math.cos(endAngle * Math.PI / 180),
+    y: cy + radius * Math.sin(endAngle * Math.PI / 180)
+  };
+  const largeArc = Math.abs(endAngle - startAngle) > 180 ? 1 : 0;
+  return `
+    <path d="M${start.x},${start.y} A${radius},${radius} 0 ${largeArc},1 ${end.x},${end.y}" 
+          fill="none" stroke="${color}" stroke-width="3" marker-end="url(#arrow-ehpad)"/>
+  `;
+}
+
+// Bandeau titre style EHPAD
+function drawTitleBanner(x, y, width, text) {
+  return `
+    <rect x="${x}" y="${y}" width="${width}" height="22" rx="3" fill="#4A90D9"/>
+    <text x="${x + width/2}" y="${y + 15}" text-anchor="middle" font-size="11" font-family="Arial" font-weight="bold" fill="white">${text}</text>
+  `;
+}
+
+// Dessine des mains ouvertes/fermées
+function drawHands(x, y, open = true) {
+  if (open) {
+    return `
+      <path d="M${x-15},${y} L${x-20},${y-25} M${x-15},${y} L${x-25},${y-20} M${x-15},${y} L${x-28},${y-12} M${x-15},${y} L${x-26},${y-5} M${x-15},${y} L${x-20},${y+3}" 
+            stroke="#FFDAB9" stroke-width="4" stroke-linecap="round" fill="none"/>
+      <path d="M${x+15},${y} L${x+20},${y-25} M${x+15},${y} L${x+25},${y-20} M${x+15},${y} L${x+28},${y-12} M${x+15},${y} L${x+26},${y-5} M${x+15},${y} L${x+20},${y+3}" 
+            stroke="#FFDAB9" stroke-width="4" stroke-linecap="round" fill="none"/>
+    `;
+  } else {
+    return `
+      <circle cx="${x-20}" cy="${y}" r="10" fill="#FFDAB9" stroke="#DEB887" stroke-width="2"/>
+      <circle cx="${x+20}" cy="${y}" r="10" fill="#FFDAB9" stroke="#DEB887" stroke-width="2"/>
+    `;
+  }
+}
+
+// Générateur principal de schéma style EHPAD (grille 3x2)
+function buildEHPADSchema(consignes, titre, phase) {
+  const W = 450, H = 300;
+  const bgColor = '#F5F0E8';
+  
+  // Analyser les consignes pour déterminer les actions
+  const actions = consignes.slice(0, 6).map(c => {
+    const cl = c.toLowerCase();
+    if (cl.includes('rotation') && cl.includes('tête')) return { type: 'head-rotation', label: 'Rotation douce de la tête' };
+    if (cl.includes('hausser') || cl.includes('épaules') && cl.includes('baisser')) return { type: 'shoulders-up-down', label: 'Hausser et baisser les épaules' };
+    if (cl.includes('rotation') && cl.includes('épaules')) return { type: 'shoulders-rotation', label: 'Rotation des épaules' };
+    if (cl.includes('ouvrir') && cl.includes('fermer') && cl.includes('main')) return { type: 'hands-open-close', label: 'Ouvrir et fermer les mains' };
+    if (cl.includes('cercle') && cl.includes('poignet')) return { type: 'wrist-circles', label: 'Cercles des poignets' };
+    if (cl.includes('fléchir') || cl.includes('étendre') && cl.includes('jambe')) return { type: 'leg-flex', label: 'Flexion et extension des jambes' };
+    if (cl.includes('lever') && cl.includes('bras')) return { type: 'arms-up', label: 'Lever les bras' };
+    if (cl.includes('tendre') && cl.includes('bras')) return { type: 'arms-front', label: 'Tendre les bras' };
+    if (cl.includes('inspirer') || cl.includes('expirer')) return { type: 'breathing', label: 'Respiration' };
+    if (cl.includes('pencher') || cl.includes('incliner')) return { type: 'lean', label: 'Inclinaison' };
+    return { type: 'neutral', label: c.substring(0, 30) + (c.length > 30 ? '...' : '') };
+  });
+  
+  // Remplir jusqu'à 6 actions minimum
+  while (actions.length < 6) {
+    actions.push({ type: 'neutral', label: '' });
+  }
+  
+  // Grille 3 colonnes x 2 lignes
+  const cellW = 145, cellH = 130;
+  const startX = 10, startY = 25;
+  
+  let content = `<rect width="${W}" height="${H}" fill="${bgColor}"/>`;
+  content += makeDefs();
+  
+  // Phase badge
+  const phaseColor = phase === 'Échauffement' ? '#e67e22' : phase === 'Corps de séance' ? '#4A90D9' : '#27ae60';
+  
+  for (let i = 0; i < 6; i++) {
+    const col = i % 3;
+    const row = Math.floor(i / 3);
+    const cx = startX + col * cellW + cellW / 2;
+    const cy = startY + row * cellH + 60;
+    const action = actions[i];
+    
+    if (!action.label) continue;
+    
+    // Cadre de la cellule
+    content += `<rect x="${startX + col * cellW + 2}" y="${startY + row * cellH}" width="${cellW - 4}" height="${cellH - 5}" rx="5" fill="white" stroke="#E5E5E5" stroke-width="1"/>`;
+    
+    // Bandeau titre
+    content += drawTitleBanner(startX + col * cellW + 5, startY + row * cellH + 3, cellW - 10, action.label);
+    
+    // Dessin selon le type d'action
+    const personX = cx;
+    const personY = cy + 15;
+    
+    switch (action.type) {
+      case 'head-rotation':
+        content += drawSeniorOnChair(personX, personY, 0.65, 'neutral');
+        content += drawRotationArrow(personX, personY - 20, 25, -150, 150);
+        break;
+      case 'shoulders-up-down':
+        content += drawSeniorOnChair(personX - 30, personY, 0.55, 'neutral');
+        content += drawSeniorOnChair(personX + 30, personY, 0.55, 'arms-up');
+        content += drawMovementArrow(personX - 10, personY - 25, personX - 10, personY - 45, false, true);
+        content += drawMovementArrow(personX + 50, personY - 25, personX + 50, personY - 45, false, true);
+        break;
+      case 'shoulders-rotation':
+        content += drawSeniorOnChair(personX, personY, 0.65, 'rotation');
+        content += drawRotationArrow(personX + 25, personY - 5, 18, 0, 270);
+        content += drawRotationArrow(personX - 25, personY - 5, 18, 180, -90);
+        break;
+      case 'hands-open-close':
+        content += drawHands(personX - 35, personY, true);
+        content += drawHands(personX + 35, personY, false);
+        content += drawRotationArrow(personX, personY + 10, 20, -30, 210);
+        break;
+      case 'wrist-circles':
+        content += `<circle cx="${personX - 30}" cy="${personY}" r="15" fill="#FFDAB9" stroke="#DEB887" stroke-width="2"/>`;
+        content += `<circle cx="${personX + 30}" cy="${personY}" r="15" fill="#FFDAB9" stroke="#DEB887" stroke-width="2"/>`;
+        content += drawRotationArrow(personX - 30, personY, 25, 0, 300);
+        content += drawRotationArrow(personX + 30, personY, 25, 0, 300);
+        break;
+      case 'leg-flex':
+        content += drawSeniorOnChair(personX - 35, personY - 5, 0.55, 'neutral');
+        content += drawSeniorOnChair(personX + 35, personY - 5, 0.55, 'leg-extend');
+        content += drawMovementArrow(personX + 55, personY + 30, personX + 75, personY + 15, true);
+        break;
+      case 'arms-up':
+        content += drawSeniorOnChair(personX, personY, 0.65, 'arms-up');
+        content += drawMovementArrow(personX - 30, personY, personX - 30, personY - 40, false);
+        content += drawMovementArrow(personX + 30, personY, personX + 30, personY - 40, false);
+        break;
+      case 'arms-front':
+        content += drawSeniorOnChair(personX, personY, 0.65, 'arms-front');
+        content += drawMovementArrow(personX - 20, personY - 5, personX - 45, personY - 10, false);
+        content += drawMovementArrow(personX + 20, personY - 5, personX + 45, personY - 10, false);
+        break;
+      case 'breathing':
+        content += drawSeniorOnChair(personX, personY, 0.65, 'arms-up');
+        content += `<text x="${personX}" y="${personY - 50}" text-anchor="middle" font-size="14" fill="#4A90D9">↑ Inspirer</text>`;
+        content += `<text x="${personX}" y="${personY + 70}" text-anchor="middle" font-size="14" fill="#4A90D9">↓ Expirer</text>`;
+        break;
+      default:
+        content += drawSeniorOnChair(personX, personY, 0.65, 'neutral');
+    }
+  }
+  
+  return `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;max-height:280px">
+    ${content}
+  </svg>`;
+}
+
+// Détecte si le public cible est senior/EHPAD
+function isSeniorPublic(pub, descriptif) {
+  if (!pub && !descriptif) return false;
+  const text = ((pub || '') + ' ' + (descriptif || '')).toLowerCase();
+  return text.includes('senior') || text.includes('ehpad') || text.includes('âgé') || 
+         text.includes('60 ans') || text.includes('70 ans') || text.includes('gym douce') ||
+         text.includes('autonomie') || text.includes('mobilité réduite');
 }
 
 function playerCircle(x, y, num, color='#e84040', size=14, label='P') {
@@ -2577,6 +2883,7 @@ async function exportPDF() {
   const SLICE_H = A4H - PAD * 2 - FOOTER_H;
 
   // ── Rendu exercice : schéma = toute la colonne droite, variables en bas pleine largeur ──
+  // MODIFICATION: Amélioration de l'ajustement des images dans le PDF
   function renderExercice(ex, idx) {
     const cList = (ex.consignes||[]).filter(c=>c);
     const consHTML = cList.map(c=>`<div class="cline">✓ ${c}</div>`).join('');
@@ -2584,9 +2891,18 @@ async function exportPDF() {
     const zLines = ex.criteresRealisation ? ex.criteresRealisation.split('\n').filter(Boolean) : [];
     const maxC = Math.max(rLines.length, zLines.length, 1);
     const critRows = Array.from({length:maxC},(_,i)=>`<tr><td>${rLines[i]?'• '+rLines[i]:''}</td><td>${zLines[i]?'• '+zLines[i]:''}</td></tr>`).join('');
-    const schemaImg = ex.schema
-      ? `<img src="${ex.schema}" style="width:100%;height:100%;object-fit:contain;display:block;">`
-      : `<div style="width:100%;height:100%;"></div>`;
+    
+    // MODIFICATION: Gestion améliorée des schémas (SVG inline ou image)
+    let schemaContent = '';
+    if (ex.aiSvg) {
+      // Schéma SVG généré par IA - ajusté pour tenir dans la zone
+      schemaContent = `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;overflow:hidden;">${ex.aiSvg}</div>`;
+    } else if (ex.schema) {
+      // Image dessinée - avec object-fit pour ajustement automatique
+      schemaContent = `<img src="${ex.schema}" style="max-width:100%;max-height:160px;width:auto;height:auto;object-fit:contain;display:block;margin:auto;">`;
+    } else {
+      schemaContent = `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:#999;font-size:10px;">Aucun schéma</div>`;
+    }
 
     return `<div class="cut"></div>
     <div class="exblock">
@@ -2605,7 +2921,7 @@ async function exportPDF() {
         </div>
         <div class="exright">
           <div class="f"><b>Schéma :</b></div>
-          <div class="sbox" style="flex:1;min-height:160px;">${schemaImg}</div>
+          <div class="sbox" style="flex:1;min-height:160px;max-height:200px;overflow:hidden;">${schemaContent}</div>
         </div>
       </div>
       <div class="cut"></div>
@@ -2759,9 +3075,10 @@ async function exportPDF() {
       iframe.style.cssText = `position:fixed;left:-9999px;top:0;width:${A4W}px;height:${A4H}px;border:none;`;
       document.body.appendChild(iframe);
 
-      const footerHTML = `<div class="footer" style="position:absolute;bottom:3px;left:${PAD}px;right:${PAD}px;display:flex;justify-content:space-between;">
-        <span>MSC Sport — ${f.sportName} — ${f.nom}</span>
-        <span>${i+1}/${totalPages}</span>
+      // MODIFICATION: Filigrane de bas de page avec droits d'auteur
+      const footerHTML = `<div class="footer" style="position:absolute;bottom:3px;left:${PAD}px;right:${PAD}px;display:flex;justify-content:space-between;align-items:center;">
+        <span style="font-size:7px;color:#666;">© ${new Date().getFullYear()} SAAD Matis — Tous droits réservés. Reproduction et exploitation interdites sans autorisation écrite de l'auteur.</span>
+        <span style="font-size:8px;color:#999;">${i+1}/${totalPages}</span>
       </div>`;
 
       iframe.onload = async () => {
@@ -3368,8 +3685,30 @@ function notify(msg) {
     { id: 'slackline', name: 'Slackline', emoji: '⚖️', famille: 'APEC' },
   ];
 
+  // MODIFICATION: 12 NOUVEAUX SPORTS SUPPLÉMENTAIRES
+  const newSportsData2 = [
+    // AJS (Activités Jeux Sportifs) - 4 sports
+    { id: 'flag-football', name: 'Flag Football', emoji: '🏈', famille: 'AJS' },
+    { id: 'futsal', name: 'Futsal', emoji: '⚽', famille: 'AJS' },
+    { id: 'hockey-salle', name: 'Hockey en salle', emoji: '🏒', famille: 'AJS' },
+    { id: 'baseball-softball', name: 'Baseball/Softball', emoji: '⚾', famille: 'AJS' },
+    // APEN (Activités Physiques d'Entretien) - 4 sports
+    { id: 'yoga', name: 'Yoga', emoji: '🧘‍♀️', famille: 'APEN' },
+    { id: 'aquagym', name: 'Aquagym', emoji: '🏊‍♀️', famille: 'APEN' },
+    { id: 'renforcement-musculaire', name: 'Renforcement musculaire', emoji: '🏋️‍♂️', famille: 'APEN' },
+    { id: 'gym-douce-seniors', name: 'Gym Douce Seniors', emoji: '🧓', famille: 'APEN' },
+    // APEC (Activités Physiques Éducatives et de Coopération) - 4 sports
+    { id: 'parcours-motricite', name: 'Parcours motricité', emoji: '🎪', famille: 'APEC' },
+    { id: 'jeux-cooperatifs', name: 'Jeux coopératifs', emoji: '🤝', famille: 'APEC' },
+    { id: 'randonnee', name: 'Randonnée pédestre', emoji: '🥾', famille: 'APEC' },
+    { id: 'vtt-cyclisme', name: 'VTT/Cyclisme', emoji: '🚴', famille: 'APEC' },
+  ];
+
+  // Fusionner les deux listes
+  const allNewSports = [...newSportsData, ...newSportsData2];
+
   // Ajouter les sports au localStorage s'ils n'existent pas
-  newSportsData.forEach(sport => {
+  allNewSports.forEach(sport => {
     if (!sportsStored.some(s => s.id === sport.id)) {
       sportsStored.push({ id: sport.id, name: sport.name, emoji: sport.emoji });
     }
@@ -3544,14 +3883,173 @@ function notify(msg) {
         { phase: 'Retour au calme', titre: 'Étirements et relaxation', duree: '10 min' },
       ]
     },
+    // MODIFICATION: 12 NOUVEAUX SPORTS DÉTAILLÉS
+    'flag-football': {
+      materiel: 'Ballons ovales, flags (ceintures), cônes, chasubles',
+      lieu: 'Terrain extérieur ou gymnase',
+      public: 'Adolescents/Adultes, 10-14 participants',
+      valeurs: ['Fair-play', 'Stratégie', 'Travail d\'équipe'],
+      vigilance: 'Sans contact. Retrait du flag = arrêt. Pas de plaquages.',
+      exercicesBase: [
+        { phase: 'Échauffement', titre: 'Manipulation du ballon ovale', duree: '10 min' },
+        { phase: 'Corps de séance', titre: 'Passes et réceptions', duree: '15 min' },
+        { phase: 'Corps de séance', titre: 'Jeu tactique et stratégie', duree: '25 min' },
+        { phase: 'Retour au calme', titre: 'Étirements et débriefing', duree: '10 min' },
+      ]
+    },
+    'futsal': {
+      materiel: 'Ballons futsal, buts, chasubles, cônes',
+      lieu: 'Gymnase',
+      public: 'Tous publics, 10-12 participants',
+      valeurs: ['Fair-play', 'Rapidité', 'Précision'],
+      vigilance: 'Surface dure. Chaussures de salle obligatoires. Hydratation.',
+      exercicesBase: [
+        { phase: 'Échauffement', titre: 'Conduite de balle et passes', duree: '10 min' },
+        { phase: 'Corps de séance', titre: 'Technique de tir et contrôle', duree: '20 min' },
+        { phase: 'Corps de séance', titre: 'Match 5 contre 5', duree: '20 min' },
+        { phase: 'Retour au calme', titre: 'Étirements', duree: '10 min' },
+      ]
+    },
+    'hockey-salle': {
+      materiel: 'Crosses unihockey, balles, buts, chasubles',
+      lieu: 'Gymnase',
+      public: 'Tous publics, 10-16 participants',
+      valeurs: ['Respect', 'Vivacité', 'Contrôle'],
+      vigilance: 'Crosses en dessous de la taille. Pas de contacts. Protection du gardien.',
+      exercicesBase: [
+        { phase: 'Échauffement', titre: 'Manipulation de la crosse', duree: '10 min' },
+        { phase: 'Corps de séance', titre: 'Conduite et passes', duree: '20 min' },
+        { phase: 'Corps de séance', titre: 'Jeu en équipe', duree: '20 min' },
+        { phase: 'Retour au calme', titre: 'Étirements', duree: '10 min' },
+      ]
+    },
+    'baseball-softball': {
+      materiel: 'Battes mousse/plastique, balles souples, gants, bases',
+      lieu: 'Terrain extérieur',
+      public: 'Tous publics, 10-18 participants',
+      valeurs: ['Patience', 'Concentration', 'Esprit d\'équipe'],
+      vigilance: 'Distance de sécurité. Battes sécurisées. Zone de frappe dégagée.',
+      exercicesBase: [
+        { phase: 'Échauffement', titre: 'Lancer et attraper', duree: '10 min' },
+        { phase: 'Corps de séance', titre: 'Technique de frappe', duree: '20 min' },
+        { phase: 'Corps de séance', titre: 'Jeu simplifié', duree: '20 min' },
+        { phase: 'Retour au calme', titre: 'Bilan et rangement', duree: '10 min' },
+      ]
+    },
+    'yoga': {
+      materiel: 'Tapis, briques, sangles, coussins',
+      lieu: 'Salle calme',
+      public: 'Tous publics, 8-15 participants',
+      valeurs: ['Sérénité', 'Conscience corporelle', 'Respect de soi'],
+      vigilance: 'Ne pas forcer les postures. Respirer en continu. Adapter au niveau.',
+      exercicesBase: [
+        { phase: 'Échauffement', titre: 'Respiration et centrage', duree: '10 min' },
+        { phase: 'Corps de séance', titre: 'Salutations au soleil', duree: '15 min' },
+        { phase: 'Corps de séance', titre: 'Postures d\'équilibre et force', duree: '20 min' },
+        { phase: 'Retour au calme', titre: 'Relaxation Savasana', duree: '15 min' },
+      ]
+    },
+    'aquagym': {
+      materiel: 'Frites, planches, haltères aquatiques',
+      lieu: 'Piscine (petit bain)',
+      public: 'Adultes, 10-20 participants',
+      valeurs: ['Bien-être', 'Dynamisme', 'Solidarité'],
+      vigilance: 'Savoir nager recommandé. MNS présent. Température eau adaptée.',
+      exercicesBase: [
+        { phase: 'Échauffement', titre: 'Marche et mobilisation aquatique', duree: '10 min' },
+        { phase: 'Corps de séance', titre: 'Renforcement membres inférieurs', duree: '15 min' },
+        { phase: 'Corps de séance', titre: 'Cardio et coordination', duree: '20 min' },
+        { phase: 'Retour au calme', titre: 'Étirements en eau', duree: '15 min' },
+      ]
+    },
+    'renforcement-musculaire': {
+      materiel: 'Haltères, élastiques, barres, tapis, steps',
+      lieu: 'Salle de sport',
+      public: 'Adultes, 8-15 participants',
+      valeurs: ['Persévérance', 'Rigueur', 'Dépassement de soi'],
+      vigilance: 'Technique avant charge. Échauffement complet. Hydratation.',
+      exercicesBase: [
+        { phase: 'Échauffement', titre: 'Activation cardio et mobilité', duree: '10 min' },
+        { phase: 'Corps de séance', titre: 'Exercices polyarticulaires', duree: '25 min' },
+        { phase: 'Corps de séance', titre: 'Travail ciblé par groupe musculaire', duree: '15 min' },
+        { phase: 'Retour au calme', titre: 'Étirements et récupération', duree: '10 min' },
+      ]
+    },
+    'gym-douce-seniors': {
+      materiel: 'Chaises, ballons légers, foulards, élastiques souples',
+      lieu: 'Salle EHPAD ou centre seniors',
+      public: 'Seniors 60+, faible autonomie, 8-15 participants',
+      valeurs: ['Bienveillance', 'Autonomie', 'Lien social'],
+      vigilance: 'Exercices assis principalement. Attention aux chutes. Rythme adapté.',
+      exercicesBase: [
+        { phase: 'Échauffement', titre: 'Échauffement articulaire assis', duree: '10 min' },
+        { phase: 'Corps de séance', titre: 'Mobilité membres supérieurs', duree: '12 min' },
+        { phase: 'Corps de séance', titre: 'Renforcement et coordination', duree: '13 min' },
+        { phase: 'Retour au calme', titre: 'Étirements et respiration', duree: '10 min' },
+      ]
+    },
+    'parcours-motricite': {
+      materiel: 'Cerceaux, plots, échelles, haies basses, tapis',
+      lieu: 'Gymnase ou extérieur',
+      public: 'Enfants 3-10 ans, 10-20 participants',
+      valeurs: ['Confiance', 'Créativité', 'Coopération'],
+      vigilance: 'Sécurité du parcours. Surveillance accrue. Adaptation à l\'âge.',
+      exercicesBase: [
+        { phase: 'Échauffement', titre: 'Jeux de déplacements', duree: '10 min' },
+        { phase: 'Corps de séance', titre: 'Parcours avec ateliers', duree: '25 min' },
+        { phase: 'Corps de séance', titre: 'Parcours en équipe', duree: '15 min' },
+        { phase: 'Retour au calme', titre: 'Relaxation ludique', duree: '10 min' },
+      ]
+    },
+    'jeux-cooperatifs': {
+      materiel: 'Ballons, foulards, cerceaux, parachute collectif',
+      lieu: 'Gymnase ou extérieur',
+      public: 'Tous publics, 10-30 participants',
+      valeurs: ['Solidarité', 'Entraide', 'Communication'],
+      vigilance: 'Inclusion de tous. Pas de compétition individuelle.',
+      exercicesBase: [
+        { phase: 'Échauffement', titre: 'Jeu de connaissance', duree: '10 min' },
+        { phase: 'Corps de séance', titre: 'Défis collectifs', duree: '20 min' },
+        { phase: 'Corps de séance', titre: 'Grand jeu coopératif', duree: '20 min' },
+        { phase: 'Retour au calme', titre: 'Cercle de partage', duree: '10 min' },
+      ]
+    },
+    'randonnee': {
+      materiel: 'Chaussures de marche, sac à dos, carte, eau',
+      lieu: 'Sentiers nature',
+      public: 'Tous publics, 8-20 participants',
+      valeurs: ['Respect de la nature', 'Persévérance', 'Découverte'],
+      vigilance: 'Météo à vérifier. Équipement adapté. Ne pas laisser de traces.',
+      exercicesBase: [
+        { phase: 'Échauffement', titre: 'Mobilisation et briefing', duree: '10 min' },
+        { phase: 'Corps de séance', titre: 'Marche avec observations', duree: '35 min' },
+        { phase: 'Corps de séance', titre: 'Activités nature', duree: '10 min' },
+        { phase: 'Retour au calme', titre: 'Étirements et bilan', duree: '5 min' },
+      ]
+    },
+    'vtt-cyclisme': {
+      materiel: 'VTT, casques obligatoires, gants, kit réparation',
+      lieu: 'Piste cyclable ou chemins',
+      public: 'Adolescents/Adultes sachant pédaler, 6-12 participants',
+      valeurs: ['Autonomie', 'Prudence', 'Dépassement de soi'],
+      vigilance: 'Casque obligatoire. Vérification des freins. Respect du code de la route.',
+      exercicesBase: [
+        { phase: 'Échauffement', titre: 'Vérification vélo et maniabilité', duree: '10 min' },
+        { phase: 'Corps de séance', titre: 'Technique de pilotage', duree: '20 min' },
+        { phase: 'Corps de séance', titre: 'Parcours et sorties', duree: '20 min' },
+        { phase: 'Retour au calme', titre: 'Rangement et bilan', duree: '10 min' },
+      ]
+    },
   };
 
-  // Générer les fiches pour chaque sport
+  // Générer les fiches pour chaque sport (les deux listes combinées)
   const nouvelleFiches = [];
   const nouveauxCycles = [];
 
-  newSportsData.forEach(sport => {
+  allNewSports.forEach(sport => {
     const details = sportsDetails[sport.id];
+    if (!details) return; // Skip si pas de détails
+    
     const ficheIds = [];
     
     seancesStructure.forEach((seance, idx) => {
@@ -3623,7 +4121,7 @@ function notify(msg) {
   });
   localStorage.setItem('cycles', JSON.stringify(existingCycles));
 
-  console.log('[Mat&Co] 12 nouveaux sports injectés avec 6 séances chacun (72 fiches au total)');
+  console.log('[Mat&Co] 24 sports injectés avec 6 séances chacun (144 fiches au total)');
 })();
 
 
