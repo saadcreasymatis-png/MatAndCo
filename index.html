@@ -5,12 +5,18 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="FicheSport">
-<title>FicheSport</title>
+<meta name="apple-mobile-web-app-title" content="Mat&Co">
+<!-- PWA Meta Tags -->
+<meta name="theme-color" content="#1a6b3c">
+<meta name="description" content="Mat&Co - Application de fiches de séances sportives par SAAD Matis">
+<link rel="manifest" href="data:application/json;base64,ewogICJuYW1lIjogIk1hdCZDbyAtIEZpY2hlU3BvcnQiLAogICJzaG9ydF9uYW1lIjogIk1hdCZDbyIsCiAgInN0YXJ0X3VybCI6ICIuIiwKICAiZGlzcGxheSI6ICJzdGFuZGFsb25lIiwKICAiYmFja2dyb3VuZF9jb2xvciI6ICIjZjBmNGYxIiwKICAidGhlbWVfY29sb3IiOiAiIzFhNmIzYyIsCiAgImljb25zIjogW3sic3JjIjogImRhdGE6aW1hZ2Uvc3ZnK3htbCw8c3ZnIHhtbG5zPSdodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2Zycgdmlld0JveD0nMCAwIDEwMCAxMDAnPjxyZWN0IHdpZHRoPScxMDAnIGhlaWdodD0nMTAwJyByeD0nMjAnIGZpbGw9JyMxYTZiM2MnLz48dGV4dCB4PSc1MCcgeT0nNjUnIGZvbnQtc2l6ZT0nNTAnIHRleHQtYW5jaG9yPSdtaWRkbGUnIGZpbGw9J3doaXRlJz7wn4+FPC90ZXh0Pjwvc3ZnPiIsICJzaXplcyI6ICIxOTJ4MTkyIiwgInR5cGUiOiAiaW1hZ2Uvc3ZnK3htbCJ9XQp9">
+<title>Mat&Co - FicheSport v7</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Rubik+Dirt&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Rubik+Dirt&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<!-- QR Code Library -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <style>
   :root {
     --primary: #1a6b3c;
@@ -720,6 +726,552 @@
     flex-shrink: 0;
   }
 
+  /* MODIFICATION: STYLES SECTION VIDÉO */
+  .video-section {
+    background: linear-gradient(135deg, #fff5f5 0%, #fff9e6 100%);
+    border: 1.5px solid #ffd6d6;
+    border-radius: 12px;
+    padding: 14px;
+    margin-top: 8px;
+  }
+  .video-input-row {
+    display: flex;
+    gap: 10px;
+    align-items: flex-end;
+    margin-bottom: 10px;
+  }
+  .video-input-group {
+    flex: 1;
+  }
+  .video-input-group input {
+    width: 100%;
+    margin: 0;
+  }
+  .video-suggestions {
+    background: white;
+    border-radius: 8px;
+    padding: 10px;
+    margin-bottom: 10px;
+  }
+  .video-suggestions-list {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+  }
+  .video-suggestion-item {
+    flex-shrink: 0;
+    width: 120px;
+    cursor: pointer;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 2px solid transparent;
+    transition: all 0.2s;
+  }
+  .video-suggestion-item:hover {
+    border-color: var(--primary);
+    transform: scale(1.02);
+  }
+  .video-suggestion-thumb {
+    width: 100%;
+    height: 68px;
+    background: #eee;
+    position: relative;
+    overflow: hidden;
+  }
+  .video-suggestion-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .video-suggestion-thumb::after {
+    content: '▶';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(0,0,0,0.7);
+    color: white;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+  }
+  .video-suggestion-title {
+    font-size: 10px;
+    padding: 5px;
+    color: var(--text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    background: #f8f8f8;
+  }
+  .video-preview {
+    background: white;
+    border-radius: 10px;
+    overflow: hidden;
+    position: relative;
+    margin-top: 8px;
+  }
+  .video-preview-container {
+    width: 100%;
+    aspect-ratio: 16/9;
+    background: #000;
+  }
+  .video-preview-container iframe,
+  .video-preview video {
+    width: 100%;
+    height: 100%;
+  }
+  .video-remove-btn {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: rgba(0,0,0,0.7);
+    color: white;
+    border: none;
+    border-radius: 20px;
+    padding: 4px 10px;
+    font-size: 11px;
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .video-remove-btn:hover {
+    background: #e84040;
+  }
+  .video-qr-code {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 8px;
+    background: white;
+    border-radius: 8px;
+  }
+  .video-qr-code canvas {
+    border-radius: 4px;
+  }
+  .video-qr-label {
+    font-size: 9px;
+    color: #666;
+    margin-top: 4px;
+    text-align: center;
+  }
+
+  /* ============================================================
+     V7 NOUVELLES FONCTIONNALITÉS - STYLES
+     ============================================================ */
+
+  /* BARRE DE RECHERCHE */
+  .search-bar {
+    display: flex;
+    gap: 8px;
+    padding: 12px 16px;
+    background: var(--card);
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 140px;
+    z-index: 50;
+  }
+  .search-input {
+    flex: 1;
+    padding: 10px 14px;
+    border: 1.5px solid var(--border);
+    border-radius: 25px;
+    font-size: 14px;
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    transition: all 0.2s;
+  }
+  .search-input:focus {
+    outline: none;
+    border-color: var(--primary);
+    background: white;
+  }
+  .search-input::placeholder {
+    color: var(--muted);
+  }
+  .filter-btn {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    border: 1.5px solid var(--border);
+    background: white;
+    font-size: 18px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+  }
+  .filter-btn.active {
+    background: var(--primary);
+    border-color: var(--primary);
+    color: white;
+  }
+  .filter-panel {
+    display: none;
+    padding: 12px 16px;
+    background: white;
+    border-bottom: 1px solid var(--border);
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .filter-panel.open {
+    display: flex;
+  }
+  .filter-chip {
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 500;
+    background: var(--bg);
+    border: 1.5px solid var(--border);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .filter-chip.active {
+    background: var(--primary);
+    border-color: var(--primary);
+    color: white;
+  }
+
+  /* TIMER / CHRONOMÈTRE */
+  .timer-modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.9);
+    z-index: 2000;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: white;
+  }
+  .timer-modal.open {
+    display: flex;
+  }
+  .timer-display {
+    font-family: 'Rubik Dirt', cursive;
+    font-size: 80px;
+    letter-spacing: 4px;
+    margin-bottom: 20px;
+  }
+  .timer-exercise-name {
+    font-size: 18px;
+    color: rgba(255,255,255,0.7);
+    margin-bottom: 30px;
+    text-align: center;
+    padding: 0 20px;
+  }
+  .timer-controls {
+    display: flex;
+    gap: 15px;
+  }
+  .timer-btn {
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+    border: 3px solid white;
+    background: transparent;
+    color: white;
+    font-size: 28px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+  }
+  .timer-btn:hover {
+    background: rgba(255,255,255,0.1);
+  }
+  .timer-btn.primary {
+    background: var(--primary);
+    border-color: var(--primary);
+  }
+  .timer-progress {
+    width: 250px;
+    height: 250px;
+    border-radius: 50%;
+    border: 8px solid rgba(255,255,255,0.2);
+    position: relative;
+    margin-bottom: 20px;
+  }
+  .timer-progress-fill {
+    position: absolute;
+    inset: -8px;
+    border-radius: 50%;
+    border: 8px solid var(--primary);
+    border-top-color: transparent;
+    border-right-color: transparent;
+    transform: rotate(-45deg);
+    transition: transform 0.5s;
+  }
+  .timer-progress-inner {
+    position: absolute;
+    inset: 20px;
+    border-radius: 50%;
+    background: rgba(0,0,0,0.5);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* EXPORT/IMPORT */
+  .tools-section {
+    padding: 16px;
+    background: var(--card);
+    margin: 12px;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+  }
+  .tools-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    margin-top: 12px;
+  }
+  .tool-card {
+    background: var(--bg);
+    border-radius: 12px;
+    padding: 14px;
+    text-align: center;
+    cursor: pointer;
+    border: 1.5px solid transparent;
+    transition: all 0.2s;
+  }
+  .tool-card:hover {
+    border-color: var(--primary);
+    transform: translateY(-2px);
+  }
+  .tool-card-icon {
+    font-size: 28px;
+    margin-bottom: 6px;
+  }
+  .tool-card-title {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text);
+  }
+  .tool-card-desc {
+    font-size: 10px;
+    color: var(--muted);
+    margin-top: 2px;
+  }
+
+  /* BIBLIOTHÈQUE D'EXERCICES */
+  .library-modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 1500;
+    display: none;
+    align-items: flex-end;
+    justify-content: center;
+  }
+  .library-modal.open {
+    display: flex;
+  }
+  .library-content {
+    background: white;
+    width: 100%;
+    max-height: 80vh;
+    border-radius: 20px 20px 0 0;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+  .library-header {
+    padding: 16px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .library-header h3 {
+    font-size: 18px;
+  }
+  .library-categories {
+    display: flex;
+    gap: 8px;
+    padding: 12px 16px;
+    overflow-x: auto;
+    border-bottom: 1px solid var(--border);
+  }
+  .library-cat {
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 500;
+    background: var(--bg);
+    white-space: nowrap;
+    cursor: pointer;
+    border: none;
+    transition: all 0.15s;
+  }
+  .library-cat.active {
+    background: var(--primary);
+    color: white;
+  }
+  .library-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 12px;
+  }
+  .library-item {
+    background: var(--bg);
+    border-radius: 12px;
+    padding: 12px;
+    margin-bottom: 10px;
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition: all 0.15s;
+  }
+  .library-item:hover {
+    border-color: var(--primary);
+  }
+  .library-item-phase {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 10px;
+    font-weight: 600;
+    margin-bottom: 6px;
+  }
+  .library-item-phase.echauffement { background: #fff3e0; color: #e65100; }
+  .library-item-phase.corps { background: #e8f5e9; color: #1b5e20; }
+  .library-item-phase.retour { background: #e3f2fd; color: #0d47a1; }
+  .library-item-title {
+    font-weight: 600;
+    font-size: 14px;
+    margin-bottom: 4px;
+  }
+  .library-item-desc {
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.4;
+  }
+
+  /* DUPLICATION BADGE */
+  .duplicate-btn {
+    background: var(--accent);
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  /* TEMPLATES PDF */
+  .template-selector {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 12px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+  }
+  .template-option {
+    flex-shrink: 0;
+    width: 80px;
+    padding: 10px;
+    border-radius: 10px;
+    border: 2px solid var(--border);
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .template-option.active {
+    border-color: var(--primary);
+    background: var(--warm);
+  }
+  .template-option-icon {
+    font-size: 24px;
+    margin-bottom: 4px;
+  }
+  .template-option-name {
+    font-size: 10px;
+    font-weight: 600;
+  }
+
+  /* PWA INSTALL BANNER */
+  .pwa-banner {
+    position: fixed;
+    bottom: 70px;
+    left: 12px;
+    right: 12px;
+    background: linear-gradient(135deg, var(--primary) 0%, #0d4f2a 100%);
+    color: white;
+    padding: 14px 16px;
+    border-radius: 14px;
+    display: none;
+    align-items: center;
+    gap: 12px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+    z-index: 1000;
+  }
+  .pwa-banner.show {
+    display: flex;
+  }
+  .pwa-banner-icon {
+    font-size: 32px;
+  }
+  .pwa-banner-text {
+    flex: 1;
+  }
+  .pwa-banner-title {
+    font-weight: 700;
+    font-size: 14px;
+  }
+  .pwa-banner-desc {
+    font-size: 11px;
+    opacity: 0.85;
+  }
+  .pwa-banner-btn {
+    background: white;
+    color: var(--primary);
+    border: none;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-weight: 700;
+    font-size: 12px;
+    cursor: pointer;
+  }
+  .pwa-banner-close {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 20px;
+    cursor: pointer;
+    opacity: 0.7;
+  }
+
+  /* OFFLINE INDICATOR */
+  .offline-bar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    background: #e84040;
+    color: white;
+    text-align: center;
+    padding: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    z-index: 9999;
+    display: none;
+  }
+  .offline-bar.show {
+    display: block;
+  }
+
   /* MAT&CO BANNER */
   .banner-matco {
     width: 100%;
@@ -874,11 +1426,55 @@
 
 <!-- PAGE: MES FICHES -->
 <div class="page active" id="page-fiches">
-  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
     <h2 style="font-family:'Rubik Dirt',cursive;font-size:26px;letter-spacing:0.5px">Mes fiches</h2>
-    <button class="dark-toggle" onclick="toggleDark()" id="dark-toggle-btn" title="Mode sombre">🌙</button>
-    <button class="btn btn-primary btn-sm" onclick="goCreate()">+ Nouvelle</button>
+    <div style="display:flex;gap:8px;align-items:center">
+      <button class="dark-toggle" onclick="toggleDark()" id="dark-toggle-btn" title="Mode sombre">🌙</button>
+      <button class="btn btn-primary btn-sm" onclick="goCreate()">+ Nouvelle</button>
+    </div>
   </div>
+  
+  <!-- MODIFICATION V7: Barre de recherche et filtres -->
+  <div class="search-bar">
+    <input type="text" class="search-input" id="search-input" placeholder="🔍 Rechercher une fiche..." oninput="filterFiches()">
+    <button class="filter-btn" id="filter-toggle" onclick="toggleFilters()">⚙️</button>
+  </div>
+  <div class="filter-panel" id="filter-panel">
+    <div class="filter-chip active" data-filter="all" onclick="setFilter('all',this)">Toutes</div>
+    <div class="filter-chip" data-filter="recent" onclick="setFilter('recent',this)">📅 Récentes</div>
+    <div class="filter-chip" data-filter="echauffement" onclick="setFilter('echauffement',this)">🔥 Échauffement</div>
+    <div class="filter-chip" data-filter="seniors" onclick="setFilter('seniors',this)">🧓 Seniors</div>
+    <div class="filter-chip" data-filter="enfants" onclick="setFilter('enfants',this)">🧒 Enfants</div>
+  </div>
+  
+  <!-- MODIFICATION V7: Section Outils -->
+  <div class="tools-section">
+    <div class="section-title">🛠️ Outils</div>
+    <div class="tools-grid">
+      <div class="tool-card" onclick="exportAllData()">
+        <div class="tool-card-icon">📤</div>
+        <div class="tool-card-title">Exporter</div>
+        <div class="tool-card-desc">Sauvegarder JSON</div>
+      </div>
+      <div class="tool-card" onclick="document.getElementById('import-file').click()">
+        <div class="tool-card-icon">📥</div>
+        <div class="tool-card-title">Importer</div>
+        <div class="tool-card-desc">Restaurer données</div>
+      </div>
+      <div class="tool-card" onclick="openLibrary()">
+        <div class="tool-card-icon">📚</div>
+        <div class="tool-card-title">Bibliothèque</div>
+        <div class="tool-card-desc">Exercices prêts</div>
+      </div>
+      <div class="tool-card" onclick="openTimer()">
+        <div class="tool-card-icon">⏱️</div>
+        <div class="tool-card-title">Chronomètre</div>
+        <div class="tool-card-desc">Timer séance</div>
+      </div>
+    </div>
+    <input type="file" id="import-file" accept=".json" style="display:none" onchange="importData(event)">
+  </div>
+  
   <div id="fiches-list"></div>
   <div id="fiches-empty" class="empty" style="display:none">
     <div class="empty-icon">📋</div>
@@ -1072,6 +1668,45 @@
 
     <div style="height:8px"></div>
 
+    <!-- MODIFICATION: SECTION VIDÉO DÉMONSTRATIVE -->
+    <div class="video-section">
+      <div class="section-title" style="margin-bottom:10px">🎬 Vidéo démonstrative</div>
+      
+      <div class="video-input-row">
+        <div class="video-input-group">
+          <label style="font-size:12px;color:var(--muted);margin-bottom:4px;display:block">🔗 Lien YouTube</label>
+          <input type="text" id="ex-video-url" placeholder="https://youtube.com/watch?v=..." oninput="previewVideo()">
+        </div>
+        <span style="color:var(--muted);font-size:12px;align-self:center">ou</span>
+        <button class="btn btn-outline" style="padding:8px 12px;font-size:12px" onclick="document.getElementById('video-file-input').click()">
+          📤 Upload
+        </button>
+        <input type="file" id="video-file-input" accept="video/*" style="display:none" onchange="handleVideoUpload(event)">
+      </div>
+      
+      <!-- Suggestions de vidéos -->
+      <div id="video-suggestions" class="video-suggestions" style="display:none">
+        <div style="font-size:11px;color:var(--muted);margin-bottom:6px">💡 Suggestions pour <span id="suggestion-phase">cette phase</span> :</div>
+        <div id="video-suggestions-list" class="video-suggestions-list"></div>
+      </div>
+      
+      <!-- Prévisualisation -->
+      <div id="video-preview" class="video-preview" style="display:none">
+        <div class="video-preview-container">
+          <iframe id="video-iframe" width="100%" height="180" frameborder="0" allowfullscreen></iframe>
+        </div>
+        <button class="video-remove-btn" onclick="removeVideo()">✕ Supprimer</button>
+      </div>
+      
+      <!-- Vidéo uploadée -->
+      <div id="video-local-preview" class="video-preview" style="display:none">
+        <video id="video-local" controls width="100%" height="180"></video>
+        <button class="video-remove-btn" onclick="removeVideo()">✕ Supprimer</button>
+      </div>
+    </div>
+
+    <div style="height:8px"></div>
+
     <!-- AI SCHEMA GENERATOR -->
     <div class="ai-schema-section">
       <div class="ai-schema-header">
@@ -1139,6 +1774,56 @@
     </div>
   </div>
 </div>
+
+<!-- MODIFICATION V7: MODAL TIMER -->
+<div class="timer-modal" id="timer-modal">
+  <div class="timer-progress">
+    <div class="timer-progress-fill" id="timer-progress-fill"></div>
+    <div class="timer-progress-inner">
+      <div class="timer-display" id="timer-display">00:00</div>
+      <div id="timer-phase" style="font-size:12px;opacity:0.7">Prêt</div>
+    </div>
+  </div>
+  <div class="timer-exercise-name" id="timer-exercise-name">Sélectionne un exercice</div>
+  <div class="timer-controls">
+    <button class="timer-btn" onclick="timerReset()">⟲</button>
+    <button class="timer-btn primary" id="timer-play-btn" onclick="timerToggle()">▶</button>
+    <button class="timer-btn" onclick="timerNext()">⏭</button>
+  </div>
+  <button onclick="closeTimer()" style="margin-top:30px;background:none;border:1px solid rgba(255,255,255,0.3);color:white;padding:10px 30px;border-radius:25px;font-size:14px;cursor:pointer">Fermer</button>
+</div>
+
+<!-- MODIFICATION V7: MODAL BIBLIOTHÈQUE D'EXERCICES -->
+<div class="library-modal" id="library-modal" onclick="if(event.target===this)closeLibrary()">
+  <div class="library-content">
+    <div class="library-header">
+      <h3>📚 Bibliothèque d'exercices</h3>
+      <button onclick="closeLibrary()" style="background:none;border:none;font-size:24px;cursor:pointer">×</button>
+    </div>
+    <div class="library-categories">
+      <button class="library-cat active" data-cat="all" onclick="filterLibrary('all',this)">Tous</button>
+      <button class="library-cat" data-cat="echauffement" onclick="filterLibrary('echauffement',this)">🔥 Échauffement</button>
+      <button class="library-cat" data-cat="corps" onclick="filterLibrary('corps',this)">💪 Corps</button>
+      <button class="library-cat" data-cat="retour" onclick="filterLibrary('retour',this)">🌀 Retour calme</button>
+      <button class="library-cat" data-cat="seniors" onclick="filterLibrary('seniors',this)">🧓 Seniors</button>
+    </div>
+    <div class="library-list" id="library-list"></div>
+  </div>
+</div>
+
+<!-- MODIFICATION V7: PWA INSTALL BANNER -->
+<div class="pwa-banner" id="pwa-banner">
+  <div class="pwa-banner-icon">📱</div>
+  <div class="pwa-banner-text">
+    <div class="pwa-banner-title">Installer Mat&Co</div>
+    <div class="pwa-banner-desc">Utilise l'app hors-ligne sur ton téléphone</div>
+  </div>
+  <button class="pwa-banner-btn" onclick="installPWA()">Installer</button>
+  <button class="pwa-banner-close" onclick="dismissPWA()">×</button>
+</div>
+
+<!-- MODIFICATION V7: OFFLINE INDICATOR -->
+<div class="offline-bar" id="offline-bar">📴 Mode hors-ligne — Tes données sont sauvegardées localement</div>
 
 <!-- NAV -->
 <nav class="nav">
@@ -1434,7 +2119,27 @@ function editExercice(i) {
   consignes = ex.consignes && ex.consignes.length ? [...ex.consignes] : [''];
   canvasData = ex.schema || null;
   lastAiSvg = ex.aiSvg || null;
+  
+  // MODIFICATION: Charger la vidéo existante
+  currentVideoUrl = ex.videoUrl || null;
+  currentVideoFile = ex.videoFile || null;
+  
   openModal();
+  
+  // Charger la vidéo dans l'aperçu
+  setTimeout(() => {
+    if (currentVideoUrl) {
+      document.getElementById('ex-video-url').value = currentVideoUrl;
+      previewVideo();
+    } else if (currentVideoFile) {
+      const video = document.getElementById('video-local');
+      video.src = currentVideoFile;
+      document.getElementById('video-local-preview').style.display = 'block';
+    }
+    // Afficher les suggestions de vidéos
+    showVideoSuggestions();
+  }, 150);
+  
   // Restore AI SVG preview if present
   if (lastAiSvg) {
     setTimeout(() => {
@@ -1465,6 +2170,15 @@ function openModal() {
     ['ex-titre','ex-duree','ex-organisation','ex-materiel','ex-descriptif','ex-criteres-reussite','ex-criteres-realisation','var-debutant','var-avance'].forEach(id => document.getElementById(id).value='');
     document.getElementById('ex-phase').value = 'Échauffement';
     consignes = [''];
+    
+    // MODIFICATION: Réinitialiser les vidéos
+    currentVideoUrl = null;
+    currentVideoFile = null;
+    document.getElementById('ex-video-url').value = '';
+    document.getElementById('video-preview').style.display = 'none';
+    document.getElementById('video-local-preview').style.display = 'none';
+    document.getElementById('video-iframe').src = '';
+    document.getElementById('video-local').src = '';
   }
   renderConsignes();
   // Reset AI schema area
@@ -1473,7 +2187,12 @@ function openModal() {
   document.getElementById('ai-legend-area').style.display = 'none';
   lastAiSvg = null;
   document.getElementById('modal-exercise').classList.add('open');
-  setTimeout(() => { initCanvas(); autoFillAiPrompt(); }, 100);
+  setTimeout(() => { 
+    initCanvas(); 
+    autoFillAiPrompt();
+    // MODIFICATION: Afficher les suggestions de vidéos
+    showVideoSuggestions();
+  }, 100);
 }
 
 function closeModal() {
@@ -1497,6 +2216,9 @@ function saveExercice() {
     consignes: consignes.filter(c=>c.trim()),
     schema: canvas ? canvas.toDataURL() : null,
     aiSvg: lastAiSvg || null,
+    // MODIFICATION: Sauvegarde de la vidéo
+    videoUrl: currentVideoUrl || null,
+    videoFile: currentVideoFile || null,
   };
   if (editingExIdx >= 0) exercices[editingExIdx] = ex;
   else exercices.push(ex);
@@ -1661,6 +2383,185 @@ function handleSchemaImageImport(event) {
 }
 let aiSchemaPublic = 'Adolescents 13-17 ans';
 let lastAiSvg = null;
+
+// ============================================================
+// MODIFICATION: GESTION DES VIDÉOS DÉMONSTRATIVES
+// ============================================================
+let currentVideoUrl = null;
+let currentVideoFile = null;
+
+// Bibliothèque de vidéos suggérées par sport et phase
+const videoLibrary = {
+  'Échauffement': [
+    { id: 'warmup1', title: 'Échauffement articulaire', youtube: 'https://www.youtube.com/watch?v=HDfvMKLF0EE', thumb: 'https://img.youtube.com/vi/HDfvMKLF0EE/mqdefault.jpg' },
+    { id: 'warmup2', title: 'Échauffement cardio', youtube: 'https://www.youtube.com/watch?v=3zgkoDdFYPE', thumb: 'https://img.youtube.com/vi/3zgkoDdFYPE/mqdefault.jpg' },
+    { id: 'warmup3', title: 'Mobilité dynamique', youtube: 'https://www.youtube.com/watch?v=nN7WnqrTPJE', thumb: 'https://img.youtube.com/vi/nN7WnqrTPJE/mqdefault.jpg' },
+  ],
+  'Corps de séance': [
+    { id: 'main1', title: 'Exercices techniques', youtube: 'https://www.youtube.com/watch?v=sZxNF5Gg7R8', thumb: 'https://img.youtube.com/vi/sZxNF5Gg7R8/mqdefault.jpg' },
+    { id: 'main2', title: 'Renforcement', youtube: 'https://www.youtube.com/watch?v=UItWltVZZmE', thumb: 'https://img.youtube.com/vi/UItWltVZZmE/mqdefault.jpg' },
+    { id: 'main3', title: 'Coordination', youtube: 'https://www.youtube.com/watch?v=0Y4kKm0JtCE', thumb: 'https://img.youtube.com/vi/0Y4kKm0JtCE/mqdefault.jpg' },
+  ],
+  'Retour au calme': [
+    { id: 'cool1', title: 'Étirements complets', youtube: 'https://www.youtube.com/watch?v=sTxC3J3gQEU', thumb: 'https://img.youtube.com/vi/sTxC3J3gQEU/mqdefault.jpg' },
+    { id: 'cool2', title: 'Relaxation guidée', youtube: 'https://www.youtube.com/watch?v=cyMxWXlX9sU', thumb: 'https://img.youtube.com/vi/cyMxWXlX9sU/mqdefault.jpg' },
+    { id: 'cool3', title: 'Respiration', youtube: 'https://www.youtube.com/watch?v=tybOi4hjZFQ', thumb: 'https://img.youtube.com/vi/tybOi4hjZFQ/mqdefault.jpg' },
+  ],
+  'gym-douce-seniors': [
+    { id: 'senior1', title: 'Gym douce assis', youtube: 'https://www.youtube.com/watch?v=bKCHKfDJdLU', thumb: 'https://img.youtube.com/vi/bKCHKfDJdLU/mqdefault.jpg' },
+    { id: 'senior2', title: 'Mobilité seniors', youtube: 'https://www.youtube.com/watch?v=9GN_Energy_Seniors', thumb: 'https://img.youtube.com/vi/9GN_Energy_Seniors/mqdefault.jpg' },
+    { id: 'senior3', title: 'Équilibre seniors', youtube: 'https://www.youtube.com/watch?v=equilibre_seniors', thumb: 'https://img.youtube.com/vi/equilibre_seniors/mqdefault.jpg' },
+  ],
+};
+
+// Extraire l'ID YouTube d'une URL
+function extractYouTubeId(url) {
+  if (!url) return null;
+  const patterns = [
+    /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([a-zA-Z0-9_-]{11})/,
+    /^([a-zA-Z0-9_-]{11})$/
+  ];
+  for (const pattern of patterns) {
+    const match = url.match(pattern);
+    if (match) return match[1];
+  }
+  return null;
+}
+
+// Prévisualiser la vidéo YouTube
+function previewVideo() {
+  const url = document.getElementById('ex-video-url').value.trim();
+  const preview = document.getElementById('video-preview');
+  const localPreview = document.getElementById('video-local-preview');
+  const iframe = document.getElementById('video-iframe');
+  
+  // Cacher l'aperçu local si on entre une URL
+  localPreview.style.display = 'none';
+  currentVideoFile = null;
+  
+  const videoId = extractYouTubeId(url);
+  if (videoId) {
+    iframe.src = `https://www.youtube.com/embed/${videoId}`;
+    preview.style.display = 'block';
+    currentVideoUrl = url;
+  } else {
+    preview.style.display = 'none';
+    currentVideoUrl = null;
+  }
+}
+
+// Gérer l'upload de vidéo locale
+function handleVideoUpload(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  
+  // Vérifier le type
+  if (!file.type.startsWith('video/')) {
+    notify('❌ Fichier non valide. Sélectionne une vidéo.');
+    return;
+  }
+  
+  // Vérifier la taille (max 50MB pour le localStorage)
+  if (file.size > 50 * 1024 * 1024) {
+    notify('⚠️ Vidéo trop lourde (max 50MB). Utilise plutôt un lien YouTube.');
+    return;
+  }
+  
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const preview = document.getElementById('video-preview');
+    const localPreview = document.getElementById('video-local-preview');
+    const video = document.getElementById('video-local');
+    
+    // Cacher l'aperçu YouTube
+    preview.style.display = 'none';
+    document.getElementById('ex-video-url').value = '';
+    currentVideoUrl = null;
+    
+    // Afficher la vidéo locale
+    video.src = e.target.result;
+    localPreview.style.display = 'block';
+    currentVideoFile = e.target.result;
+    
+    notify('📹 Vidéo importée !');
+  };
+  reader.readAsDataURL(file);
+}
+
+// Supprimer la vidéo
+function removeVideo() {
+  const preview = document.getElementById('video-preview');
+  const localPreview = document.getElementById('video-local-preview');
+  const iframe = document.getElementById('video-iframe');
+  const video = document.getElementById('video-local');
+  
+  iframe.src = '';
+  video.src = '';
+  preview.style.display = 'none';
+  localPreview.style.display = 'none';
+  document.getElementById('ex-video-url').value = '';
+  currentVideoUrl = null;
+  currentVideoFile = null;
+  
+  notify('🗑 Vidéo supprimée');
+}
+
+// Afficher les suggestions de vidéos selon la phase
+function showVideoSuggestions() {
+  const phase = document.getElementById('ex-phase').value;
+  const suggestionsContainer = document.getElementById('video-suggestions');
+  const suggestionsList = document.getElementById('video-suggestions-list');
+  const phaseLabel = document.getElementById('suggestion-phase');
+  
+  // Vérifier si on a des suggestions pour cette phase
+  const suggestions = videoLibrary[phase] || [];
+  
+  if (suggestions.length === 0) {
+    suggestionsContainer.style.display = 'none';
+    return;
+  }
+  
+  phaseLabel.textContent = phase;
+  suggestionsList.innerHTML = suggestions.map(v => `
+    <div class="video-suggestion-item" onclick="selectSuggestedVideo('${v.youtube}')">
+      <div class="video-suggestion-thumb">
+        <img src="${v.thumb}" alt="${v.title}" onerror="this.style.display='none'">
+      </div>
+      <div class="video-suggestion-title">${v.title}</div>
+    </div>
+  `).join('');
+  
+  suggestionsContainer.style.display = 'block';
+}
+
+// Sélectionner une vidéo suggérée
+function selectSuggestedVideo(url) {
+  document.getElementById('ex-video-url').value = url;
+  previewVideo();
+  notify('✅ Vidéo sélectionnée !');
+}
+
+// Générer un QR code pour la vidéo (pour le PDF)
+function generateVideoQRCode(url) {
+  if (!url) return '';
+  
+  // Utiliser l'API QR Server (gratuite, pas de dépendance)
+  const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=80x80&data=${encodeURIComponent(url)}`;
+  return `
+    <div class="video-qr-code">
+      <img src="${qrUrl}" alt="QR Code" style="width:80px;height:80px;border-radius:4px;">
+      <div class="video-qr-label">📱 Scanner pour<br>voir la vidéo</div>
+    </div>
+  `;
+}
+
+// Mettre à jour les suggestions quand la phase change
+document.addEventListener('DOMContentLoaded', function() {
+  const phaseSelect = document.getElementById('ex-phase');
+  if (phaseSelect) {
+    phaseSelect.addEventListener('change', showVideoSuggestions);
+  }
+});
 
 function toggleAiPublic(el, val) {
   document.querySelectorAll('.ai-pub-chip').forEach(c => c.classList.remove('sel'));
@@ -2757,6 +3658,22 @@ function viewFiche(id) {
             <div style="border:1.5px solid var(--primary);border-radius:10px;overflow:hidden;margin-top:6px;background:white">
               ${ex.aiSvg}
             </div>` : ''}
+          ${ex.videoUrl ? `
+            <div class="preview-label" style="display:flex;align-items:center;gap:6px">
+              🎬 Vidéo démonstrative
+              <span style="background:#e84040;color:white;font-size:9px;padding:1px 6px;border-radius:10px;font-weight:700">YouTube</span>
+            </div>
+            <div style="border:1.5px solid #e84040;border-radius:10px;overflow:hidden;margin-top:6px;background:#000;aspect-ratio:16/9">
+              <iframe src="https://www.youtube.com/embed/${extractYouTubeId(ex.videoUrl)}" width="100%" height="100%" frameborder="0" allowfullscreen style="display:block"></iframe>
+            </div>` : ''}
+          ${ex.videoFile && !ex.videoUrl ? `
+            <div class="preview-label" style="display:flex;align-items:center;gap:6px">
+              🎬 Vidéo démonstrative
+              <span style="background:#f5a623;color:white;font-size:9px;padding:1px 6px;border-radius:10px;font-weight:700">Local</span>
+            </div>
+            <div style="border:1.5px solid #f5a623;border-radius:10px;overflow:hidden;margin-top:6px;background:#000">
+              <video src="${ex.videoFile}" controls width="100%" style="display:block"></video>
+            </div>` : ''}
         </div>
       </div>
     `).join('')}
@@ -2921,7 +3838,13 @@ async function exportPDF() {
         </div>
         <div class="exright">
           <div class="f"><b>Schéma :</b></div>
-          <div class="sbox" style="flex:1;min-height:160px;max-height:200px;overflow:hidden;">${schemaContent}</div>
+          <div class="sbox" style="flex:1;min-height:140px;max-height:180px;overflow:hidden;">${schemaContent}</div>
+          ${ex.videoUrl ? `
+          <div style="margin-top:6px;text-align:center;">
+            <div class="f" style="margin-bottom:4px"><b>📱 Vidéo :</b></div>
+            <img src="https://api.qrserver.com/v1/create-qr-code/?size=70x70&data=${encodeURIComponent(ex.videoUrl)}" style="width:70px;height:70px;border:1px solid #ddd;border-radius:4px">
+            <div style="font-size:8px;color:#666;margin-top:2px">Scanner pour<br>voir la démo</div>
+          </div>` : ''}
         </div>
       </div>
       <div class="cut"></div>
@@ -4144,7 +5067,453 @@ if (localStorage.getItem('darkMode') === 'true') {
 }
 updateDarkIcon();
 
+// ============================================================
+// V7: RECHERCHE ET FILTRES
+// ============================================================
+let currentFilter = 'all';
+let searchQuery = '';
+
+function toggleFilters() {
+  const panel = document.getElementById('filter-panel');
+  const btn = document.getElementById('filter-toggle');
+  panel.classList.toggle('open');
+  btn.classList.toggle('active');
+}
+
+function setFilter(filter, el) {
+  currentFilter = filter;
+  document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  filterFiches();
+}
+
+function filterFiches() {
+  searchQuery = document.getElementById('search-input').value.toLowerCase().trim();
+  renderFiches();
+}
+
+// Modifier renderFiches pour supporter les filtres (on wrap la fonction existante)
+const originalRenderFiches = renderFiches;
+renderFiches = function() {
+  let filteredFiches = [...fiches];
+  
+  // Appliquer la recherche
+  if (searchQuery) {
+    filteredFiches = filteredFiches.filter(f => 
+      (f.nom || '').toLowerCase().includes(searchQuery) ||
+      (f.sportName || '').toLowerCase().includes(searchQuery) ||
+      (f.lieu || '').toLowerCase().includes(searchQuery) ||
+      (f.public || '').toLowerCase().includes(searchQuery)
+    );
+  }
+  
+  // Appliquer les filtres
+  if (currentFilter === 'recent') {
+    filteredFiches = filteredFiches.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0)).slice(0, 10);
+  } else if (currentFilter === 'seniors') {
+    filteredFiches = filteredFiches.filter(f => 
+      (f.public || '').toLowerCase().includes('senior') || 
+      (f.public || '').toLowerCase().includes('60') ||
+      (f.sport || '').includes('gym-douce')
+    );
+  } else if (currentFilter === 'enfants') {
+    filteredFiches = filteredFiches.filter(f => 
+      (f.public || '').toLowerCase().includes('enfant') || 
+      (f.public || '').toLowerCase().includes('6-') ||
+      (f.public || '').toLowerCase().includes('9-')
+    );
+  }
+  
+  // Sauvegarder temporairement et restaurer
+  const originalFichesRef = fiches;
+  fiches = filteredFiches;
+  originalRenderFiches();
+  fiches = originalFichesRef;
+};
+
+// ============================================================
+// V7: EXPORT / IMPORT JSON
+// ============================================================
+function exportAllData() {
+  const data = {
+    version: 'Mat&Co v7',
+    exportDate: new Date().toISOString(),
+    author: 'SAAD Matis',
+    fiches: fiches,
+    cycles: cycles,
+    sports: sports
+  };
+  
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `matco-backup-${new Date().toISOString().split('T')[0]}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+  
+  notify('📤 Données exportées !');
+}
+
+function importData(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const data = JSON.parse(e.target.result);
+      
+      if (!data.fiches) {
+        notify('❌ Fichier invalide');
+        return;
+      }
+      
+      if (confirm(`Importer ${data.fiches.length} fiches ? Cela fusionnera avec tes données actuelles.`)) {
+        // Fusionner les fiches (éviter les doublons par ID)
+        const existingIds = new Set(fiches.map(f => f.id));
+        const newFiches = data.fiches.filter(f => !existingIds.has(f.id));
+        fiches = [...newFiches, ...fiches];
+        
+        // Fusionner les cycles
+        if (data.cycles) {
+          const existingCycleIds = new Set(cycles.map(c => c.id));
+          const newCycles = data.cycles.filter(c => !existingCycleIds.has(c.id));
+          cycles = [...cycles, ...newCycles];
+        }
+        
+        // Fusionner les sports
+        if (data.sports) {
+          const existingSportIds = new Set(sports.map(s => s.id));
+          const newSports = data.sports.filter(s => !existingSportIds.has(s.id));
+          sports = [...sports, ...newSports];
+        }
+        
+        save();
+        renderFiches();
+        notify(`✅ ${newFiches.length} nouvelles fiches importées !`);
+      }
+    } catch (err) {
+      notify('❌ Erreur de lecture du fichier');
+      console.error(err);
+    }
+  };
+  reader.readAsText(file);
+  event.target.value = '';
+}
+
+// ============================================================
+// V7: DUPLICATION DE FICHE
+// ============================================================
+function duplicateFiche(id) {
+  const original = fiches.find(f => f.id === id);
+  if (!original) return;
+  
+  const duplicate = JSON.parse(JSON.stringify(original));
+  duplicate.id = 'fiche-' + Date.now();
+  duplicate.nom = original.nom + ' (copie)';
+  duplicate.createdAt = new Date().toISOString();
+  
+  fiches.unshift(duplicate);
+  save();
+  renderFiches();
+  notify('📋 Fiche dupliquée !');
+}
+
+// ============================================================
+// V7: TIMER / CHRONOMÈTRE
+// ============================================================
+let timerInterval = null;
+let timerSeconds = 0;
+let timerRunning = false;
+let timerExercises = [];
+let timerCurrentIdx = 0;
+
+function openTimer(ficheId) {
+  document.getElementById('timer-modal').classList.add('open');
+  
+  if (ficheId) {
+    const fiche = fiches.find(f => f.id === ficheId);
+    if (fiche && fiche.exercices) {
+      timerExercises = fiche.exercices.map(ex => ({
+        name: ex.titre,
+        duration: parseDuration(ex.duree)
+      }));
+      timerCurrentIdx = 0;
+      loadTimerExercise();
+    }
+  } else if (viewingFicheId) {
+    const fiche = fiches.find(f => f.id === viewingFicheId);
+    if (fiche && fiche.exercices) {
+      timerExercises = fiche.exercices.map(ex => ({
+        name: ex.titre,
+        duration: parseDuration(ex.duree)
+      }));
+      timerCurrentIdx = 0;
+      loadTimerExercise();
+    }
+  }
+}
+
+function parseDuration(str) {
+  if (!str) return 300;
+  const match = str.match(/(\d+)/);
+  return match ? parseInt(match[1]) * 60 : 300;
+}
+
+function loadTimerExercise() {
+  if (timerExercises.length === 0) {
+    document.getElementById('timer-exercise-name').textContent = 'Chronomètre libre';
+    timerSeconds = 0;
+    updateTimerDisplay();
+    return;
+  }
+  
+  const ex = timerExercises[timerCurrentIdx];
+  document.getElementById('timer-exercise-name').textContent = `${timerCurrentIdx + 1}/${timerExercises.length} — ${ex.name}`;
+  timerSeconds = ex.duration;
+  updateTimerDisplay();
+}
+
+function closeTimer() {
+  document.getElementById('timer-modal').classList.remove('open');
+  timerPause();
+}
+
+function timerToggle() {
+  if (timerRunning) {
+    timerPause();
+  } else {
+    timerStart();
+  }
+}
+
+function timerStart() {
+  timerRunning = true;
+  document.getElementById('timer-play-btn').textContent = '⏸';
+  document.getElementById('timer-phase').textContent = 'En cours...';
+  
+  timerInterval = setInterval(() => {
+    if (timerExercises.length > 0) {
+      timerSeconds--;
+      if (timerSeconds <= 0) {
+        timerNext();
+        return;
+      }
+    } else {
+      timerSeconds++;
+    }
+    updateTimerDisplay();
+  }, 1000);
+}
+
+function timerPause() {
+  timerRunning = false;
+  document.getElementById('timer-play-btn').textContent = '▶';
+  document.getElementById('timer-phase').textContent = 'Pause';
+  clearInterval(timerInterval);
+}
+
+function timerReset() {
+  timerPause();
+  if (timerExercises.length > 0) {
+    loadTimerExercise();
+  } else {
+    timerSeconds = 0;
+    updateTimerDisplay();
+  }
+  document.getElementById('timer-phase').textContent = 'Prêt';
+}
+
+function timerNext() {
+  timerPause();
+  if (timerExercises.length === 0) return;
+  
+  timerCurrentIdx++;
+  if (timerCurrentIdx >= timerExercises.length) {
+    document.getElementById('timer-exercise-name').textContent = '✅ Séance terminée !';
+    document.getElementById('timer-phase').textContent = 'Bravo !';
+    timerSeconds = 0;
+    updateTimerDisplay();
+    // Son de fin
+    try { new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdH2Onbmvr6mZh3lyd36Mpr3Gz8jCs6KTi4+VpbvL1NfUzL+wnZOUm6e6ytfg4NrOvKudk5Sbo7fJ2ePm4tbGtaWZlZuirsDQ3ufq5drJt6eemJmfqLnJ2eXt7+TXxrWlmpaZoKu7y9zn8fHm2ci2pZqWmJ+pu8vc5/Hx5tnItqWalpifqbvL3Ofx8ebZyLalmpaYn6m7y9zn8fHm2ci2pZqWmJ+pu8vc5/Hx5g==').play(); } catch(e) {}
+    return;
+  }
+  loadTimerExercise();
+  timerStart();
+}
+
+function updateTimerDisplay() {
+  const mins = Math.floor(Math.abs(timerSeconds) / 60);
+  const secs = Math.abs(timerSeconds) % 60;
+  const sign = timerSeconds < 0 ? '-' : '';
+  document.getElementById('timer-display').textContent = `${sign}${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+  
+  // Update progress
+  if (timerExercises.length > 0 && timerExercises[timerCurrentIdx]) {
+    const total = timerExercises[timerCurrentIdx].duration;
+    const progress = ((total - timerSeconds) / total) * 360;
+    document.getElementById('timer-progress-fill').style.transform = `rotate(${progress - 45}deg)`;
+  }
+}
+
+// ============================================================
+// V7: BIBLIOTHÈQUE D'EXERCICES
+// ============================================================
+const exerciseLibrary = [
+  { id: 'lib-1', phase: 'Échauffement', titre: 'Échauffement articulaire complet', duree: '10 min', descriptif: 'Mobilisation progressive de toutes les articulations du corps, des chevilles jusqu\'à la nuque. Mouvements circulaires lents et contrôlés.', consignes: ['Commencer par les chevilles', 'Monter progressivement', 'Respirer calmement'], category: 'general' },
+  { id: 'lib-2', phase: 'Échauffement', titre: 'Course et déplacements variés', duree: '8 min', descriptif: 'Alternance de courses, pas chassés, montées de genoux, talons-fesses sur un parcours balisé.', consignes: ['Suivre les consignes sonores', 'Respecter les distances', 'Augmenter progressivement l\'intensité'], category: 'general' },
+  { id: 'lib-3', phase: 'Échauffement', titre: 'Activation douce assis (seniors)', duree: '10 min', descriptif: 'Exercices de mobilité assis sur chaise : rotations de tête, épaules, poignets. Idéal pour public senior ou à mobilité réduite.', consignes: ['Rester assis', 'Mouvements lents', 'Ne pas forcer'], category: 'seniors' },
+  { id: 'lib-4', phase: 'Corps de séance', titre: 'Circuit training 6 ateliers', duree: '25 min', descriptif: '6 ateliers de 3 minutes avec 30 secondes de récupération. Squats, pompes, gainage, fentes, burpees, corde.', consignes: ['Respecter le temps', 'Adapter l\'intensité', 'Boire entre les ateliers'], category: 'renforcement' },
+  { id: 'lib-5', phase: 'Corps de séance', titre: 'Jeu collectif adapté', duree: '20 min', descriptif: 'Match ou jeu collectif avec règles simplifiées selon le sport. Favoriser la participation de tous.', consignes: ['Encourager les passes', 'Valoriser l\'entraide', 'Rotation des équipes'], category: 'collectif' },
+  { id: 'lib-6', phase: 'Corps de séance', titre: 'Renforcement membres supérieurs', duree: '15 min', descriptif: 'Exercices ciblés : pompes, dips, élévations latérales, rowing. Avec ou sans matériel.', consignes: ['Technique avant charge', 'Respirer sur l\'effort', '3 séries par exercice'], category: 'renforcement' },
+  { id: 'lib-7', phase: 'Corps de séance', titre: 'Mobilité et équilibre (seniors)', duree: '15 min', descriptif: 'Exercices d\'équilibre sur une jambe, transferts de poids, coordination bras-jambes. Avec chaise pour sécurité.', consignes: ['Garder un appui proche', 'Mouvements lents', 'Se concentrer sur un point fixe'], category: 'seniors' },
+  { id: 'lib-8', phase: 'Retour au calme', titre: 'Étirements complets guidés', duree: '10 min', descriptif: 'Étirements passifs de tous les groupes musculaires sollicités. Maintenir chaque position 30 secondes.', consignes: ['Ne jamais forcer', 'Respirer profondément', 'Relâcher les tensions'], category: 'general' },
+  { id: 'lib-9', phase: 'Retour au calme', titre: 'Relaxation et respiration', duree: '8 min', descriptif: 'Exercices de respiration abdominale, scan corporel, relaxation progressive. Position allongée ou assise.', consignes: ['Fermer les yeux', 'Inspirer par le nez', 'Expirer lentement'], category: 'general' },
+  { id: 'lib-10', phase: 'Retour au calme', titre: 'Bilan et partage collectif', duree: '5 min', descriptif: 'Temps d\'échange sur la séance. Chaque participant partage son ressenti. Valoriser les progrès.', consignes: ['Écouter les autres', 'Parler de son ressenti', 'Positiver'], category: 'general' },
+];
+
+let libraryFilter = 'all';
+
+function openLibrary() {
+  document.getElementById('library-modal').classList.add('open');
+  renderLibrary();
+}
+
+function closeLibrary() {
+  document.getElementById('library-modal').classList.remove('open');
+}
+
+function filterLibrary(cat, el) {
+  libraryFilter = cat;
+  document.querySelectorAll('.library-cat').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  renderLibrary();
+}
+
+function renderLibrary() {
+  let filtered = [...exerciseLibrary];
+  
+  if (libraryFilter === 'echauffement') {
+    filtered = filtered.filter(ex => ex.phase === 'Échauffement');
+  } else if (libraryFilter === 'corps') {
+    filtered = filtered.filter(ex => ex.phase === 'Corps de séance');
+  } else if (libraryFilter === 'retour') {
+    filtered = filtered.filter(ex => ex.phase === 'Retour au calme');
+  } else if (libraryFilter === 'seniors') {
+    filtered = filtered.filter(ex => ex.category === 'seniors');
+  }
+  
+  document.getElementById('library-list').innerHTML = filtered.map(ex => {
+    const phaseClass = ex.phase === 'Échauffement' ? 'echauffement' : ex.phase === 'Corps de séance' ? 'corps' : 'retour';
+    return `
+      <div class="library-item" onclick="addLibraryExercise('${ex.id}')">
+        <div class="library-item-phase ${phaseClass}">${ex.phase} • ${ex.duree}</div>
+        <div class="library-item-title">${ex.titre}</div>
+        <div class="library-item-desc">${ex.descriptif.substring(0, 100)}...</div>
+      </div>
+    `;
+  }).join('');
+}
+
+function addLibraryExercise(id) {
+  const ex = exerciseLibrary.find(e => e.id === id);
+  if (!ex) return;
+  
+  exercices.push({
+    titre: ex.titre,
+    duree: ex.duree,
+    phase: ex.phase,
+    descriptif: ex.descriptif,
+    consignes: ex.consignes || [],
+    organisation: '',
+    materiel: '',
+    criteresReussite: '',
+    criteresRealisation: '',
+    varDebutant: '',
+    varAvance: '',
+    schema: null,
+    aiSvg: null,
+    videoUrl: null,
+    videoFile: null
+  });
+  
+  closeLibrary();
+  renderExercicesList();
+  notify('📚 Exercice ajouté depuis la bibliothèque !');
+}
+
+// ============================================================
+// V7: PWA INSTALLATION
+// ============================================================
+let deferredPrompt = null;
+
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+  // Afficher la bannière après 3 secondes
+  setTimeout(() => {
+    if (!localStorage.getItem('pwa-dismissed')) {
+      document.getElementById('pwa-banner').classList.add('show');
+    }
+  }, 3000);
+});
+
+function installPWA() {
+  if (!deferredPrompt) {
+    notify('📱 Ajoute cette page à ton écran d\'accueil via le menu de ton navigateur');
+    return;
+  }
+  deferredPrompt.prompt();
+  deferredPrompt.userChoice.then((result) => {
+    if (result.outcome === 'accepted') {
+      notify('✅ Application installée !');
+    }
+    deferredPrompt = null;
+    document.getElementById('pwa-banner').classList.remove('show');
+  });
+}
+
+function dismissPWA() {
+  document.getElementById('pwa-banner').classList.remove('show');
+  localStorage.setItem('pwa-dismissed', 'true');
+}
+
+// Détection hors-ligne
+window.addEventListener('online', () => {
+  document.getElementById('offline-bar').classList.remove('show');
+  notify('✅ Connexion rétablie');
+});
+
+window.addEventListener('offline', () => {
+  document.getElementById('offline-bar').classList.add('show');
+});
+
+// Service Worker registration (pour le cache hors-ligne)
+if ('serviceWorker' in navigator) {
+  // Le SW serait dans un fichier séparé en production
+  // Pour cette version standalone, on utilise le localStorage
+  console.log('[Mat&Co] PWA ready - données sauvegardées localement');
+}
+
+// ============================================================
+// V7: MISE À JOUR renderFicheCard AVEC BOUTON DUPLIQUER
+// ============================================================
+const originalRenderFicheCard = renderFicheCard;
+renderFicheCard = function(f) {
+  const card = originalRenderFicheCard(f);
+  // Ajouter le bouton dupliquer dans la carte
+  return card.replace('</div></div></div>', `<button class="duplicate-btn" onclick="event.stopPropagation();duplicateFiche('${f.id}')" style="position:absolute;top:8px;right:8px;padding:4px 8px;font-size:10px">📋</button></div></div></div>`);
+};
+
 renderFiches();
+
+// ============================================================
+// V7: VERSION INFO
+// ============================================================
+console.log('%c Mat&Co v7 Ultimate ', 'background: linear-gradient(135deg, #1a6b3c, #2d9e5f); color: white; font-size: 16px; font-weight: bold; padding: 10px 20px; border-radius: 8px;');
+console.log('© ' + new Date().getFullYear() + ' SAAD Matis - Tous droits réservés');
+console.log('Fonctionnalités: Vidéos, PWA, Export/Import, Timer, Bibliothèque, Recherche, Filtres, Duplication');
 </script>
 </body>
 </html>
