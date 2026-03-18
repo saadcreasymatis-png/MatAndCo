@@ -1670,7 +1670,6 @@
     <div class="tools-grid" id="tools-grid">
       <!-- Les outils sont générés dynamiquement par renderToolsGrid() -->
     </div>
-    <input type="file" id="import-file" accept=".json" style="display:none" onchange="importData(event)">
   </div>
   
   <div id="fiches-list"></div>
@@ -1984,17 +1983,35 @@
 <div class="library-modal" id="library-modal" onclick="if(event.target===this)closeLibrary()">
   <div class="library-content">
     <div class="library-header">
-      <h3>📚 Bibliothèque d'exercices</h3>
+      <h3>📚 Bibliothèque</h3>
       <button onclick="closeLibrary()" style="background:none;border:none;font-size:24px;cursor:pointer">×</button>
     </div>
-    <div class="library-categories">
-      <button class="library-cat active" data-cat="all" onclick="filterLibrary('all',this)">Tous</button>
-      <button class="library-cat" data-cat="echauffement" onclick="filterLibrary('echauffement',this)">🔥 Échauffement</button>
-      <button class="library-cat" data-cat="corps" onclick="filterLibrary('corps',this)">💪 Corps</button>
-      <button class="library-cat" data-cat="retour" onclick="filterLibrary('retour',this)">🌀 Retour calme</button>
-      <button class="library-cat" data-cat="seniors" onclick="filterLibrary('seniors',this)">🧓 Seniors</button>
+    
+    <!-- Onglets principaux -->
+    <div style="display:flex;border-bottom:2px solid var(--border);margin-bottom:0">
+      <button class="library-tab active" id="tab-exercices" onclick="switchLibraryTab('exercices')" style="flex:1;padding:12px;border:none;background:var(--primary);color:white;font-weight:600;font-size:14px;cursor:pointer;border-radius:0">💪 Exercices</button>
+      <button class="library-tab" id="tab-fiches" onclick="switchLibraryTab('fiches')" style="flex:1;padding:12px;border:none;background:var(--warm);color:var(--text);font-weight:600;font-size:14px;cursor:pointer;border-radius:0">📋 Mes Fiches</button>
     </div>
-    <div class="library-list" id="library-list"></div>
+    
+    <!-- Contenu Exercices -->
+    <div id="library-exercices-content">
+      <div class="library-categories">
+        <button class="library-cat active" data-cat="all" onclick="filterLibrary('all',this)">Tous</button>
+        <button class="library-cat" data-cat="echauffement" onclick="filterLibrary('echauffement',this)">🔥 Échauffement</button>
+        <button class="library-cat" data-cat="corps" onclick="filterLibrary('corps',this)">💪 Corps</button>
+        <button class="library-cat" data-cat="retour" onclick="filterLibrary('retour',this)">🌀 Retour calme</button>
+        <button class="library-cat" data-cat="seniors" onclick="filterLibrary('seniors',this)">🧓 Seniors</button>
+      </div>
+      <div class="library-list" id="library-list"></div>
+    </div>
+    
+    <!-- Contenu Fiches -->
+    <div id="library-fiches-content" style="display:none">
+      <div style="padding:12px 16px;background:var(--warm);border-bottom:1px solid var(--border)">
+        <input type="text" id="library-fiches-search" placeholder="🔍 Rechercher une fiche..." style="width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:10px;font-size:14px" oninput="renderLibraryFiches()">
+      </div>
+      <div class="library-list" id="library-fiches-list" style="max-height:50vh;overflow-y:auto"></div>
+    </div>
   </div>
 </div>
 
@@ -2035,18 +2052,33 @@
 let fiches = JSON.parse(localStorage.getItem('fiches') || '[]');
 let cycles = JSON.parse(localStorage.getItem('cycles') || '[]');
 let sports = JSON.parse(localStorage.getItem('sports') || 'null') || [
+  // AJS - Activités de jeux sportifs
   {id:'football',name:'Football',emoji:'⚽'},
   {id:'basketball',name:'Basketball',emoji:'🏀'},
   {id:'volleyball',name:'Volleyball',emoji:'🏐'},
   {id:'handball',name:'Handball',emoji:'🤾'},
-  {id:'tennis',name:'Tennis',emoji:'🎾'},
-  {id:'natation',name:'Natation',emoji:'🏊'},
-  {id:'athletisme',name:'Athlétisme',emoji:'🏃'},
-  {id:'gymnastique',name:'Gymnast.',emoji:'🤸'},
-  {id:'acrogym',name:'Acrogym',emoji:'🧗'},
   {id:'rugby',name:'Rugby',emoji:'🏉'},
   {id:'badminton',name:'Badminton',emoji:'🏸'},
-  {id:'arts-martiaux',name:'Arts martiaux',emoji:'🥋'},
+  {id:'ultimate',name:'Ultimate',emoji:'🥏'},
+  {id:'tchoukball',name:'Tchoukball',emoji:'🤾'},
+  {id:'kinball',name:'Kinball',emoji:'🔵'},
+  {id:'dodgeball',name:'Dodgeball',emoji:'🎯'},
+  {id:'flag-football',name:'Flag Football',emoji:'🏈'},
+  {id:'futsal',name:'Futsal',emoji:'⚽'},
+  {id:'hockey-salle',name:'Hockey en salle',emoji:'🏒'},
+  {id:'baseball-softball',name:'Baseball/Softball',emoji:'⚾'},
+  // APEN - Activités physiques d'entretien
+  {id:'pilates',name:'Pilates',emoji:'🧘'},
+  {id:'cross-training',name:'Cross Training',emoji:'💪'},
+  {id:'stretching',name:'Stretching',emoji:'🤸'},
+  {id:'circuit-training',name:'Circuit Training',emoji:'🏋️'},
+  {id:'yoga',name:'Yoga',emoji:'🧘‍♀️'},
+  {id:'aquagym',name:'Aquagym',emoji:'🏊‍♀️'},
+  {id:'renforcement-musculaire',name:'Renforcement',emoji:'🏋️‍♂️'},
+  {id:'gym-douce-seniors',name:'Gym Douce Seniors',emoji:'🧓'},
+  // APEC - Activités de pleine nature / coopération
+  {id:'course-orientation',name:'Course d\'orientation',emoji:'🧭'},
+  {id:'escalade',name:'Escalade',emoji:'🧗'},
 ];
 
 // V7.2: VALEURS MORALES ENRICHIES (50 valeurs en 5 catégories)
@@ -2076,17 +2108,15 @@ const VALEURS_CATEGORIES = {
 // Liste plate pour compatibilité
 const VALEURS = Object.values(VALEURS_CATEGORIES).flatMap(cat => cat.valeurs);
 
-// V7.2: CONFIGURATION DES OUTILS
+// V7.2: CONFIGURATION DES OUTILS (export/import supprimés)
 const TOOLS_CONFIG = [
-  { id: 'export', icon: '📤', title: 'Exporter', desc: 'Sauvegarder JSON', action: 'exportAllData()' },
-  { id: 'import', icon: '📥', title: 'Importer', desc: 'Restaurer données', action: "document.getElementById('import-file').click()" },
   { id: 'library', icon: '📚', title: 'Bibliothèque', desc: 'Exercices prêts', action: 'openLibrary()' },
   { id: 'timer', icon: '⏱️', title: 'Chronomètre', desc: 'Timer séance', action: 'openTimer()' },
 ];
 
 // État des outils (localStorage)
 let toolsVisibility = JSON.parse(localStorage.getItem('toolsVisibility') || 'null') || {
-  export: true, import: true, library: true, timer: true
+  library: true, timer: true
 };
 let toolsSectionOpen = JSON.parse(localStorage.getItem('toolsSectionOpen') || 'false');
 
@@ -4899,14 +4929,111 @@ const exerciseLibrary = [
 ];
 
 let libraryFilter = 'all';
+let libraryTab = 'exercices';
 
 function openLibrary() {
   document.getElementById('library-modal').classList.add('open');
-  renderLibrary();
+  switchLibraryTab('exercices');
 }
 
 function closeLibrary() {
   document.getElementById('library-modal').classList.remove('open');
+}
+
+function switchLibraryTab(tab) {
+  libraryTab = tab;
+  
+  // Onglets
+  document.getElementById('tab-exercices').style.background = tab === 'exercices' ? 'var(--primary)' : 'var(--warm)';
+  document.getElementById('tab-exercices').style.color = tab === 'exercices' ? 'white' : 'var(--text)';
+  document.getElementById('tab-fiches').style.background = tab === 'fiches' ? 'var(--primary)' : 'var(--warm)';
+  document.getElementById('tab-fiches').style.color = tab === 'fiches' ? 'white' : 'var(--text)';
+  
+  // Contenus
+  document.getElementById('library-exercices-content').style.display = tab === 'exercices' ? 'block' : 'none';
+  document.getElementById('library-fiches-content').style.display = tab === 'fiches' ? 'block' : 'none';
+  
+  if (tab === 'exercices') {
+    renderLibrary();
+  } else {
+    renderLibraryFiches();
+  }
+}
+
+function renderLibraryFiches() {
+  const searchInput = document.getElementById('library-fiches-search');
+  const searchTerm = searchInput ? searchInput.value.toLowerCase().trim() : '';
+  
+  let fichesToShow = [...fiches];
+  
+  // Filtrer par recherche
+  if (searchTerm) {
+    fichesToShow = fichesToShow.filter(f => 
+      f.nom.toLowerCase().includes(searchTerm) ||
+      (f.sportName && f.sportName.toLowerCase().includes(searchTerm)) ||
+      (f.public && f.public.toLowerCase().includes(searchTerm))
+    );
+  }
+  
+  // Limiter à 50 pour les performances
+  fichesToShow = fichesToShow.slice(0, 50);
+  
+  const list = document.getElementById('library-fiches-list');
+  
+  if (fichesToShow.length === 0) {
+    list.innerHTML = `<div style="text-align:center;padding:40px;color:var(--muted)">
+      <div style="font-size:40px;margin-bottom:12px">📋</div>
+      <div style="font-weight:600">${searchTerm ? 'Aucune fiche trouvée' : 'Aucune fiche disponible'}</div>
+      <div style="font-size:13px;margin-top:6px">${searchTerm ? 'Essaie un autre terme de recherche' : 'Crée ta première fiche !'}</div>
+    </div>`;
+    return;
+  }
+  
+  list.innerHTML = fichesToShow.map(f => {
+    const sport = sports.find(s => s.id === f.sport);
+    const sportEmoji = sport ? sport.emoji : '🏅';
+    const sportName = sport ? sport.name : f.sportName || 'Sport';
+    const nbEx = f.exercices ? f.exercices.length : 0;
+    
+    return `
+      <div class="library-item" onclick="duplicateFicheFromLibrary('${f.id}')" style="display:flex;gap:12px;align-items:center">
+        <div style="font-size:28px">${sportEmoji}</div>
+        <div style="flex:1;min-width:0">
+          <div style="font-weight:600;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${f.nom}</div>
+          <div style="font-size:12px;color:var(--muted)">${sportName} • ${nbEx} exercice${nbEx > 1 ? 's' : ''}</div>
+        </div>
+        <div style="font-size:11px;background:var(--primary);color:white;padding:4px 10px;border-radius:12px;font-weight:600">Dupliquer</div>
+      </div>
+    `;
+  }).join('');
+  
+  if (fiches.length > 50) {
+    list.innerHTML += `<div style="text-align:center;padding:16px;color:var(--muted);font-size:12px">
+      Affichage limité à 50 fiches. Utilise la recherche pour trouver une fiche spécifique.
+    </div>`;
+  }
+}
+
+function duplicateFicheFromLibrary(ficheId) {
+  const original = fiches.find(f => f.id === ficheId);
+  if (!original) {
+    notify('❌ Fiche introuvable');
+    return;
+  }
+  
+  // Créer une copie
+  const newFiche = {
+    ...JSON.parse(JSON.stringify(original)),
+    id: 'fiche-' + Date.now(),
+    nom: original.nom + ' (copie)',
+    createdAt: new Date().toISOString()
+  };
+  
+  fiches.unshift(newFiche);
+  save();
+  closeLibrary();
+  renderFiches();
+  notify('📋 Fiche dupliquée avec succès !');
 }
 
 function filterLibrary(cat, el) {
@@ -5036,8 +5163,8 @@ renderFiches();
 // ============================================================
 // V7: VERSION INFO
 // ============================================================
-console.log('%c Mat&Co v7.2 ', 'background: linear-gradient(135deg, #1a6b3c, #2d9e5f); color: white; font-size: 16px; font-weight: bold; padding: 10px 20px; border-radius: 8px;');
-console.log('v7.2 - Simplification schéma (image uniquement), Toggle outils, 50 valeurs morales');
+console.log('%c Mat&Co v7.2.1 ', 'background: linear-gradient(135deg, #1a6b3c, #2d9e5f); color: white; font-size: 16px; font-weight: bold; padding: 10px 20px; border-radius: 8px;');
+console.log('v7.2.1 - 24 sports, Bibliothèque avec fiches, 50 valeurs morales');
 console.log('© ' + new Date().getFullYear() + ' SAAD Matis - Tous droits réservés');
 console.log('Fonctionnalités: Vidéos, PWA, Export/Import, Timer, Bibliothèque, Recherche, Filtres, Duplication');
 </script>
