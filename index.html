@@ -10,7 +10,7 @@
 <meta name="theme-color" content="#1a6b3c">
 <meta name="description" content="Mat&Co - Application de fiches de séances sportives par SAAD Matis">
 <link rel="manifest" href="data:application/json;base64,ewogICJuYW1lIjogIk1hdCZDbyAtIEZpY2hlU3BvcnQiLAogICJzaG9ydF9uYW1lIjogIk1hdCZDbyIsCiAgInN0YXJ0X3VybCI6ICIuIiwKICAiZGlzcGxheSI6ICJzdGFuZGFsb25lIiwKICAiYmFja2dyb3VuZF9jb2xvciI6ICIjZjBmNGYxIiwKICAidGhlbWVfY29sb3IiOiAiIzFhNmIzYyIsCiAgImljb25zIjogW3sic3JjIjogImRhdGE6aW1hZ2Uvc3ZnK3htbCw8c3ZnIHhtbG5zPSdodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2Zycgdmlld0JveD0nMCAwIDEwMCAxMDAnPjxyZWN0IHdpZHRoPScxMDAnIGhlaWdodD0nMTAwJyByeD0nMjAnIGZpbGw9JyMxYTZiM2MnLz48dGV4dCB4PSc1MCcgeT0nNjUnIGZvbnQtc2l6ZT0nNTAnIHRleHQtYW5jaG9yPSdtaWRkbGUnIGZpbGw9J3doaXRlJz7wn4+FPC90ZXh0Pjwvc3ZnPiIsICJzaXplcyI6ICIxOTJ4MTkyIiwgInR5cGUiOiAiaW1hZ2Uvc3ZnK3htbCJ9XQp9">
-<title>Mat&Co - FicheSport v7</title>
+<title>Mat&Co - FicheSport v7.1</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Rubik+Dirt&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -3800,7 +3800,9 @@ async function exportPDF() {
   const SLICE_H = A4H - PAD * 2 - FOOTER_H;
 
   // ── Rendu exercice : schéma = toute la colonne droite, variables en bas pleine largeur ──
-  // MODIFICATION: Amélioration de l'ajustement des images dans le PDF
+  // ═══════════════════════════════════════════════════════════════
+  // V7.1: RENDER EXERCICE - QR Code Vidéo + Images Adaptatives
+  // ═══════════════════════════════════════════════════════════════
   function renderExercice(ex, idx) {
     const cList = (ex.consignes||[]).filter(c=>c);
     const consHTML = cList.map(c=>`<div class="cline">✓ ${c}</div>`).join('');
@@ -3809,16 +3811,55 @@ async function exportPDF() {
     const maxC = Math.max(rLines.length, zLines.length, 1);
     const critRows = Array.from({length:maxC},(_,i)=>`<tr><td>${rLines[i]?'• '+rLines[i]:''}</td><td>${zLines[i]?'• '+zLines[i]:''}</td></tr>`).join('');
     
-    // MODIFICATION: Gestion améliorée des schémas (SVG inline ou image)
+    // V7.1: Détection présence vidéo et schéma
+    const hasVideo = ex.videoUrl && ex.videoUrl.trim();
+    const hasSchema = ex.aiSvg || ex.schema;
+    
+    // V7.1: Calcul dynamique hauteur schéma selon présence QR Code
+    const SCHEMA_HEIGHT_WITH_VIDEO = 115;   // Plus petit si QR Code présent
+    const SCHEMA_HEIGHT_NO_VIDEO = 175;     // Plus grand si pas de QR Code
+    const schemaHeight = hasVideo ? SCHEMA_HEIGHT_WITH_VIDEO : SCHEMA_HEIGHT_NO_VIDEO;
+    
+    // V7.1: Génération contenu schéma avec taille adaptative
     let schemaContent = '';
     if (ex.aiSvg) {
-      // Schéma SVG généré par IA - ajusté pour tenir dans la zone
-      schemaContent = `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;overflow:hidden;">${ex.aiSvg}</div>`;
+      // SVG IA - on injecte les attributs de taille max pour adaptation
+      const adaptedSvg = ex.aiSvg.replace(
+        /<svg([^>]*)>/,
+        '<svg$1 style="max-width:100%;max-height:100%;width:auto;height:auto;">'
+      );
+      schemaContent = `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;overflow:hidden;">${adaptedSvg}</div>`;
     } else if (ex.schema) {
-      // Image dessinée - avec object-fit pour ajustement automatique
-      schemaContent = `<img src="${ex.schema}" style="max-width:100%;max-height:160px;width:auto;height:auto;object-fit:contain;display:block;margin:auto;">`;
+      // Image Canvas - object-fit contain pour préserver ratio
+      schemaContent = `<img src="${ex.schema}" style="max-width:100%;max-height:${schemaHeight-10}px;width:auto;height:auto;object-fit:contain;display:block;margin:auto;">`;
     } else {
       schemaContent = `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:#999;font-size:10px;">Aucun schéma</div>`;
+    }
+    
+    // V7.1: Génération section QR Code vidéo améliorée
+    let qrCodeSection = '';
+    if (hasVideo) {
+      // Extraire ID YouTube pour URL courte
+      const videoId = extractYouTubeId(ex.videoUrl);
+      const videoLink = videoId ? `https://youtu.be/${videoId}` : ex.videoUrl;
+      const qrSize = 75;
+      const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=${qrSize}x${qrSize}&data=${encodeURIComponent(videoLink)}&margin=1&format=png`;
+      
+      qrCodeSection = `
+        <div style="margin-top:8px;padding:8px 10px;background:linear-gradient(135deg,#fff8f8 0%,#fff 100%);border:1.5px solid #e84040;border-radius:8px;display:flex;align-items:center;gap:10px;">
+          <img src="${qrUrl}" style="width:${qrSize}px;height:${qrSize}px;border:1px solid #eee;border-radius:4px;background:#fff;flex-shrink:0;">
+          <div style="flex:1;min-width:0;">
+            <div style="font-weight:bold;font-size:10px;color:#e84040;margin-bottom:2px;display:flex;align-items:center;gap:4px;">
+              <span>📹</span> Vidéo démonstrative
+            </div>
+            <div style="font-size:8px;color:#555;line-height:1.35;">
+              Scannez le QR Code pour<br>voir la démonstration vidéo
+            </div>
+            <div style="font-size:7px;color:#999;margin-top:3px;max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
+              ${videoLink}
+            </div>
+          </div>
+        </div>`;
     }
 
     return `<div class="cut"></div>
@@ -3838,13 +3879,8 @@ async function exportPDF() {
         </div>
         <div class="exright">
           <div class="f"><b>Schéma :</b></div>
-          <div class="sbox" style="flex:1;min-height:140px;max-height:180px;overflow:hidden;">${schemaContent}</div>
-          ${ex.videoUrl ? `
-          <div style="margin-top:6px;text-align:center;">
-            <div class="f" style="margin-bottom:4px"><b>📱 Vidéo :</b></div>
-            <img src="https://api.qrserver.com/v1/create-qr-code/?size=70x70&data=${encodeURIComponent(ex.videoUrl)}" style="width:70px;height:70px;border:1px solid #ddd;border-radius:4px">
-            <div style="font-size:8px;color:#666;margin-top:2px">Scanner pour<br>voir la démo</div>
-          </div>` : ''}
+          <div class="sbox" style="flex:1;min-height:${schemaHeight}px;max-height:${schemaHeight}px;overflow:hidden;display:flex;align-items:center;justify-content:center;">${schemaContent}</div>
+          ${qrCodeSection}
         </div>
       </div>
       <div class="cut"></div>
@@ -5511,9 +5547,10 @@ renderFiches();
 // ============================================================
 // V7: VERSION INFO
 // ============================================================
-console.log('%c Mat&Co v7 Ultimate ', 'background: linear-gradient(135deg, #1a6b3c, #2d9e5f); color: white; font-size: 16px; font-weight: bold; padding: 10px 20px; border-radius: 8px;');
+console.log('%c Mat&Co v7.1 Ultimate ', 'background: linear-gradient(135deg, #1a6b3c, #2d9e5f); color: white; font-size: 16px; font-weight: bold; padding: 10px 20px; border-radius: 8px;');
 console.log('© ' + new Date().getFullYear() + ' SAAD Matis - Tous droits réservés');
 console.log('Fonctionnalités: Vidéos, PWA, Export/Import, Timer, Bibliothèque, Recherche, Filtres, Duplication');
+console.log('v7.1: QR Code Vidéo amélioré + Images PDF adaptatives');
 </script>
 </body>
 </html>
