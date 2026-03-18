@@ -10,7 +10,7 @@
 <meta name="theme-color" content="#1a6b3c">
 <meta name="description" content="Mat&Co - Application de fiches de séances sportives par SAAD Matis">
 <link rel="manifest" href="data:application/json;base64,ewogICJuYW1lIjogIk1hdCZDbyAtIEZpY2hlU3BvcnQiLAogICJzaG9ydF9uYW1lIjogIk1hdCZDbyIsCiAgInN0YXJ0X3VybCI6ICIuIiwKICAiZGlzcGxheSI6ICJzdGFuZGFsb25lIiwKICAiYmFja2dyb3VuZF9jb2xvciI6ICIjZjBmNGYxIiwKICAidGhlbWVfY29sb3IiOiAiIzFhNmIzYyIsCiAgImljb25zIjogW3sic3JjIjogImRhdGE6aW1hZ2Uvc3ZnK3htbCw8c3ZnIHhtbG5zPSdodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2Zycgdmlld0JveD0nMCAwIDEwMCAxMDAnPjxyZWN0IHdpZHRoPScxMDAnIGhlaWdodD0nMTAwJyByeD0nMjAnIGZpbGw9JyMxYTZiM2MnLz48dGV4dCB4PSc1MCcgeT0nNjUnIGZvbnQtc2l6ZT0nNTAnIHRleHQtYW5jaG9yPSdtaWRkbGUnIGZpbGw9J3doaXRlJz7wn4+FPC90ZXh0Pjwvc3ZnPiIsICJzaXplcyI6ICIxOTJ4MTkyIiwgInR5cGUiOiAiaW1hZ2Uvc3ZnK3htbCJ9XQp9">
-<title>Mat&Co - FicheSport v7</title>
+<title>Mat&Co - FicheSport v7.2</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Rubik+Dirt&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -1401,6 +1401,218 @@
   body.dark .dark-toggle:hover { background: var(--warm); }
   body.dark .notif { background: var(--primary); color: #0f1412; }
 
+  /* ============================================================
+     V7.2 NOUVEAUX STYLES
+     ============================================================ */
+
+  /* TOGGLE OUTILS */
+  .tools-toggle-section {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+    padding: 0 16px;
+  }
+  .tools-toggle-btn {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 18px;
+    background: var(--card);
+    border: 1.5px solid var(--border);
+    border-radius: 14px;
+    font-family: 'Rubik Dirt', cursive;
+    font-size: 16px;
+    color: var(--text);
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: var(--shadow);
+  }
+  .tools-toggle-btn:hover { background: var(--warm); }
+  .tools-toggle-chevron {
+    transition: transform 0.3s;
+    font-size: 12px;
+  }
+  .tools-toggle-chevron.open { transform: rotate(180deg); }
+  .tools-settings-btn {
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--card);
+    border: 1.5px solid var(--border);
+    border-radius: 14px;
+    font-size: 20px;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: var(--shadow);
+  }
+  .tools-settings-btn:hover { background: var(--warm); }
+  .tools-settings-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .tool-setting-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px;
+    background: var(--warm);
+    border-radius: 12px;
+  }
+  .tool-setting-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .tool-setting-icon { font-size: 26px; }
+  .tool-setting-name { font-weight: 600; font-size: 14px; }
+  .toggle-switch {
+    position: relative;
+    width: 52px;
+    height: 28px;
+  }
+  .toggle-switch input { opacity: 0; width: 0; height: 0; }
+  .toggle-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-color: #ccc;
+    transition: 0.3s;
+    border-radius: 28px;
+  }
+  .toggle-slider:before {
+    position: absolute;
+    content: "";
+    height: 22px;
+    width: 22px;
+    left: 3px;
+    bottom: 3px;
+    background-color: white;
+    transition: 0.3s;
+    border-radius: 50%;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  }
+  .toggle-switch input:checked + .toggle-slider { background-color: var(--primary); }
+  .toggle-switch input:checked + .toggle-slider:before { transform: translateX(24px); }
+
+  /* SECTION IMAGE SCHEMA */
+  .schema-image-section {
+    background: var(--warm);
+    border: 2px dashed var(--border);
+    border-radius: 14px;
+    padding: 20px;
+    text-align: center;
+  }
+  .schema-preview-zone {
+    min-height: 140px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 14px;
+    background: white;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+  }
+  .schema-placeholder {
+    text-align: center;
+    padding: 24px;
+    color: var(--muted);
+  }
+  .schema-image-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  .schema-size-warning {
+    margin-top: 12px;
+    padding: 10px 14px;
+    background: #fff3cd;
+    border-radius: 10px;
+    font-size: 12px;
+    color: #856404;
+    border: 1px solid #ffc107;
+  }
+
+  /* VALEURS MORALES CATÉGORISÉES */
+  .valeurs-search {
+    margin-bottom: 14px;
+  }
+  .valeurs-search input {
+    width: 100%;
+    padding: 12px 16px;
+    border: 1.5px solid var(--border);
+    border-radius: 12px;
+    font-size: 14px;
+    background: var(--warm);
+  }
+  .valeurs-search input:focus {
+    outline: none;
+    border-color: var(--primary);
+    background: white;
+  }
+  .valeur-category {
+    margin-bottom: 10px;
+    background: var(--card);
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+  }
+  .valeur-category-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    background: var(--warm);
+    transition: all 0.2s;
+  }
+  .valeur-category-header:hover { background: #dde8e2; }
+  .valeur-category-chevron {
+    transition: transform 0.3s;
+    font-size: 11px;
+    color: var(--muted);
+  }
+  .valeur-category-chevron.collapsed { transform: rotate(-90deg); }
+  .valeur-category-chips {
+    padding: 12px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    transition: all 0.3s;
+  }
+  .valeur-category-chips.collapsed { display: none; }
+  .selected-valeurs {
+    margin-top: 16px;
+    padding: 14px;
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+    border-radius: 14px;
+  }
+  .selected-valeurs .valeur-chip {
+    background: white;
+    color: var(--primary);
+    border-color: white;
+  }
+  .selected-valeurs .valeur-chip:hover {
+    background: #f0f0f0;
+  }
+
+  /* Dark mode v7.2 */
+  body.dark .tools-toggle-btn { background: var(--card); border-color: var(--border); }
+  body.dark .tools-settings-btn { background: var(--card); border-color: var(--border); }
+  body.dark .tool-setting-item { background: var(--warm); }
+  body.dark .schema-image-section { background: var(--warm); border-color: var(--border); }
+  body.dark .schema-preview-zone { background: var(--card); border-color: var(--border); }
+  body.dark .valeur-category { background: var(--card); border-color: var(--border); }
+  body.dark .valeur-category-header { background: var(--warm); }
+  body.dark .valeurs-search input { background: var(--warm); border-color: var(--border); color: var(--text); }
+
 </style>
 </head>
 <body>
@@ -1445,30 +1657,18 @@
     <div class="filter-chip" data-filter="enfants" onclick="setFilter('enfants',this)">🧒 Enfants</div>
   </div>
   
-  <!-- MODIFICATION V7: Section Outils -->
-  <div class="tools-section">
-    <div class="section-title">🛠️ Outils</div>
-    <div class="tools-grid">
-      <div class="tool-card" onclick="exportAllData()">
-        <div class="tool-card-icon">📤</div>
-        <div class="tool-card-title">Exporter</div>
-        <div class="tool-card-desc">Sauvegarder JSON</div>
-      </div>
-      <div class="tool-card" onclick="document.getElementById('import-file').click()">
-        <div class="tool-card-icon">📥</div>
-        <div class="tool-card-title">Importer</div>
-        <div class="tool-card-desc">Restaurer données</div>
-      </div>
-      <div class="tool-card" onclick="openLibrary()">
-        <div class="tool-card-icon">📚</div>
-        <div class="tool-card-title">Bibliothèque</div>
-        <div class="tool-card-desc">Exercices prêts</div>
-      </div>
-      <div class="tool-card" onclick="openTimer()">
-        <div class="tool-card-icon">⏱️</div>
-        <div class="tool-card-title">Chronomètre</div>
-        <div class="tool-card-desc">Timer séance</div>
-      </div>
+  <!-- V7.2: Section Outils avec toggle -->
+  <div class="tools-toggle-section">
+    <button class="tools-toggle-btn" onclick="toggleToolsVisibility()">
+      <span>🛠️ Outils</span>
+      <span class="tools-toggle-chevron" id="tools-chevron">▼</span>
+    </button>
+    <button class="tools-settings-btn" onclick="openToolsSettings()" title="Paramètres des outils">⚙️</button>
+  </div>
+
+  <div class="tools-section" id="tools-section" style="display:none">
+    <div class="tools-grid" id="tools-grid">
+      <!-- Les outils sont générés dynamiquement par renderToolsGrid() -->
     </div>
     <input type="file" id="import-file" accept=".json" style="display:none" onchange="importData(event)">
   </div>
@@ -1705,70 +1905,59 @@
 
     <div style="height:8px"></div>
 
-    <!-- AI SCHEMA GENERATOR -->
-    <div class="ai-schema-section">
-      <div class="ai-schema-header">
-        <span style="font-size:20px">🤖</span>
-        <span class="ai-schema-title">Générateur de schéma IA</span>
-        <span class="ai-schema-badge">✨ IA</span>
+    <!-- V7.2: SECTION IMAGE SCHEMA SIMPLIFIÉE -->
+    <div class="section-title" style="margin-bottom:10px">📷 Schéma / Image</div>
+    <div class="schema-image-section">
+      <input type="file" id="schema-image-input" accept="image/jpeg,image/png,image/webp,image/gif" style="display:none" onchange="handleSchemaImageImport(event)">
+      
+      <!-- Zone d'aperçu -->
+      <div id="schema-preview-zone" class="schema-preview-zone">
+        <div id="schema-placeholder" class="schema-placeholder">
+          <div style="font-size:48px;margin-bottom:10px">📷</div>
+          <div style="font-size:15px;font-weight:600;color:var(--text)">Aucune image</div>
+          <div style="font-size:12px;color:var(--muted);margin-top:6px">L'image sera ajustée automatiquement dans le PDF</div>
+        </div>
+        <img id="schema-image-preview" src="" alt="Schéma" style="display:none;max-width:100%;max-height:200px;border-radius:8px;object-fit:contain">
       </div>
-
-      <div style="font-size:12px;color:var(--muted);margin-bottom:8px;font-weight:500">👥 Public cible :</div>
-      <div class="ai-public-chips">
-        <span class="ai-pub-chip" onclick="toggleAiPublic(this,'Enfants 6-8 ans')">🧒 6-8 ans</span>
-        <span class="ai-pub-chip" onclick="toggleAiPublic(this,'Enfants 9-12 ans')">👦 9-12 ans</span>
-        <span class="ai-pub-chip sel" onclick="toggleAiPublic(this,'Adolescents 13-17 ans')">🧑 Ados</span>
-        <span class="ai-pub-chip" onclick="toggleAiPublic(this,'Adultes')">👤 Adultes</span>
-        <span class="ai-pub-chip" onclick="toggleAiPublic(this,'Seniors')">👴 Seniors</span>
-        <span class="ai-pub-chip" onclick="toggleAiPublic(this,'Mixte tous âges')">👨‍👩‍👧 Mixte</span>
-      </div>
-
-      <div style="font-size:12px;color:var(--muted);margin-bottom:6px;font-weight:500">💬 Décris l'exercice ou donne des consignes supplémentaires :</div>
-      <div class="ai-prompt-row">
-        <textarea class="ai-prompt-input" id="ai-schema-prompt" placeholder="Pré-rempli automatiquement depuis les consignes, organisation et description. Tu peux modifier ou compléter..." rows="3"></textarea>
-        <button class="btn-ai-gen" id="btn-gen-schema" onclick="generateAiSchema()">
-          <span id="btn-gen-icon">✨</span>
-          <span id="btn-gen-text">Générer</span>
+      
+      <!-- Boutons -->
+      <div class="schema-image-actions">
+        <button class="btn btn-outline" onclick="document.getElementById('schema-image-input').click()">
+          📷 Insérer une image
+        </button>
+        <button class="btn btn-danger btn-sm" id="schema-remove-btn" onclick="removeSchemaImage()" style="display:none">
+          🗑 Supprimer
         </button>
       </div>
-
-      <div id="ai-schema-preview-area" class="ai-schema-preview">
-        <div class="ai-schema-empty">
-          <div class="ai-schema-empty-icon">🏃</div>
-          <div>Le schéma apparaîtra ici</div>
-          <div style="font-size:11px;margin-top:4px;color:#aaa">Remplis d'abord les infos de l'exercice !</div>
-        </div>
-      </div>
-
-      <div id="ai-legend-area" class="ai-legend" style="display:none"></div>
-
-      <div id="ai-schema-actions" class="ai-schema-actions" style="display:none">
-        <button class="btn-ai-action" onclick="regenAiSchema()">🔄 Regénérer</button>
-        <button class="btn-ai-action primary" onclick="applyAiSchemaToCanvas()">✅ Appliquer au dessin</button>
+      
+      <!-- Warning taille -->
+      <div id="schema-size-warning" class="schema-size-warning" style="display:none">
+        ⚠️ Image volumineuse (> 5 Mo). La qualité pourrait être réduite dans le PDF.
       </div>
     </div>
 
-    <div style="height:8px"></div>
-    <div class="section-title" style="margin-bottom:10px">✏️ Dessin libre / 📷 Image</div>
-    <div class="canvas-tools">
-      <button class="tool-btn active" id="tool-draw" onclick="setTool('draw')" title="Dessiner">✏️</button>
-      <button class="tool-btn" id="tool-erase" onclick="setTool('erase')" title="Effacer">🧹</button>
-      <div class="color-dot selected" style="background:#1a6b3c" onclick="setColor('#1a6b3c',this)"></div>
-      <div class="color-dot" style="background:#e84040" onclick="setColor('#e84040',this)"></div>
-      <div class="color-dot" style="background:#f5a623" onclick="setColor('#f5a623',this)"></div>
-      <div class="color-dot" style="background:#2980b9" onclick="setColor('#2980b9',this)"></div>
-      <div class="color-dot" style="background:#1a2420" onclick="setColor('#1a2420',this)"></div>
-      <button class="tool-btn" onclick="importSchemaImage()" title="Importer une image" style="margin-left:auto">📷</button>
-      <button class="tool-btn" onclick="clearCanvas()" title="Tout effacer">🗑</button>
-    </div>
-    <input type="file" id="schema-image-input" accept="image/*" style="display:none" onchange="handleSchemaImageImport(event)">
-    <div class="canvas-container">
-      <canvas id="schema-canvas" width="340" height="200"></canvas>
-    </div>
-
+    <div style="height:14px"></div>
     <div style="display:flex;gap:8px">
       <button class="btn btn-primary" style="flex:1" onclick="saveExercice()">✅ Valider</button>
       <button class="btn btn-outline" style="flex:1" onclick="closeModal()">Annuler</button>
+    </div>
+  </div>
+</div>
+
+<!-- V7.2: MODAL PARAMÈTRES OUTILS -->
+<div class="modal-overlay" id="modal-tools-settings" onclick="if(event.target===this)closeToolsSettings()">
+  <div class="modal" style="max-width:360px">
+    <div class="modal-handle"></div>
+    <h3 style="font-family:'Rubik Dirt',cursive;font-size:18px;margin-bottom:16px">⚙️ Paramètres des outils</h3>
+    <p style="font-size:13px;color:var(--muted);margin-bottom:16px">Active ou désactive les outils selon tes besoins</p>
+    
+    <div class="tools-settings-list" id="tools-settings-list">
+      <!-- Généré dynamiquement par openToolsSettings() -->
+    </div>
+    
+    <div style="margin-top:18px;display:flex;gap:10px">
+      <button class="btn btn-primary" style="flex:1" onclick="saveToolsSettings()">✅ Enregistrer</button>
+      <button class="btn btn-outline" style="flex:1" onclick="closeToolsSettings()">Annuler</button>
     </div>
   </div>
 </div>
@@ -1860,7 +2049,46 @@ let sports = JSON.parse(localStorage.getItem('sports') || 'null') || [
   {id:'arts-martiaux',name:'Arts martiaux',emoji:'🥋'},
 ];
 
-const VALEURS = ['Respect','Coopération','Solidarité','Responsabilité','Persévérance','Fair-play','Confiance','Créativité','Engagement','Sécurité'];
+// V7.2: VALEURS MORALES ENRICHIES (50 valeurs en 5 catégories)
+const VALEURS_CATEGORIES = {
+  relationnelles: {
+    label: '🤝 Relationnelles',
+    valeurs: ['Respect', 'Entraide', 'Solidarité', 'Coopération', 'Écoute', 'Empathie', 'Bienveillance', 'Tolérance', 'Inclusion', 'Partage']
+  },
+  personnelles: {
+    label: '💪 Personnelles',
+    valeurs: ['Persévérance', 'Courage', 'Humilité', 'Honnêteté', 'Intégrité', 'Autonomie', 'Responsabilité', 'Discipline', 'Patience', 'Confiance en soi']
+  },
+  sportives: {
+    label: '🏆 Sportives',
+    valeurs: ['Fair-play', 'Esprit d\'équipe', 'Dépassement de soi', 'Acceptation de l\'échec', 'Gestion des émotions', 'Combativité', 'Concentration', 'Adaptation', 'Résilience', 'Maîtrise de soi']
+  },
+  sociales: {
+    label: '🌍 Sociales',
+    valeurs: ['Citoyenneté', 'Engagement', 'Générosité', 'Gratitude', 'Ouverture d\'esprit', 'Sens du collectif', 'Respect des règles', 'Loyauté', 'Fraternité', 'Dignité']
+  },
+  educatives: {
+    label: '📚 Éducatives',
+    valeurs: ['Curiosité', 'Créativité', 'Esprit critique', 'Apprentissage', 'Progression', 'Effort', 'Rigueur', 'Organisation', 'Communication', 'Leadership']
+  }
+};
+
+// Liste plate pour compatibilité
+const VALEURS = Object.values(VALEURS_CATEGORIES).flatMap(cat => cat.valeurs);
+
+// V7.2: CONFIGURATION DES OUTILS
+const TOOLS_CONFIG = [
+  { id: 'export', icon: '📤', title: 'Exporter', desc: 'Sauvegarder JSON', action: 'exportAllData()' },
+  { id: 'import', icon: '📥', title: 'Importer', desc: 'Restaurer données', action: "document.getElementById('import-file').click()" },
+  { id: 'library', icon: '📚', title: 'Bibliothèque', desc: 'Exercices prêts', action: 'openLibrary()' },
+  { id: 'timer', icon: '⏱️', title: 'Chronomètre', desc: 'Timer séance', action: 'openTimer()' },
+];
+
+// État des outils (localStorage)
+let toolsVisibility = JSON.parse(localStorage.getItem('toolsVisibility') || 'null') || {
+  export: true, import: true, library: true, timer: true
+};
+let toolsSectionOpen = JSON.parse(localStorage.getItem('toolsSectionOpen') || 'false');
 
 // FORM STATE
 let currentStep = 0;
@@ -1870,11 +2098,9 @@ let editingExIdx = -1;
 let selectedSport = null;
 let selectedValeurs = [];
 let consignes = [];
-let canvasData = null;
 
-// CANVAS
-let canvas, ctx, drawing = false, tool = 'draw', color = '#1a6b3c';
-let lastX, lastY;
+// V7.2: Image schéma (remplace canvas)
+let currentSchemaImage = null;
 
 // ============================================================
 // SAVE
@@ -2048,12 +2274,66 @@ function deleteSport(i) {
 }
 
 // ============================================================
-// VALEURS
+// VALEURS (V7.2: avec catégories)
 // ============================================================
 function renderValeursChips() {
-  document.getElementById('valeurs-chips').innerHTML = VALEURS.map(v => `
-    <span class="valeur-chip ${selectedValeurs.includes(v)?'selected':''}" onclick="toggleValeur('${v}')">${v}</span>
-  `).join('');
+  const container = document.getElementById('valeurs-chips');
+  
+  let html = '<div class="valeurs-search"><input type="text" id="valeurs-search-input" placeholder="🔍 Rechercher une valeur..." oninput="filterValeurs(this.value)"></div>';
+  
+  html += '<div id="valeurs-categories">';
+  
+  Object.entries(VALEURS_CATEGORIES).forEach(([key, cat]) => {
+    html += `
+      <div class="valeur-category">
+        <div class="valeur-category-header" onclick="toggleValeurCategory('${key}')">
+          <span>${cat.label}</span>
+          <span class="valeur-category-chevron" id="valeur-chevron-${key}">▼</span>
+        </div>
+        <div class="valeur-category-chips" id="valeur-chips-${key}">
+          ${cat.valeurs.map(v => `
+            <span class="valeur-chip ${selectedValeurs.includes(v)?'selected':''}" onclick="toggleValeur('${v.replace(/'/g, "\\'")}')">${v}</span>
+          `).join('')}
+        </div>
+      </div>
+    `;
+  });
+  
+  html += '</div>';
+  
+  // Valeurs sélectionnées
+  if (selectedValeurs.length > 0) {
+    html += `
+      <div class="selected-valeurs">
+        <div style="font-size:12px;color:rgba(255,255,255,0.8);margin-bottom:8px">✅ Sélectionnées (${selectedValeurs.length}) :</div>
+        <div style="display:flex;flex-wrap:wrap;gap:6px">
+          ${selectedValeurs.map(v => `<span class="valeur-chip selected" onclick="toggleValeur('${v.replace(/'/g, "\\'")}')">${v} ✕</span>`).join('')}
+        </div>
+      </div>
+    `;
+  }
+  
+  container.innerHTML = html;
+}
+
+function toggleValeurCategory(key) {
+  const chips = document.getElementById(`valeur-chips-${key}`);
+  const chevron = document.getElementById(`valeur-chevron-${key}`);
+  chips.classList.toggle('collapsed');
+  chevron.classList.toggle('collapsed');
+}
+
+function filterValeurs(query) {
+  const q = query.toLowerCase().trim();
+  document.querySelectorAll('.valeur-category-chips .valeur-chip').forEach(chip => {
+    const text = chip.textContent.toLowerCase();
+    chip.style.display = q === '' || text.includes(q) ? 'inline-flex' : 'none';
+  });
+  // Ouvrir toutes les catégories si recherche active
+  if (q !== '') {
+    document.querySelectorAll('.valeur-category-chips').forEach(el => el.classList.remove('collapsed'));
+    document.querySelectorAll('.valeur-category-chevron').forEach(el => el.classList.remove('collapsed'));
+  }
 }
 
 function toggleValeur(v) {
@@ -2097,7 +2377,7 @@ function renderExercicesList() {
 function addExercice() {
   editingExIdx = -1;
   consignes = [''];
-  canvasData = null;
+  currentSchemaImage = null;
   openModal();
 }
 
@@ -2115,17 +2395,23 @@ function editExercice(i) {
   document.getElementById('var-debutant').value = ex.varDebutant || '';
   document.getElementById('var-avance').value = ex.varAvance || '';
   consignes = ex.consignes && ex.consignes.length ? [...ex.consignes] : [''];
-  canvasData = ex.schema || null;
-  lastAiSvg = ex.aiSvg || null;
   
-  // MODIFICATION: Charger la vidéo existante
+  // V7.2: Charger l'image schéma
+  currentSchemaImage = ex.schema || null;
+  
+  // Charger la vidéo existante
   currentVideoUrl = ex.videoUrl || null;
   currentVideoFile = ex.videoFile || null;
   
   openModal();
   
-  // Charger la vidéo dans l'aperçu
+  // Charger l'image et la vidéo dans l'aperçu
   setTimeout(() => {
+    // V7.2: Charger l'image schéma
+    if (currentSchemaImage) {
+      loadSchemaImage(currentSchemaImage);
+    }
+    
     if (currentVideoUrl) {
       document.getElementById('ex-video-url').value = currentVideoUrl;
       previewVideo();
@@ -2134,27 +2420,8 @@ function editExercice(i) {
       video.src = currentVideoFile;
       document.getElementById('video-local-preview').style.display = 'block';
     }
-    // Afficher les suggestions de vidéos
     showVideoSuggestions();
   }, 150);
-  
-  // Restore AI SVG preview if present
-  if (lastAiSvg) {
-    setTimeout(() => {
-      const preview = document.getElementById('ai-schema-preview-area');
-      if (preview) {
-        preview.innerHTML = lastAiSvg;
-        document.getElementById('ai-schema-actions').style.display = 'flex';
-      }
-    }, 150);
-  }
-  if (canvasData) {
-    setTimeout(() => {
-      const img = new Image();
-      img.onload = () => ctx.drawImage(img, 0, 0);
-      img.src = canvasData;
-    }, 100);
-  }
 }
 
 function deleteExercice(i) {
@@ -2169,7 +2436,7 @@ function openModal() {
     document.getElementById('ex-phase').value = 'Échauffement';
     consignes = [''];
     
-    // MODIFICATION: Réinitialiser les vidéos
+    // Réinitialiser les vidéos
     currentVideoUrl = null;
     currentVideoFile = null;
     document.getElementById('ex-video-url').value = '';
@@ -2177,18 +2444,13 @@ function openModal() {
     document.getElementById('video-local-preview').style.display = 'none';
     document.getElementById('video-iframe').src = '';
     document.getElementById('video-local').src = '';
+    
+    // V7.2: Réinitialiser l'image schéma
+    resetSchemaImage();
   }
   renderConsignes();
-  // Reset AI schema area
-  document.getElementById('ai-schema-preview-area').innerHTML = `<div class="ai-schema-empty"><div class="ai-schema-empty-icon">🏃</div><div>Le schéma apparaîtra ici</div><div style="font-size:11px;margin-top:4px;color:#aaa">Remplis d'abord les infos de l'exercice !</div></div>`;
-  document.getElementById('ai-schema-actions').style.display = 'none';
-  document.getElementById('ai-legend-area').style.display = 'none';
-  lastAiSvg = null;
   document.getElementById('modal-exercise').classList.add('open');
   setTimeout(() => { 
-    initCanvas(); 
-    autoFillAiPrompt();
-    // MODIFICATION: Afficher les suggestions de vidéos
     showVideoSuggestions();
   }, 100);
 }
@@ -2212,8 +2474,7 @@ function saveExercice() {
     varDebutant: document.getElementById('var-debutant').value,
     varAvance: document.getElementById('var-avance').value,
     consignes: consignes.filter(c=>c.trim()),
-    schema: canvas ? canvas.toDataURL() : null,
-    aiSvg: lastAiSvg || null,
+    schema: currentSchemaImage || null,
     // MODIFICATION: Sauvegarde de la vidéo
     videoUrl: currentVideoUrl || null,
     videoFile: currentVideoFile || null,
@@ -2249,138 +2510,90 @@ function removeConsigne(i) {
 }
 
 // ============================================================
-// CANVAS
+// V7.2: GESTION IMAGE SCHEMA (remplace canvas et AI)
 // ============================================================
-function initCanvas() {
-  canvas = document.getElementById('schema-canvas');
-  ctx = canvas.getContext('2d');
-  const w = canvas.parentElement.offsetWidth - 2;
-  canvas.width = w;
-  canvas.height = 200;
-  ctx.lineWidth = 3;
-  ctx.lineCap = 'round';
-  ctx.lineJoin = 'round';
-
-  if (!canvasData) {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    // Draw subtle grid
-    ctx.strokeStyle = '#e8f2ec';
-    ctx.lineWidth = 1;
-    for (let x = 0; x < canvas.width; x += 20) { ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,canvas.height); ctx.stroke(); }
-    for (let y = 0; y < canvas.height; y += 20) { ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(canvas.width,y); ctx.stroke(); }
-    ctx.lineWidth = 3;
-  }
-
-  canvas.addEventListener('pointerdown', startDraw);
-  canvas.addEventListener('pointermove', draw);
-  canvas.addEventListener('pointerup', stopDraw);
-  canvas.addEventListener('pointerleave', stopDraw);
-}
-
-function startDraw(e) {
-  drawing = true;
-  const r = canvas.getBoundingClientRect();
-  lastX = e.clientX - r.left;
-  lastY = e.clientY - r.top;
-  ctx.beginPath();
-  ctx.moveTo(lastX, lastY);
-}
-
-function draw(e) {
-  if (!drawing) return;
-  e.preventDefault();
-  const r = canvas.getBoundingClientRect();
-  const x = e.clientX - r.left;
-  const y = e.clientY - r.top;
-  ctx.strokeStyle = tool === 'erase' ? '#fafff9' : color;
-  ctx.lineWidth = tool === 'erase' ? 20 : 3;
-  ctx.beginPath();
-  ctx.moveTo(lastX, lastY);
-  ctx.lineTo(x, y);
-  ctx.stroke();
-  lastX = x; lastY = y;
-}
-
-function stopDraw() { drawing = false; }
-
-function setTool(t) {
-  tool = t;
-  document.getElementById('tool-draw').classList.toggle('active', t==='draw');
-  document.getElementById('tool-erase').classList.toggle('active', t==='erase');
-}
-
-function setColor(c, el) {
-  color = c;
-  document.querySelectorAll('.color-dot').forEach(d => d.classList.remove('selected'));
-  el.classList.add('selected');
-  setTool('draw');
-}
-
-function clearCanvas() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  ctx.strokeStyle = '#e8f2ec';
-  ctx.lineWidth = 1;
-  for (let x = 0; x < canvas.width; x += 20) { ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,canvas.height); ctx.stroke(); }
-  for (let y = 0; y < canvas.height; y += 20) { ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(canvas.width,y); ctx.stroke(); }
-  ctx.lineWidth = 3;
-}
-
-// ============================================================
-// IMPORT IMAGE SCHEMA
-// ============================================================
-function importSchemaImage() {
-  const input = document.getElementById('schema-image-input');
-  input.value = '';
-  input.click();
-}
-
 function handleSchemaImageImport(event) {
   const file = event.target.files[0];
   if (!file) return;
 
-  // Vérifier que c'est une image
+  // Vérifier le type
   if (!file.type.startsWith('image/')) {
     notify('❌ Ce fichier n\'est pas une image');
     return;
   }
 
+  // Warning si > 5 Mo
+  if (file.size > 5 * 1024 * 1024) {
+    document.getElementById('schema-size-warning').style.display = 'block';
+  } else {
+    document.getElementById('schema-size-warning').style.display = 'none';
+  }
+
   const reader = new FileReader();
   reader.onload = function(e) {
-    const img = new Image();
-    img.onload = function() {
-      // Dessiner l'image sur le canvas en la redimensionnant pour qu'elle tienne
-      const c = document.getElementById('schema-canvas');
-      const cx = c.getContext('2d');
-
-      // Effacer le canvas
-      cx.clearRect(0, 0, c.width, c.height);
-
-      // Calculer les dimensions pour que l'image tienne dans le canvas
-      // en conservant le ratio
-      const ratio = Math.min(c.width / img.width, c.height / img.height);
-      const w = img.width * ratio;
-      const h = img.height * ratio;
-      const x = (c.width - w) / 2;
-      const y = (c.height - h) / 2;
-
-      // Fond blanc
-      cx.fillStyle = '#ffffff';
-      cx.fillRect(0, 0, c.width, c.height);
-
-      // Dessiner l'image centrée
-      cx.drawImage(img, x, y, w, h);
-
-      notify('📷 Image importée dans le schéma !');
-    };
-    img.onerror = function() {
-      notify('❌ Impossible de charger l\'image');
-    };
-    img.src = e.target.result;
+    currentSchemaImage = e.target.result;
+    
+    // Afficher l'aperçu
+    const preview = document.getElementById('schema-image-preview');
+    const placeholder = document.getElementById('schema-placeholder');
+    const removeBtn = document.getElementById('schema-remove-btn');
+    
+    preview.src = currentSchemaImage;
+    preview.style.display = 'block';
+    placeholder.style.display = 'none';
+    removeBtn.style.display = 'inline-flex';
+    
+    notify('📷 Image ajoutée !');
   };
   reader.readAsDataURL(file);
 }
-let aiSchemaPublic = 'Adolescents 13-17 ans';
-let lastAiSvg = null;
+
+function removeSchemaImage() {
+  currentSchemaImage = null;
+  
+  const preview = document.getElementById('schema-image-preview');
+  const placeholder = document.getElementById('schema-placeholder');
+  const removeBtn = document.getElementById('schema-remove-btn');
+  const input = document.getElementById('schema-image-input');
+  
+  preview.src = '';
+  preview.style.display = 'none';
+  placeholder.style.display = 'block';
+  removeBtn.style.display = 'none';
+  input.value = '';
+  document.getElementById('schema-size-warning').style.display = 'none';
+  
+  notify('🗑 Image supprimée');
+}
+
+function resetSchemaImage() {
+  currentSchemaImage = null;
+  const preview = document.getElementById('schema-image-preview');
+  const placeholder = document.getElementById('schema-placeholder');
+  const removeBtn = document.getElementById('schema-remove-btn');
+  if (preview) {
+    preview.src = '';
+    preview.style.display = 'none';
+  }
+  if (placeholder) placeholder.style.display = 'block';
+  if (removeBtn) removeBtn.style.display = 'none';
+  const warning = document.getElementById('schema-size-warning');
+  if (warning) warning.style.display = 'none';
+}
+
+function loadSchemaImage(imageData) {
+  if (!imageData) return;
+  currentSchemaImage = imageData;
+  const preview = document.getElementById('schema-image-preview');
+  const placeholder = document.getElementById('schema-placeholder');
+  const removeBtn = document.getElementById('schema-remove-btn');
+  if (preview) {
+    preview.src = imageData;
+    preview.style.display = 'block';
+  }
+  if (placeholder) placeholder.style.display = 'none';
+  if (removeBtn) removeBtn.style.display = 'inline-flex';
+}
 
 // ============================================================
 // MODIFICATION: GESTION DES VIDÉOS DÉMONSTRATIVES
@@ -2559,782 +2772,96 @@ document.addEventListener('DOMContentLoaded', function() {
   if (phaseSelect) {
     phaseSelect.addEventListener('change', showVideoSuggestions);
   }
+  // V7.2: Initialiser la section outils
+  initToolsSection();
 });
 
-function toggleAiPublic(el, val) {
-  document.querySelectorAll('.ai-pub-chip').forEach(c => c.classList.remove('sel'));
-  el.classList.add('sel');
-  aiSchemaPublic = val;
+
+// ============================================================
+// V7.2: GESTION DES OUTILS AVEC TOGGLE
+// ============================================================
+function toggleToolsVisibility() {
+  toolsSectionOpen = !toolsSectionOpen;
+  localStorage.setItem('toolsSectionOpen', JSON.stringify(toolsSectionOpen));
+  
+  const section = document.getElementById('tools-section');
+  const chevron = document.getElementById('tools-chevron');
+  
+  if (toolsSectionOpen) {
+    section.style.display = 'block';
+    chevron.classList.add('open');
+  } else {
+    section.style.display = 'none';
+    chevron.classList.remove('open');
+  }
 }
 
-async function generateAiSchema() {
-  const btn = document.getElementById('btn-gen-schema');
-  const icon = document.getElementById('btn-gen-icon');
-  const text = document.getElementById('btn-gen-text');
-  const preview = document.getElementById('ai-schema-preview-area');
-  const actions = document.getElementById('ai-schema-actions');
-  const legendArea = document.getElementById('ai-legend-area');
-
-  // Collect context from exercise fields
-  const titre = document.getElementById('ex-titre').value || '';
-  const organisation = document.getElementById('ex-organisation').value || '';
-  const descriptif = document.getElementById('ex-descriptif').value || '';
-  const materiel = document.getElementById('ex-materiel').value || '';
-  const phase = document.getElementById('ex-phase').value || '';
-  const consignesText = consignes.filter(c=>c.trim()).join(' / ') || '';
-  const userPrompt = document.getElementById('ai-schema-prompt').value || '';
-
-  const allText = [titre, organisation, descriptif, materiel, consignesText, userPrompt].join(' ').toLowerCase();
-
-  if (!titre && !organisation && !descriptif && !userPrompt) {
-    notify('💡 Remplis d\'abord les infos de l\'exercice !');
+function renderToolsGrid() {
+  const grid = document.getElementById('tools-grid');
+  if (!grid) return;
+  
+  const visibleTools = TOOLS_CONFIG.filter(t => toolsVisibility[t.id]);
+  
+  if (visibleTools.length === 0) {
+    grid.innerHTML = `<div style="text-align:center;padding:24px;color:var(--muted);font-size:13px;grid-column:1/-1">
+      <div style="font-size:28px;margin-bottom:8px">🔧</div>
+      Aucun outil activé.<br>Clique sur ⚙️ pour en activer.
+    </div>`;
     return;
   }
-
-  btn.disabled = true;
-  icon.textContent = '⏳';
-  text.textContent = '...';
-  actions.style.display = 'none';
-  legendArea.style.display = 'none';
-  preview.innerHTML = `<div class="ai-loading"><div class="ai-spinner"></div>Génération en cours...</div>`;
-
-  // Small delay for UX
-  await new Promise(r => setTimeout(r, 500));
-
-  try {
-    let svgCode;
-    
-    // MODIFICATION: Utiliser le style EHPAD/Gym Douce pour les seniors
-    if (isSeniorPublic(aiSchemaPublic, descriptif + ' ' + titre)) {
-      // Générer un schéma style EHPAD avec personnages seniors sur chaise
-      const consignesList = consignes.filter(c => c.trim());
-      svgCode = buildEHPADSchema(consignesList, titre, phase);
-      
-      // Légende spécifique EHPAD
-      legendArea.style.display = 'flex';
-      legendArea.innerHTML = `
-        <div class="ai-legend-item">
-          <div class="ai-legend-dot" style="background:#4A90D9"></div>
-          <span>Mouvement / Direction</span>
-        </div>
-        <div class="ai-legend-item">
-          <div class="ai-legend-dot" style="background:#FFDAB9"></div>
-          <span>Participant</span>
-        </div>
-        <div class="ai-legend-item">
-          <div class="ai-legend-dot" style="background:#8B5A2B"></div>
-          <span>Chaise</span>
-        </div>`;
-    } else {
-      // Schéma sportif classique
-      svgCode = buildSmartSVG({ titre, organisation, descriptif, materiel, phase, consignesText, userPrompt, allText, public: aiSchemaPublic });
-      
-      // Build legend
-      const legendItems = buildLegend(allText);
-      if (legendItems.length) {
-        legendArea.style.display = 'flex';
-        legendArea.innerHTML = legendItems.map(i => `
-          <div class="ai-legend-item">
-            <div class="ai-legend-dot" style="background:${i.color}"></div>
-            <span>${i.label}</span>
-          </div>`).join('');
-      }
-    }
-    
-    lastAiSvg = svgCode;
-    preview.innerHTML = svgCode;
-    actions.style.display = 'flex';
-    notify('✨ Schéma généré !');
-  } catch(err) {
-    console.error('Erreur génération schéma:', err);
-    preview.innerHTML = `<div class="ai-schema-empty"><div class="ai-schema-empty-icon">😔</div><div>Erreur génération</div></div>`;
-    notify('❌ Erreur génération');
-  }
-
-  btn.disabled = false;
-  icon.textContent = '✨';
-  text.textContent = 'Générer';
-}
-
-// ── Smart SVG Builder ─────────────────────────────────────────
-function buildLegend(txt) {
-  const items = [{ color:'#e84040', label:'Joueurs / Participants' }];
-  if (txt.includes('équipe') || txt.includes('groupe') || txt.includes('binôme') || txt.includes('equipe'))
-    items.push({ color:'#2980b9', label:'Groupe B' });
-  if (txt.includes('ballon') || txt.includes('balle')) items.push({ color:'#f5a623', label:'Ballon' });
-  if (txt.includes('cône') || txt.includes('cone') || txt.includes('plot')) items.push({ color:'#f1c40f', label:'Cônes / Plots' });
-  if (txt.includes('bâton') || txt.includes('baton')) items.push({ color:'#8e44ad', label:'Bâtons' });
-  items.push({ color:'#27ae60', label:'Zone / Terrain' });
-  return items;
-}
-
-function detectLayout(allText) {
-  if (allText.includes('cercle') || allText.includes('rond') || allText.includes('circulaire')) return 'circle';
-  if (allText.includes('relais') || allText.includes('file') || allText.includes('colonne') || allText.includes('queue')) return 'relay';
-  if (allText.includes('aller-retour') || allText.includes('parcours') || allText.includes('chemin') || allText.includes('sentier')) return 'path';
-  if (allText.includes('binôme') || allText.includes('face à face') || allText.includes('vis-à-vis') || allText.includes('face-a-face')) return 'face2face';
-  if (allText.includes('équipe') || allText.includes('equipe') || allText.includes('camp')) return 'teams';
-  if (allText.includes('atelier') || allText.includes('circuit') || allText.includes('rotation') || allText.includes('station')) return 'circuit';
-  if (allText.includes('slalom') || allText.includes('plot') || allText.includes('cône') || allText.includes('cone')) return 'slalom';
-  if (allText.includes('groupe') || allText.includes('échauffement') || allText.includes('echauffement')) return 'group';
-  return 'group';
-}
-
-function countPlayers(txt, pub) {
-  const m = txt.match(/(\d+)\s*(joueurs?|participants?|personnes?|élèves?)/i);
-  if (m) return Math.min(parseInt(m[1]), 12);
-  if (txt.includes('binôme') || txt.includes('duo') || txt.includes('paire')) return 2;
-  if (txt.includes('trinôme') || txt.includes('trio')) return 3;
-  if (pub && pub.includes('6-8')) return 6;
-  if (pub && pub.includes('9-12')) return 8;
-  return 5;
-}
-
-function isNordic(txt) {
-  return txt.includes('bâton') || txt.includes('baton') || txt.includes('nordique') || txt.includes('nordic');
-}
-
-function hasBall(txt) {
-  return txt.includes('ballon') || txt.includes('balle') || txt.includes('ball');
-}
-
-function makeDefs() {
-  return `<defs>
-    <marker id="arr" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
-      <path d="M0,0 L0,6 L8,3 z" fill="#e84040"/>
-    </marker>
-    <marker id="arrb" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
-      <path d="M0,0 L0,6 L8,3 z" fill="#2980b9"/>
-    </marker>
-    <marker id="arrg" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
-      <path d="M0,0 L0,6 L8,3 z" fill="#27ae60"/>
-    </marker>
-    <marker id="arrk" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
-      <path d="M0,0 L0,6 L8,3 z" fill="#7f8c8d"/>
-    </marker>
-    <!-- MODIFICATION: Flèches style EHPAD -->
-    <marker id="arrow-ehpad" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
-      <path d="M0,0 L0,10 L10,5 z" fill="#4A90D9"/>
-    </marker>
-  </defs>`;
-}
-
-// ============================================================
-// MODIFICATION: GÉNÉRATEUR DE SCHÉMAS STYLE EHPAD / GYM DOUCE
-// Style visuel: personnages seniors assis sur chaise, flèches bleues
-// Palette: Bleu #4A90D9, Beige #F5F0E8, Gris doux
-// ============================================================
-
-// Dessine un personnage senior assis sur une chaise (style cartoon EHPAD)
-function drawSeniorOnChair(x, y, scale = 1, action = 'neutral', hairColor = '#9CA3AF') {
-  const s = scale;
-  // Chaise
-  const chair = `
-    <rect x="${x-20*s}" y="${y+10*s}" width="40*${s}" height="35*${s}" rx="3" fill="#8B5A2B" opacity="0.9"/>
-    <rect x="${x-18*s}" y="${y+8*s}" width="36*${s}" height="8*${s}" rx="2" fill="#A0522D"/>
-    <rect x="${x-22*s}" y="${y+45*s}" width="6*${s}" height="20*${s}" fill="#8B5A2B"/>
-    <rect x="${x+16*s}" y="${y+45*s}" width="6*${s}" height="20*${s}" fill="#8B5A2B"/>
-  `;
   
-  // Corps du personnage
-  const body = `
-    <ellipse cx="${x}" cy="${y+5*s}" rx="${14*s}" ry="${18*s}" fill="#4A90D9"/>
-  `;
-  
-  // Tête
-  const head = `
-    <circle cx="${x}" cy="${y-25*s}" r="${12*s}" fill="#FFDAB9"/>
-    <ellipse cx="${x}" cy="${y-35*s}" rx="${14*s}" ry="${8*s}" fill="${hairColor}"/>
-  `;
-  
-  // Visage souriant
-  const face = `
-    <circle cx="${x-4*s}" cy="${y-27*s}" r="${2*s}" fill="#333"/>
-    <circle cx="${x+4*s}" cy="${y-27*s}" r="${2*s}" fill="#333"/>
-    <path d="M${x-5*s},${y-20*s} Q${x},${y-16*s} ${x+5*s},${y-20*s}" fill="none" stroke="#333" stroke-width="${1.5*s}" stroke-linecap="round"/>
-  `;
-  
-  // Bras selon l'action
-  let arms = '';
-  if (action === 'arms-up') {
-    arms = `
-      <line x1="${x-12*s}" y1="${y-5*s}" x2="${x-25*s}" y2="${y-35*s}" stroke="#FFDAB9" stroke-width="${6*s}" stroke-linecap="round"/>
-      <line x1="${x+12*s}" y1="${y-5*s}" x2="${x+25*s}" y2="${y-35*s}" stroke="#FFDAB9" stroke-width="${6*s}" stroke-linecap="round"/>
-      <circle cx="${x-25*s}" cy="${y-35*s}" r="${4*s}" fill="#FFDAB9"/>
-      <circle cx="${x+25*s}" cy="${y-35*s}" r="${4*s}" fill="#FFDAB9"/>
-    `;
-  } else if (action === 'arms-front') {
-    arms = `
-      <line x1="${x-12*s}" y1="${y}" x2="${x-35*s}" y2="${y-10*s}" stroke="#FFDAB9" stroke-width="${6*s}" stroke-linecap="round"/>
-      <line x1="${x+12*s}" y1="${y}" x2="${x+35*s}" y2="${y-10*s}" stroke="#FFDAB9" stroke-width="${6*s}" stroke-linecap="round"/>
-      <circle cx="${x-35*s}" cy="${y-10*s}" r="${4*s}" fill="#FFDAB9"/>
-      <circle cx="${x+35*s}" cy="${y-10*s}" r="${4*s}" fill="#FFDAB9"/>
-    `;
-  } else if (action === 'rotation') {
-    arms = `
-      <line x1="${x-12*s}" y1="${y}" x2="${x-30*s}" y2="${y+5*s}" stroke="#FFDAB9" stroke-width="${6*s}" stroke-linecap="round"/>
-      <line x1="${x+12*s}" y1="${y}" x2="${x+30*s}" y2="${y-15*s}" stroke="#FFDAB9" stroke-width="${6*s}" stroke-linecap="round"/>
-    `;
-  } else if (action === 'hands') {
-    arms = `
-      <line x1="${x-12*s}" y1="${y+5*s}" x2="${x-20*s}" y2="${y+25*s}" stroke="#FFDAB9" stroke-width="${6*s}" stroke-linecap="round"/>
-      <line x1="${x+12*s}" y1="${y+5*s}" x2="${x+20*s}" y2="${y+25*s}" stroke="#FFDAB9" stroke-width="${6*s}" stroke-linecap="round"/>
-    `;
-  } else if (action === 'leg-extend') {
-    arms = `
-      <line x1="${x-12*s}" y1="${y+5*s}" x2="${x-25*s}" y2="${y+20*s}" stroke="#FFDAB9" stroke-width="${6*s}" stroke-linecap="round"/>
-      <line x1="${x+12*s}" y1="${y+5*s}" x2="${x+25*s}" y2="${y+20*s}" stroke="#FFDAB9" stroke-width="${6*s}" stroke-linecap="round"/>
-    `;
-  } else {
-    arms = `
-      <line x1="${x-12*s}" y1="${y+5*s}" x2="${x-22*s}" y2="${y+25*s}" stroke="#FFDAB9" stroke-width="${6*s}" stroke-linecap="round"/>
-      <line x1="${x+12*s}" y1="${y+5*s}" x2="${x+22*s}" y2="${y+25*s}" stroke="#FFDAB9" stroke-width="${6*s}" stroke-linecap="round"/>
-    `;
-  }
-  
-  // Jambes
-  let legs = '';
-  if (action === 'leg-extend') {
-    legs = `
-      <line x1="${x-8*s}" y1="${y+25*s}" x2="${x-8*s}" y2="${y+50*s}" stroke="#333" stroke-width="${7*s}" stroke-linecap="round"/>
-      <line x1="${x+8*s}" y1="${y+25*s}" x2="${x+40*s}" y2="${y+35*s}" stroke="#333" stroke-width="${7*s}" stroke-linecap="round"/>
-      <ellipse cx="${x+45*s}" cy="${y+35*s}" rx="${6*s}" ry="${4*s}" fill="#333"/>
-    `;
-  } else {
-    legs = `
-      <line x1="${x-8*s}" y1="${y+25*s}" x2="${x-8*s}" y2="${y+50*s}" stroke="#333" stroke-width="${7*s}" stroke-linecap="round"/>
-      <line x1="${x+8*s}" y1="${y+25*s}" x2="${x+8*s}" y2="${y+50*s}" stroke="#333" stroke-width="${7*s}" stroke-linecap="round"/>
-      <ellipse cx="${x-8*s}" cy="${y+52*s}" rx="${6*s}" ry="${4*s}" fill="#333"/>
-      <ellipse cx="${x+8*s}" cy="${y+52*s}" rx="${6*s}" ry="${4*s}" fill="#333"/>
-    `;
-  }
-  
-  return chair + legs + body + arms + head + face;
+  grid.innerHTML = visibleTools.map(t => `
+    <div class="tool-card" onclick="${t.action}">
+      <div class="tool-card-icon">${t.icon}</div>
+      <div class="tool-card-title">${t.title}</div>
+      <div class="tool-card-desc">${t.desc}</div>
+    </div>
+  `).join('');
 }
 
-// Dessine une flèche de mouvement style EHPAD
-function drawMovementArrow(x1, y1, x2, y2, curved = false, double = false) {
-  const color = '#4A90D9';
-  if (curved) {
-    const mx = (x1 + x2) / 2;
-    const my = Math.min(y1, y2) - 20;
-    return `
-      <path d="M${x1},${y1} Q${mx},${my} ${x2},${y2}" fill="none" stroke="${color}" stroke-width="3" marker-end="url(#arrow-ehpad)"/>
-      ${double ? `<path d="M${x2},${y2} Q${mx},${my+40} ${x1},${y1}" fill="none" stroke="${color}" stroke-width="3" marker-end="url(#arrow-ehpad)"/>` : ''}
-    `;
-  }
-  return `
-    <line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${color}" stroke-width="3" marker-end="url(#arrow-ehpad)"/>
-    ${double ? `<line x1="${x2}" y1="${y2+10}" x2="${x1}" y2="${y1+10}" stroke="${color}" stroke-width="3" marker-end="url(#arrow-ehpad)"/>` : ''}
-  `;
-}
-
-// Dessine une flèche circulaire (rotation)
-function drawRotationArrow(cx, cy, radius, startAngle, endAngle) {
-  const color = '#4A90D9';
-  const start = {
-    x: cx + radius * Math.cos(startAngle * Math.PI / 180),
-    y: cy + radius * Math.sin(startAngle * Math.PI / 180)
-  };
-  const end = {
-    x: cx + radius * Math.cos(endAngle * Math.PI / 180),
-    y: cy + radius * Math.sin(endAngle * Math.PI / 180)
-  };
-  const largeArc = Math.abs(endAngle - startAngle) > 180 ? 1 : 0;
-  return `
-    <path d="M${start.x},${start.y} A${radius},${radius} 0 ${largeArc},1 ${end.x},${end.y}" 
-          fill="none" stroke="${color}" stroke-width="3" marker-end="url(#arrow-ehpad)"/>
-  `;
-}
-
-// Bandeau titre style EHPAD
-function drawTitleBanner(x, y, width, text) {
-  return `
-    <rect x="${x}" y="${y}" width="${width}" height="22" rx="3" fill="#4A90D9"/>
-    <text x="${x + width/2}" y="${y + 15}" text-anchor="middle" font-size="11" font-family="Arial" font-weight="bold" fill="white">${text}</text>
-  `;
-}
-
-// Dessine des mains ouvertes/fermées
-function drawHands(x, y, open = true) {
-  if (open) {
-    return `
-      <path d="M${x-15},${y} L${x-20},${y-25} M${x-15},${y} L${x-25},${y-20} M${x-15},${y} L${x-28},${y-12} M${x-15},${y} L${x-26},${y-5} M${x-15},${y} L${x-20},${y+3}" 
-            stroke="#FFDAB9" stroke-width="4" stroke-linecap="round" fill="none"/>
-      <path d="M${x+15},${y} L${x+20},${y-25} M${x+15},${y} L${x+25},${y-20} M${x+15},${y} L${x+28},${y-12} M${x+15},${y} L${x+26},${y-5} M${x+15},${y} L${x+20},${y+3}" 
-            stroke="#FFDAB9" stroke-width="4" stroke-linecap="round" fill="none"/>
-    `;
-  } else {
-    return `
-      <circle cx="${x-20}" cy="${y}" r="10" fill="#FFDAB9" stroke="#DEB887" stroke-width="2"/>
-      <circle cx="${x+20}" cy="${y}" r="10" fill="#FFDAB9" stroke="#DEB887" stroke-width="2"/>
-    `;
-  }
-}
-
-// Générateur principal de schéma style EHPAD (grille 3x2)
-function buildEHPADSchema(consignes, titre, phase) {
-  const W = 450, H = 300;
-  const bgColor = '#F5F0E8';
+function openToolsSettings() {
+  const list = document.getElementById('tools-settings-list');
+  list.innerHTML = TOOLS_CONFIG.map(t => `
+    <div class="tool-setting-item">
+      <div class="tool-setting-info">
+        <span class="tool-setting-icon">${t.icon}</span>
+        <span class="tool-setting-name">${t.title}</span>
+      </div>
+      <label class="toggle-switch">
+        <input type="checkbox" id="tool-toggle-${t.id}" ${toolsVisibility[t.id] ? 'checked' : ''}>
+        <span class="toggle-slider"></span>
+      </label>
+    </div>
+  `).join('');
   
-  // Analyser les consignes pour déterminer les actions
-  const actions = consignes.slice(0, 6).map(c => {
-    const cl = c.toLowerCase();
-    if (cl.includes('rotation') && cl.includes('tête')) return { type: 'head-rotation', label: 'Rotation douce de la tête' };
-    if (cl.includes('hausser') || cl.includes('épaules') && cl.includes('baisser')) return { type: 'shoulders-up-down', label: 'Hausser et baisser les épaules' };
-    if (cl.includes('rotation') && cl.includes('épaules')) return { type: 'shoulders-rotation', label: 'Rotation des épaules' };
-    if (cl.includes('ouvrir') && cl.includes('fermer') && cl.includes('main')) return { type: 'hands-open-close', label: 'Ouvrir et fermer les mains' };
-    if (cl.includes('cercle') && cl.includes('poignet')) return { type: 'wrist-circles', label: 'Cercles des poignets' };
-    if (cl.includes('fléchir') || cl.includes('étendre') && cl.includes('jambe')) return { type: 'leg-flex', label: 'Flexion et extension des jambes' };
-    if (cl.includes('lever') && cl.includes('bras')) return { type: 'arms-up', label: 'Lever les bras' };
-    if (cl.includes('tendre') && cl.includes('bras')) return { type: 'arms-front', label: 'Tendre les bras' };
-    if (cl.includes('inspirer') || cl.includes('expirer')) return { type: 'breathing', label: 'Respiration' };
-    if (cl.includes('pencher') || cl.includes('incliner')) return { type: 'lean', label: 'Inclinaison' };
-    return { type: 'neutral', label: c.substring(0, 30) + (c.length > 30 ? '...' : '') };
+  document.getElementById('modal-tools-settings').classList.add('open');
+}
+
+function closeToolsSettings() {
+  document.getElementById('modal-tools-settings').classList.remove('open');
+}
+
+function saveToolsSettings() {
+  TOOLS_CONFIG.forEach(t => {
+    toolsVisibility[t.id] = document.getElementById(`tool-toggle-${t.id}`).checked;
   });
   
-  // Remplir jusqu'à 6 actions minimum
-  while (actions.length < 6) {
-    actions.push({ type: 'neutral', label: '' });
+  localStorage.setItem('toolsVisibility', JSON.stringify(toolsVisibility));
+  renderToolsGrid();
+  closeToolsSettings();
+  notify('✅ Paramètres des outils enregistrés');
+}
+
+function initToolsSection() {
+  const section = document.getElementById('tools-section');
+  const chevron = document.getElementById('tools-chevron');
+  
+  if (section && toolsSectionOpen) {
+    section.style.display = 'block';
+    if (chevron) chevron.classList.add('open');
   }
   
-  // Grille 3 colonnes x 2 lignes
-  const cellW = 145, cellH = 130;
-  const startX = 10, startY = 25;
-  
-  let content = `<rect width="${W}" height="${H}" fill="${bgColor}"/>`;
-  content += makeDefs();
-  
-  // Phase badge
-  const phaseColor = phase === 'Échauffement' ? '#e67e22' : phase === 'Corps de séance' ? '#4A90D9' : '#27ae60';
-  
-  for (let i = 0; i < 6; i++) {
-    const col = i % 3;
-    const row = Math.floor(i / 3);
-    const cx = startX + col * cellW + cellW / 2;
-    const cy = startY + row * cellH + 60;
-    const action = actions[i];
-    
-    if (!action.label) continue;
-    
-    // Cadre de la cellule
-    content += `<rect x="${startX + col * cellW + 2}" y="${startY + row * cellH}" width="${cellW - 4}" height="${cellH - 5}" rx="5" fill="white" stroke="#E5E5E5" stroke-width="1"/>`;
-    
-    // Bandeau titre
-    content += drawTitleBanner(startX + col * cellW + 5, startY + row * cellH + 3, cellW - 10, action.label);
-    
-    // Dessin selon le type d'action
-    const personX = cx;
-    const personY = cy + 15;
-    
-    switch (action.type) {
-      case 'head-rotation':
-        content += drawSeniorOnChair(personX, personY, 0.65, 'neutral');
-        content += drawRotationArrow(personX, personY - 20, 25, -150, 150);
-        break;
-      case 'shoulders-up-down':
-        content += drawSeniorOnChair(personX - 30, personY, 0.55, 'neutral');
-        content += drawSeniorOnChair(personX + 30, personY, 0.55, 'arms-up');
-        content += drawMovementArrow(personX - 10, personY - 25, personX - 10, personY - 45, false, true);
-        content += drawMovementArrow(personX + 50, personY - 25, personX + 50, personY - 45, false, true);
-        break;
-      case 'shoulders-rotation':
-        content += drawSeniorOnChair(personX, personY, 0.65, 'rotation');
-        content += drawRotationArrow(personX + 25, personY - 5, 18, 0, 270);
-        content += drawRotationArrow(personX - 25, personY - 5, 18, 180, -90);
-        break;
-      case 'hands-open-close':
-        content += drawHands(personX - 35, personY, true);
-        content += drawHands(personX + 35, personY, false);
-        content += drawRotationArrow(personX, personY + 10, 20, -30, 210);
-        break;
-      case 'wrist-circles':
-        content += `<circle cx="${personX - 30}" cy="${personY}" r="15" fill="#FFDAB9" stroke="#DEB887" stroke-width="2"/>`;
-        content += `<circle cx="${personX + 30}" cy="${personY}" r="15" fill="#FFDAB9" stroke="#DEB887" stroke-width="2"/>`;
-        content += drawRotationArrow(personX - 30, personY, 25, 0, 300);
-        content += drawRotationArrow(personX + 30, personY, 25, 0, 300);
-        break;
-      case 'leg-flex':
-        content += drawSeniorOnChair(personX - 35, personY - 5, 0.55, 'neutral');
-        content += drawSeniorOnChair(personX + 35, personY - 5, 0.55, 'leg-extend');
-        content += drawMovementArrow(personX + 55, personY + 30, personX + 75, personY + 15, true);
-        break;
-      case 'arms-up':
-        content += drawSeniorOnChair(personX, personY, 0.65, 'arms-up');
-        content += drawMovementArrow(personX - 30, personY, personX - 30, personY - 40, false);
-        content += drawMovementArrow(personX + 30, personY, personX + 30, personY - 40, false);
-        break;
-      case 'arms-front':
-        content += drawSeniorOnChair(personX, personY, 0.65, 'arms-front');
-        content += drawMovementArrow(personX - 20, personY - 5, personX - 45, personY - 10, false);
-        content += drawMovementArrow(personX + 20, personY - 5, personX + 45, personY - 10, false);
-        break;
-      case 'breathing':
-        content += drawSeniorOnChair(personX, personY, 0.65, 'arms-up');
-        content += `<text x="${personX}" y="${personY - 50}" text-anchor="middle" font-size="14" fill="#4A90D9">↑ Inspirer</text>`;
-        content += `<text x="${personX}" y="${personY + 70}" text-anchor="middle" font-size="14" fill="#4A90D9">↓ Expirer</text>`;
-        break;
-      default:
-        content += drawSeniorOnChair(personX, personY, 0.65, 'neutral');
-    }
-  }
-  
-  return `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;max-height:280px">
-    ${content}
-  </svg>`;
-}
-
-// Détecte si le public cible est senior/EHPAD
-function isSeniorPublic(pub, descriptif) {
-  if (!pub && !descriptif) return false;
-  const text = ((pub || '') + ' ' + (descriptif || '')).toLowerCase();
-  return text.includes('senior') || text.includes('ehpad') || text.includes('âgé') || 
-         text.includes('60 ans') || text.includes('70 ans') || text.includes('gym douce') ||
-         text.includes('autonomie') || text.includes('mobilité réduite');
-}
-
-function playerCircle(x, y, num, color='#e84040', size=14, label='P') {
-  return `<circle cx="${x}" cy="${y}" r="${size}" fill="${color}" stroke="white" stroke-width="2"/>
-  <text x="${x}" y="${y+4}" text-anchor="middle" font-size="10" font-family="Arial" font-weight="bold" fill="white">${label}${num||''}</text>`;
-}
-
-function cone(x, y, color='#f1c40f') {
-  return `<polygon points="${x},${y-12} ${x-8},${y+8} ${x+8},${y+8}" fill="${color}" stroke="#e67e22" stroke-width="1.5"/>`;
-}
-
-function stick(x, y, angle=0) {
-  // Nordic walking pole
-  const rad = angle * Math.PI / 180;
-  const dx = Math.cos(rad) * 20, dy = Math.sin(rad) * 20;
-  return `<line x1="${x}" y1="${y}" x2="${x+dx}" y2="${y+dy}" stroke="#8e44ad" stroke-width="3" stroke-linecap="round"/>
-  <circle cx="${x+dx}" cy="${y+dy}" r="3" fill="#6c3483"/>`;
-}
-
-function ball(x, y) {
-  return `<circle cx="${x}" cy="${y}" r="8" fill="#f5a623" stroke="#e67e22" stroke-width="1.5"/>
-  <path d="M${x-4},${y-4} Q${x},${y-8} ${x+4},${y-4}" fill="none" stroke="#e67e22" stroke-width="1.5"/>`;
-}
-
-function terrain(x, y, w, h, color='#27ae6022') {
-  return `<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="${color}" stroke="#27ae60" stroke-width="2" rx="6"/>`;
-}
-
-function arrow(x1, y1, x2, y2, color='#e84040', dash=false) {
-  const mid_x = (x1+x2)/2, mid_y = (y1+y2)/2;
-  const curve_x = mid_x + (y2-y1)*0.3, curve_y = mid_y - (x2-x1)*0.3;
-  const marker = color==='#2980b9' ? 'arrb' : color==='#27ae60' ? 'arrg' : color==='#7f8c8d' ? 'arrk' : 'arr';
-  return `<path d="M${x1},${y1} Q${curve_x},${curve_y} ${x2},${y2}" fill="none" stroke="${color}" stroke-width="2.5" stroke-dasharray="${dash?'6,4':'none'}" marker-end="url(#${marker})"/>`;
-}
-
-function label(x, y, txt, size=10, color='#2c3e50', bg=false) {
-  const result = bg ? `<rect x="${x-2}" y="${y-12}" width="${txt.length*6+4}" height="16" rx="3" fill="white" fill-opacity="0.85"/>` : '';
-  return result + `<text x="${x}" y="${y}" font-size="${size}" font-family="Arial" fill="${color}" font-weight="600">${txt}</text>`;
-}
-
-function buildSmartSVG({ titre, organisation, descriptif, materiel, phase, consignesText, userPrompt, allText, public: pub }) {
-  const layout = detectLayout(allText);
-  const nPlayers = countPlayers(allText, pub);
-  const nordic = isNordic(allText);
-  const withBall = hasBall(allText);
-  const isKids = pub && (pub.includes('6-8') || pub.includes('9-12'));
-  const W = 400, H = 260;
-
-  let content = '';
-  const defs = makeDefs();
-
-  // Background
-  const bgColor = phase === 'Retour au calme' ? '#f0faf5' : '#f8fff9';
-  const bgSvg = `<rect width="400" height="260" fill="${bgColor}"/>`;
-
-  // Phase badge
-  const phaseColor = phase === 'Échauffement' ? '#e67e22' : phase === 'Corps de séance' ? '#1a6b3c' : '#2980b9';
-  const phaseBadge = `<rect x="8" y="8" width="${phase.length*7+16}" height="20" rx="10" fill="${phaseColor}" fill-opacity="0.15" stroke="${phaseColor}" stroke-width="1.2"/>
-  <text x="16" y="22" font-size="10" font-family="Arial" fill="${phaseColor}" font-weight="700">${phase || 'Exercice'}</text>`;
-
-  // Title
-  const shortTitle = titre.length > 32 ? titre.substring(0,30)+'…' : titre;
-  const titleSvg = `<text x="200" y="240" text-anchor="middle" font-size="10" font-family="Arial" fill="#7f8c8d">${shortTitle}</text>`;
-
-  if (layout === 'circle') {
-    content = buildCircleLayout(nPlayers, nordic, withBall, W, H, isKids);
-  } else if (layout === 'relay') {
-    content = buildRelayLayout(nPlayers, nordic, W, H, allText);
-  } else if (layout === 'path') {
-    content = buildPathLayout(nPlayers, nordic, W, H, allText);
-  } else if (layout === 'face2face') {
-    content = buildFace2FaceLayout(nPlayers, nordic, withBall, W, H);
-  } else if (layout === 'teams') {
-    content = buildTeamsLayout(nPlayers, nordic, withBall, W, H, allText);
-  } else if (layout === 'circuit') {
-    content = buildCircuitLayout(nPlayers, nordic, W, H, allText);
-  } else if (layout === 'slalom') {
-    content = buildSlalomLayout(nPlayers, nordic, W, H);
-  } else {
-    content = buildGroupLayout(nPlayers, nordic, withBall, W, H, isKids, phase);
-  }
-
-  return `<svg viewBox="0 0 400 260" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto">
-  ${defs}
-  ${bgSvg}
-  ${phaseBadge}
-  ${content}
-  ${titleSvg}
-</svg>`;
-}
-
-function buildCircleLayout(n, nordic, withBall, W, H) {
-  let s = terrain(60, 40, 280, 180, '#27ae6018');
-  const cx = 200, cy = 125, r = 70;
-  s += `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="#27ae60" stroke-width="1.5" stroke-dasharray="6,4"/>`;
-  for (let i = 0; i < n; i++) {
-    const a = (i / n) * 2 * Math.PI - Math.PI/2;
-    const px = cx + r * Math.cos(a), py = cy + r * Math.sin(a);
-    const nextA = ((i+1) / n) * 2 * Math.PI - Math.PI/2;
-    const nx = cx + r * Math.cos(nextA) * 0.85, ny = cy + r * Math.sin(nextA) * 0.85;
-    s += playerCircle(px, py, i+1, '#e84040', 13);
-    if (nordic) s += stick(px+8, py-8, -30 + i*20);
-    if (i < n-1) s += arrow(px*0.7+nx*0.3, py*0.7+ny*0.3, px*0.3+nx*0.7, py*0.3+ny*0.7, '#7f8c8d');
-  }
-  if (withBall) s += ball(cx, cy);
-  s += label(14, 250, n + ' participants · formation circulaire', 9, '#7f8c8d');
-  return s;
-}
-
-function buildRelayLayout(n, nordic, W, H, txt) {
-  let s = terrain(30, 60, 340, 140, '#27ae6018');
-  s += `<line x1="40" y1="130" x2="360" y2="130" stroke="#27ae60" stroke-width="1.5" stroke-dasharray="8,5"/>`;
-  // Start zone
-  s += `<rect x="32" y="65" width="40" height="120" fill="#e8400015" stroke="#e84040" stroke-width="1.5" rx="4"/>`;
-  s += label(33, 62, 'Départ', 9, '#e84040');
-  // End zone
-  s += `<rect x="328" y="65" width="40" height="120" fill="#2980b915" stroke="#2980b9" stroke-width="1.5" rx="4"/>`;
-  s += label(329, 62, 'Arrivée', 9, '#2980b9');
-  // Players stacked at start
-  const cols = Math.min(n, 3);
-  for (let i = 0; i < n; i++) {
-    const col = i % cols, row = Math.floor(i / cols);
-    const px = 52 + col * 8, py = 90 + row * 22;
-    s += playerCircle(px, py, i+1, i===0 ? '#e84040' : '#95a5a6', 10);
-  }
-  // First player running
-  s += playerCircle(170, 115, 1, '#e84040', 13);
-  if (nordic) { s += stick(183, 103, -45); s += stick(157, 103, -135); }
-  s += arrow(100, 115, 150, 115, '#e84040');
-  s += arrow(195, 115, 310, 115, '#e84040');
-  // Cones
-  s += cone(200, 130); s += cone(270, 130);
-  s += label(14, 252, 'Relais · retour au départ après aller-retour', 9, '#7f8c8d');
-  return s;
-}
-
-function buildPathLayout(n, nordic, W, H, txt) {
-  let s = '';
-  // Wavy path
-  s += `<path d="M40,200 C80,180 120,90 160,110 C200,130 240,70 280,90 C320,110 350,80 370,65" fill="none" stroke="#27ae60" stroke-width="8" stroke-opacity="0.2" stroke-linecap="round"/>`;
-  s += `<path d="M40,200 C80,180 120,90 160,110 C200,130 240,70 280,90 C320,110 350,80 370,65" fill="none" stroke="#27ae60" stroke-width="2.5" stroke-dasharray="10,6" stroke-linecap="round" marker-end="url(#arrg)"/>`;
-  // Trees/nature
-  const treePositions = [[80,155],[200,155],[320,55]];
-  treePositions.forEach(([tx,ty]) => {
-    s += `<polygon points="${tx},${ty-20} ${tx-12},${ty+8} ${tx+12},${ty+8}" fill="#27ae60" fill-opacity="0.5"/>`;
-    s += `<rect x="${tx-3}" y="${ty+8}" width="6" height="10" fill="#7f8c8d" fill-opacity="0.5"/>`;
-  });
-  // Players along path
-  const pathPoints = [[55,192],[130,108],[200,118],[265,82],[340,72]];
-  const ptsToShow = pathPoints.slice(0, Math.min(n, 5));
-  ptsToShow.forEach((p, i) => {
-    s += playerCircle(p[0], p[1], i+1, i===0 ? '#e84040' : '#95a5a6', 12);
-    if (nordic) s += stick(p[0]+8, p[1]-10, -30);
-  });
-  // Direction arrow overlay
-  s += arrow(55,210, 200,140, '#e84040', true);
-  s += label(10, 252, 'Parcours naturel · file indienne · espacement 2-3m', 9, '#7f8c8d');
-  return s;
-}
-
-function buildFace2FaceLayout(n, nordic, withBall, W, H) {
-  let s = terrain(60, 40, 280, 180, '#27ae6018');
-  // Center line
-  s += `<line x1="200" y1="55" x2="200" y2="215" stroke="#7f8c8d" stroke-width="1.5" stroke-dasharray="6,4"/>`;
-  const perSide = Math.ceil(n/2);
-  // Left side (red)
-  for (let i = 0; i < perSide; i++) {
-    const px = 120, py = 80 + i * (120/Math.max(perSide-1,1));
-    s += playerCircle(px, py, i+1, '#e84040', 13);
-    if (nordic) s += stick(px-10, py-10, -150);
-    s += arrow(px+20, py, 170, py, '#e84040', true);
-  }
-  // Right side (blue)
-  for (let i = 0; i < Math.floor(n/2); i++) {
-    const px = 280, py = 80 + i * (120/Math.max(Math.floor(n/2)-1,1));
-    s += playerCircle(px, py, i+1, '#2980b9', 13);
-    if (nordic) s += stick(px+10, py-10, -30);
-    s += arrow(px-20, py, 230, py, '#2980b9', true);
-  }
-  if (withBall) s += ball(200, 125);
-  s += label(85, 252, 'Face à face · synchronisation · échanges', 9, '#7f8c8d');
-  return s;
-}
-
-function buildTeamsLayout(n, nordic, withBall, W, H, txt) {
-  let s = terrain(30, 50, 340, 160, '#27ae6018');
-  // Two halves
-  s += `<line x1="200" y1="55" x2="200" y2="205" stroke="#7f8c8d" stroke-width="2" stroke-dasharray="8,5"/>`;
-  s += `<rect x="32" y="52" width="166" height="156" fill="#e8400008" rx="4"/>`;
-  s += `<rect x="202" y="52" width="166" height="156" fill="#2980b908" rx="4"/>`;
-  s += label(85, 68, 'Équipe A', 10, '#e84040');
-  s += label(265, 68, 'Équipe B', 10, '#2980b9');
-  const half = Math.ceil(n/2);
-  for (let i = 0; i < half; i++) {
-    const px = 70 + (i%2)*50, py = 90 + Math.floor(i/2)*45;
-    s += playerCircle(px, py, i+1, '#e84040', 12);
-    if (nordic) s += stick(px+8, py-10, -30);
-  }
-  for (let i = 0; i < Math.floor(n/2); i++) {
-    const px = 250 + (i%2)*50, py = 90 + Math.floor(i/2)*45;
-    s += playerCircle(px, py, i+1, '#2980b9', 12);
-    if (nordic) s += stick(px+8, py-10, -30);
-  }
-  if (withBall) s += ball(200, 130);
-  // Action arrows
-  s += arrow(130, 120, 175, 120, '#e84040');
-  s += arrow(270, 140, 225, 140, '#2980b9');
-  s += label(30, 252, '2 équipes · terrain divisé · interactions', 9, '#7f8c8d');
-  return s;
-}
-
-function buildCircuitLayout(n, nordic, W, H) {
-  let s = '';
-  // 4 stations
-  const stations = [
-    { x: 90, y: 80, label: '①', color: '#e84040' },
-    { x: 300, y: 80, label: '②', color: '#2980b9' },
-    { x: 300, y: 185, label: '③', color: '#8e44ad' },
-    { x: 90, y: 185, label: '④', color: '#27ae60' },
-  ];
-  // Rotation arrows (circuit)
-  s += arrow(130, 80, 260, 80, '#7f8c8d');
-  s += arrow(300, 100, 300, 165, '#7f8c8d');
-  s += arrow(260, 185, 130, 185, '#7f8c8d');
-  s += arrow(90, 165, 90, 100, '#7f8c8d');
-  s += label(185, 72, 'Rotation', 9, '#7f8c8d', true);
-
-  stations.forEach((st, i) => {
-    // Station bubble
-    s += `<rect x="${st.x-32}" y="${st.y-30}" width="64" height="55" rx="10" fill="${st.color}18" stroke="${st.color}" stroke-width="1.5"/>`;
-    s += `<text x="${st.x}" y="${st.y-14}" text-anchor="middle" font-size="14" font-family="Arial" fill="${st.color}" font-weight="800">${st.label}</text>`;
-    // Player at each station
-    const pColor = ['#e84040','#2980b9','#8e44ad','#27ae60'][i];
-    s += playerCircle(st.x - 10, st.y + 10, '', pColor, 11, 'P');
-    if (nordic) s += stick(st.x + 5, st.y, -30);
-  });
-
-  s += label(50, 252, '4 ateliers · rotation toutes les 5 min', 9, '#7f8c8d');
-  return s;
-}
-
-function buildSlalomLayout(n, nordic, W, H) {
-  let s = terrain(30, 50, 340, 170, '#27ae6018');
-  // Cones in zigzag
-  const conePositions = [[90,90],[140,150],[190,90],[240,150],[290,90],[340,150]];
-  conePositions.forEach(([cx,cy]) => s += cone(cx, cy));
-  // Slalom path
-  s += `<path d="M60,130 L90,90 L140,150 L190,90 L240,150 L290,90 L350,115" fill="none" stroke="#e84040" stroke-width="2.5" stroke-dasharray="8,4" marker-end="url(#arr)"/>`;
-  // Player at start
-  s += playerCircle(55, 200, 1, '#e84040', 14);
-  if (nordic) { s += stick(68, 188, -45); s += stick(42, 188, -135); }
-  // Arrow from player
-  s += arrow(55, 182, 60, 140, '#e84040');
-  // Arrows at cones
-  s += label(30, 252, 'Slalom · coordination · éviter les cônes', 9, '#7f8c8d');
-  return s;
-}
-
-function buildGroupLayout(n, nordic, withBall, W, H, isKids, phase) {
-  let s = '';
-  // Educator position
-  s += `<rect x="155" y="30" width="90" height="28" rx="14" fill="#1a6b3c18" stroke="#1a6b3c" stroke-width="1.5"/>`;
-  s += `<text x="200" y="49" text-anchor="middle" font-size="10" font-family="Arial" fill="#1a6b3c" font-weight="700">🧑‍🏫 Éducateur</text>`;
-  s += `<line x1="200" y1="58" x2="200" y2="80" stroke="#1a6b3c" stroke-width="1.5" stroke-dasharray="4,3"/>`;
-
-  // Players in semi-circle or grid
-  const cols = Math.min(n, 4);
-  const rows = Math.ceil(n / cols);
-  const startX = 200 - (cols-1) * 38;
-  for (let i = 0; i < n; i++) {
-    const col = i % cols, row = Math.floor(i / cols);
-    const px = startX + col * 76, py = 100 + row * 55;
-    const color = isKids ? ['#e84040','#2980b9','#8e44ad','#f5a623','#27ae60','#e67e22'][i%6] : '#e84040';
-    s += playerCircle(px, py, i+1, color, 14);
-    if (nordic) {
-      s += stick(px+10, py-12, -35);
-      s += stick(px-10, py-12, -145);
-    }
-    // Arrow from educator to player (echauffement only)
-    if (phase === 'Échauffement' && i < 3) {
-      s += arrow(200, 80, px, py-18, '#1a6b3c', true);
-    }
-  }
-
-  if (withBall) s += ball(200, 160);
-
-  if (isKids) {
-    // Fun stars
-    [[60,50],[340,50],[60,200],[340,200]].forEach(([sx,sy]) => {
-      s += `<text x="${sx}" y="${sy}" font-size="18" text-anchor="middle" opacity="0.4">⭐</text>`;
-    });
-  }
-
-  const orgText = phase === 'Retour au calme' ? 'En cercle · étirements · debriefing' :
-                  phase === 'Échauffement' ? 'Face à l\'éducateur · consignes collectives' :
-                  'Organisation en groupe · terrain balisé';
-  s += label(30, 252, orgText, 9, '#7f8c8d');
-  return s;
-}
-
-function regenAiSchema() {
-  document.getElementById('ai-schema-actions').style.display = 'none';
-  generateAiSchema();
-}
-
-function applyAiSchemaToCanvas() {
-  if (!lastAiSvg) return;
-  // Convert SVG to image and draw on canvas
-  const svgBlob = new Blob([lastAiSvg], {type: 'image/svg+xml;charset=utf-8'});
-  const url = URL.createObjectURL(svgBlob);
-  const img = new Image();
-  img.onload = function() {
-    if (!canvas) initCanvas();
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-    URL.revokeObjectURL(url);
-    // Scroll to canvas
-    document.getElementById('schema-canvas').scrollIntoView({ behavior: 'smooth', block: 'center' });
-    notify('✅ Schéma appliqué au dessin !');
-  };
-  img.onerror = function() {
-    URL.revokeObjectURL(url);
-    notify('❌ Impossible d\'appliquer le schéma');
-  };
-  img.src = url;
-}
-
-// Auto-fill AI prompt from exercise fields when user opens the AI section
-function autoFillAiPrompt() {
-  const prompt = document.getElementById('ai-schema-prompt');
-  if (prompt && !prompt.value) {
-    const org = document.getElementById('ex-organisation').value;
-    const mat = document.getElementById('ex-materiel').value;
-    const desc = document.getElementById('ex-descriptif').value;
-    const consignesActuelles = consignes.filter(c => c.trim());
-
-    const parts = [];
-    if (org) parts.push('Organisation : ' + org);
-    if (mat) parts.push('Matériel : ' + mat);
-    if (desc) parts.push('Description : ' + desc);
-    if (consignesActuelles.length) parts.push('Consignes : ' + consignesActuelles.join(' • '));
-
-    if (parts.length) prompt.value = parts.join('\n');
-  }
+  renderToolsGrid();
 }
 
 // ============================================================
@@ -5509,7 +5036,8 @@ renderFiches();
 // ============================================================
 // V7: VERSION INFO
 // ============================================================
-console.log('%c Mat&Co v7 Ultimate ', 'background: linear-gradient(135deg, #1a6b3c, #2d9e5f); color: white; font-size: 16px; font-weight: bold; padding: 10px 20px; border-radius: 8px;');
+console.log('%c Mat&Co v7.2 ', 'background: linear-gradient(135deg, #1a6b3c, #2d9e5f); color: white; font-size: 16px; font-weight: bold; padding: 10px 20px; border-radius: 8px;');
+console.log('v7.2 - Simplification schéma (image uniquement), Toggle outils, 50 valeurs morales');
 console.log('© ' + new Date().getFullYear() + ' SAAD Matis - Tous droits réservés');
 console.log('Fonctionnalités: Vidéos, PWA, Export/Import, Timer, Bibliothèque, Recherche, Filtres, Duplication');
 </script>
