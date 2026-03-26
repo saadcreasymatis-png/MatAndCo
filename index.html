@@ -10,7 +10,7 @@
 <meta name="theme-color" content="#1a6b3c">
 <meta name="description" content="Mat&Co - Application de fiches de séances sportives par SAAD Matis">
 <link rel="manifest" href="data:application/json;base64,ewogICJuYW1lIjogIk1hdCZDbyAtIEZpY2hlU3BvcnQiLAogICJzaG9ydF9uYW1lIjogIk1hdCZDbyIsCiAgInN0YXJ0X3VybCI6ICIuIiwKICAiZGlzcGxheSI6ICJzdGFuZGFsb25lIiwKICAiYmFja2dyb3VuZF9jb2xvciI6ICIjZjBmNGYxIiwKICAidGhlbWVfY29sb3IiOiAiIzFhNmIzYyIsCiAgImljb25zIjogW3sic3JjIjogImRhdGE6aW1hZ2Uvc3ZnK3htbCw8c3ZnIHhtbG5zPSdodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2Zycgdmlld0JveD0nMCAwIDEwMCAxMDAnPjxyZWN0IHdpZHRoPScxMDAnIGhlaWdodD0nMTAwJyByeD0nMjAnIGZpbGw9JyMxYTZiM2MnLz48dGV4dCB4PSc1MCcgeT0nNjUnIGZvbnQtc2l6ZT0nNTAnIHRleHQtYW5jaG9yPSdtaWRkbGUnIGZpbGw9J3doaXRlJz7wn4+FPC90ZXh0Pjwvc3ZnPiIsICJzaXplcyI6ICIxOTJ4MTkyIiwgInR5cGUiOiAiaW1hZ2Uvc3ZnK3htbCJ9XQp9">
-<title>Mat&Co - FicheSport v7.2</title>
+<title>Mat&Co - FicheSport v7.4</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Rubik+Dirt&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -1804,6 +1804,15 @@
       <input type="text" id="global-sport-emoji" placeholder="🏐" style="width:60px;text-align:center">
       <button class="btn btn-primary btn-sm" onclick="addGlobalSport()">+</button>
     </div>
+    <div style="margin-bottom:12px">
+      <label style="font-size:12px;color:var(--muted);margin-bottom:6px;display:block">Famille</label>
+      <select id="global-sport-famille" style="margin-bottom:0">
+        <option value="">🏅 Personnalisé (sans famille)</option>
+        <option value="AJS">🏆 AJS — Activités de Jeux Sportifs</option>
+        <option value="APEC">💪 APEC — Activités Physiques d'Entretien & Condition</option>
+        <option value="APPN">🧭 APPN — Activités Physiques de Pleine Nature</option>
+      </select>
+    </div>
   </div>
   <div id="sports-list"></div>
 </div>
@@ -2047,38 +2056,83 @@
 
 <script>
 // ============================================================
+// MIGRATION v7.4 — doit tourner EN PREMIER avant tout chargement
+// ============================================================
+(function() {
+  if (localStorage.getItem('matco-version') !== 'v7.4') {
+    localStorage.removeItem('sports');          // forcer la nouvelle liste AJS/APEC/APPN
+    localStorage.removeItem('cyclesModelesInit'); // forcer la recréation des cycles
+    localStorage.setItem('matco-version', 'v7.4');
+    console.log('[Mat&Co v7.4] Migration effectuée — sports et cycles réinitialisés');
+  }
+})();
+
+// ============================================================
 // DATA
 // ============================================================
 let fiches = JSON.parse(localStorage.getItem('fiches') || '[]');
 let cycles = JSON.parse(localStorage.getItem('cycles') || '[]');
 let sports = JSON.parse(localStorage.getItem('sports') || 'null') || [
-  // AJS - Activités de jeux sportifs
-  {id:'football',name:'Football',emoji:'⚽'},
-  {id:'basketball',name:'Basketball',emoji:'🏀'},
-  {id:'volleyball',name:'Volleyball',emoji:'🏐'},
-  {id:'handball',name:'Handball',emoji:'🤾'},
-  {id:'rugby',name:'Rugby',emoji:'🏉'},
-  {id:'badminton',name:'Badminton',emoji:'🏸'},
-  {id:'ultimate',name:'Ultimate',emoji:'🥏'},
-  {id:'tchoukball',name:'Tchoukball',emoji:'🤾'},
-  {id:'kinball',name:'Kinball',emoji:'🔵'},
-  {id:'dodgeball',name:'Dodgeball',emoji:'🎯'},
-  {id:'flag-football',name:'Flag Football',emoji:'🏈'},
-  {id:'futsal',name:'Futsal',emoji:'⚽'},
-  {id:'hockey-salle',name:'Hockey en salle',emoji:'🏒'},
-  {id:'baseball-softball',name:'Baseball/Softball',emoji:'⚾'},
-  // APEN - Activités physiques d'entretien
-  {id:'pilates',name:'Pilates',emoji:'🧘'},
-  {id:'cross-training',name:'Cross Training',emoji:'💪'},
-  {id:'stretching',name:'Stretching',emoji:'🤸'},
-  {id:'circuit-training',name:'Circuit Training',emoji:'🏋️'},
-  {id:'yoga',name:'Yoga',emoji:'🧘‍♀️'},
-  {id:'aquagym',name:'Aquagym',emoji:'🏊‍♀️'},
-  {id:'renforcement-musculaire',name:'Renforcement',emoji:'🏋️‍♂️'},
-  {id:'gym-douce-seniors',name:'Gym Douce Seniors',emoji:'🧓'},
-  // APEC - Activités de pleine nature / coopération
-  {id:'course-orientation',name:'Course d\'orientation',emoji:'🧭'},
-  {id:'escalade',name:'Escalade',emoji:'🧗'},
+  // AJS — Activités de Jeux Sportifs (30 sports)
+  {id:'basket',        name:'Basket',               emoji:'🏀', famille:'AJS'},
+  {id:'volley',        name:'Volley',                emoji:'🏐', famille:'AJS'},
+  {id:'rugby',         name:'Rugby',                 emoji:'🏉', famille:'AJS'},
+  {id:'handball',      name:'Handball',              emoji:'🤾', famille:'AJS'},
+  {id:'ultimate',      name:'Ultimate',              emoji:'🥏', famille:'AJS'},
+  {id:'football',      name:'Football',              emoji:'⚽', famille:'AJS'},
+  {id:'foot-gaelique', name:'Football gaélique',     emoji:'🏐', famille:'AJS'},
+  {id:'foot-us',       name:'Foot US',               emoji:'🏈', famille:'AJS'},
+  {id:'tchoukball',    name:'Tchoukball',            emoji:'🎯', famille:'AJS'},
+  {id:'sunathon',      name:'Sunathon',              emoji:'☀️', famille:'AJS'},
+  {id:'poulball',      name:'Poulball',              emoji:'🔵', famille:'AJS'},
+  {id:'kinball',       name:'Kinball',               emoji:'🟣', famille:'AJS'},
+  {id:'sctachball',    name:'Sctachball',            emoji:'🏓', famille:'AJS'},
+  {id:'bumball',       name:'Bumball',               emoji:'💥', famille:'AJS'},
+  {id:'spikeball',     name:'Spikeball',             emoji:'🟡', famille:'AJS'},
+  {id:'courir-vite',   name:'Courir vite',           emoji:'🏃', famille:'AJS'},
+  {id:'course-longue', name:'Course longue',         emoji:'🏃‍♂️', famille:'AJS'},
+  {id:'lancers',       name:'Les lancers',           emoji:'🎯', famille:'AJS'},
+  {id:'sauts',         name:'Les sauts',             emoji:'🦘', famille:'AJS'},
+  {id:'epreuves-comb', name:'Épreuves combinées',   emoji:'🥇', famille:'AJS'},
+  {id:'gouren',        name:'Gouren',                emoji:'🤼', famille:'AJS'},
+  {id:'escrime',       name:'Escrime',               emoji:'🤺', famille:'AJS'},
+  {id:'lutte',         name:'Lutte',                 emoji:'🤼‍♂️', famille:'AJS'},
+  {id:'hockey',        name:'Hockey',                emoji:'🏒', famille:'AJS'},
+  {id:'boxe',          name:'Boxe',                  emoji:'🥊', famille:'AJS'},
+  {id:'bad',           name:'Bad',                   emoji:'🏸', famille:'AJS'},
+  {id:'tennis',        name:'Tennis',                emoji:'🎾', famille:'AJS'},
+  {id:'tt',            name:'T.T',                   emoji:'🏓', famille:'AJS'},
+  {id:'speedminton',   name:'Speedminton',           emoji:'🏸', famille:'AJS'},
+  {id:'vincepong',     name:'Vincepong',             emoji:'🏓', famille:'AJS'},
+  {id:'peteca',        name:'Pétéca',                emoji:'🏸', famille:'AJS'},
+  // APEC — Activités Physiques d'Entretien et de la Condition physique (11 sports)
+  {id:'renfo-strech',  name:'Renfo/Strech',          emoji:'💪', famille:'APEC'},
+  {id:'crosstraining', name:'Crosstraining',         emoji:'🏋️', famille:'APEC'},
+  {id:'gymnastique',   name:'Gymnastique',           emoji:'🤸', famille:'APEC'},
+  {id:'double-dutch',  name:'Double dutch',          emoji:'🪢', famille:'APEC'},
+  {id:'gr',            name:'G.R',                   emoji:'🎀', famille:'APEC'},
+  {id:'cirque',        name:'Cirque',                emoji:'🎪', famille:'APEC'},
+  {id:'expression-corp',name:'Expression corporelle',emoji:'🎭', famille:'APEC'},
+  {id:'accro',         name:'Accro',                 emoji:'🧗', famille:'APEC'},
+  {id:'baby-gym',      name:'Baby gym',              emoji:'🧸', famille:'APEC'},
+  {id:'step',          name:'Step',                  emoji:'🪜', famille:'APEC'},
+  {id:'parkour',       name:'Parkour',               emoji:'🏃‍♂️', famille:'APEC'},
+  // APPN — Activités Physiques de Pleine Nature (15 sports)
+  {id:'co',            name:'C.O (Course Orientation)',emoji:'🧭', famille:'APPN'},
+  {id:'escalade',      name:'Escalade',              emoji:'🧗', famille:'APPN'},
+  {id:'velo',          name:'Vélo',                  emoji:'🚵', famille:'APPN'},
+  {id:'tal',           name:'TAL',                   emoji:'🎯', famille:'APPN'},
+  {id:'disc-golf',     name:'Disc golf',             emoji:'🥏', famille:'APPN'},
+  {id:'derives-golf',  name:'Dérivés du golf',       emoji:'⛳', famille:'APPN'},
+  {id:'marche-nord',   name:'Marche Nordique',       emoji:'🥖', famille:'APPN'},
+  {id:'randonnee',     name:'Randonnée',             emoji:'⛰️', famille:'APPN'},
+  {id:'roller',        name:'Roller',                emoji:'🛼', famille:'APPN'},
+  {id:'slackline',     name:'Slackline',             emoji:'🪢', famille:'APPN'},
+  {id:'geocaching',    name:'Géocaching',            emoji:'📍', famille:'APPN'},
+  {id:'longe-cote',    name:'Longe côte',            emoji:'🌊', famille:'APPN'},
+  {id:'art-deplacement',name:'Art du déplacement en extérieur',emoji:'🏃', famille:'APPN'},
+  {id:'cerf-volant',   name:'Cerf volant',           emoji:'🪁', famille:'APPN'},
+  {id:'kayak',         name:'Kayak',                 emoji:'🛶', famille:'APPN'},
 ];
 
 // V7.2: VALEURS MORALES ENRICHIES (50 valeurs en 5 catégories)
@@ -2247,12 +2301,49 @@ function resetForm() {
 // ============================================================
 function renderSportGrid() {
   const grid = document.getElementById('sport-grid');
-  grid.innerHTML = sports.map(s => `
-    <div class="sport-item ${selectedSport===s.id?'selected':''}" onclick="selectSport('${s.id}')">
-      <span class="sport-item-icon">${s.emoji}</span>
-      <span class="sport-item-name">${s.name}</span>
-    </div>
-  `).join('');
+  const familles = ['AJS', 'APEC', 'APPN'];
+  let html = '';
+
+  familles.forEach(fam => {
+    const cfg = FAMILLES_CONFIG[fam];
+    const sportsDeFamille = sports.filter(s => (s.famille || 'AJS') === fam);
+    if (sportsDeFamille.length === 0) return;
+
+    html += `
+      <div style="grid-column:1/-1;display:flex;align-items:center;gap:8px;margin-top:8px;margin-bottom:2px">
+        <span style="font-size:14px">${cfg.emoji}</span>
+        <span style="font-family:'Rubik Dirt',cursive;font-size:13px;color:${cfg.color};letter-spacing:0.5px">${cfg.label}</span>
+        <span style="font-size:10px;color:var(--muted)">${cfg.fullLabel}</span>
+        <div style="flex:1;height:1px;background:${cfg.bg}"></div>
+      </div>
+      ${sportsDeFamille.map(s => `
+        <div class="sport-item ${selectedSport===s.id?'selected':''}" onclick="selectSport('${s.id}')">
+          <span class="sport-item-icon">${s.emoji}</span>
+          <span class="sport-item-name">${s.name}</span>
+        </div>
+      `).join('')}
+    `;
+  });
+
+  // Sports personnalisés sans famille
+  const sansFamily = sports.filter(s => !s.famille || !['AJS','APEC','APPN'].includes(s.famille));
+  if (sansFamily.length > 0) {
+    html += `
+      <div style="grid-column:1/-1;display:flex;align-items:center;gap:8px;margin-top:8px;margin-bottom:2px">
+        <span style="font-size:14px">🏅</span>
+        <span style="font-family:'Rubik Dirt',cursive;font-size:13px;color:#555;letter-spacing:0.5px">Personnalisés</span>
+        <div style="flex:1;height:1px;background:#eee"></div>
+      </div>
+      ${sansFamily.map(s => `
+        <div class="sport-item ${selectedSport===s.id?'selected':''}" onclick="selectSport('${s.id}')">
+          <span class="sport-item-icon">${s.emoji}</span>
+          <span class="sport-item-name">${s.name}</span>
+        </div>
+      `).join('')}
+    `;
+  }
+
+  grid.innerHTML = html;
 }
 
 function selectSport(id) {
@@ -2265,7 +2356,7 @@ function addCustomSport() {
   const emoji = document.getElementById('custom-sport-emoji').value.trim() || '🏅';
   if (!name) return;
   const id = 'custom_' + Date.now();
-  sports.push({id, name, emoji});
+  sports.push({id, name, emoji, famille: null});
   save();
   document.getElementById('custom-sport-input').value = '';
   document.getElementById('custom-sport-emoji').value = '';
@@ -2276,23 +2367,596 @@ function addCustomSport() {
 function addGlobalSport() {
   const name = document.getElementById('global-sport-name').value.trim();
   const emoji = document.getElementById('global-sport-emoji').value.trim() || '🏅';
+  const famille = document.getElementById('global-sport-famille').value || null;
   if (!name) return;
-  sports.push({id:'custom_'+Date.now(), name, emoji});
+  sports.push({id:'custom_'+Date.now(), name, emoji, famille});
   save();
   document.getElementById('global-sport-name').value = '';
   document.getElementById('global-sport-emoji').value = '';
   renderSports();
 }
 
-function renderSports() {
+const FAMILLES_CONFIG = {
+  AJS:  { label: 'AJS',  fullLabel: 'Activités de Jeux Sportifs',               emoji: '🏆', color: '#1d3557', bg: '#dbe9f9' },
+  APEC: { label: 'APEC', fullLabel: 'Activités Physiques d\'Entretien & Condition', emoji: '💪', color: '#7b2d8b', bg: '#f3d8f8' },
+  APPN: { label: 'APPN', fullLabel: 'Activités Physiques de Pleine Nature',      emoji: '🧭', color: '#2d6a4f', bg: '#d8f3dc' },
+};
+
+// ============================================================
+// CYCLES MODÈLES — 56 sports × 6 séances (Initiation → Intermédiaire)
+// ============================================================
+const CYCLES_MODELES = {
+  // ===== AJS =====
+  'basket': [
+    {nom:'S1 — Initiation : manipulation & déplacement',objSeance:'Découvrir le ballon, les déplacements sans ballon et les passes de base (passe chest, passe rebond)',objCycle:'Cycle Basket 6×45min : initier les élèves aux fondamentaux du basketball (dribble, passe, tir) du niveau débutant vers un jeu collectif simplifié'},
+    {nom:'S2 — Dribble et conduite de balle',objSeance:'Maîtriser le dribble en marche, en course et en changement de direction ; notion de pivot'},
+    {nom:'S3 — Tir au panier : lay-up et tir en suspension',objSeance:'Apprendre la technique du lay-up ; introduire le tir en suspension depuis la raquette'},
+    {nom:'S4 — Jeu à effectif réduit (3×3)',objSeance:'Appliquer passes, dribble et tir dans un jeu à effectif réduit 3×3 ; lire l\'espace'},
+    {nom:'S5 — Défense individuelle et interceptions',objSeance:'Adopter la posture défensive de base ; se placer entre son adversaire et le panier ; intercepter les passes'},
+    {nom:'S6 — Match complet et bilan',objSeance:'Jouer en 5×5 sur terrain entier avec les règles simplifiées ; évaluer la progression individuelle et collective'},
+  ],
+  'volley': [
+    {nom:'S1 — Initiation : touche haute et manchette',objSeance:'Découvrir la touche haute (passe) et la manchette (réception basse) ; maintenir l\'échange'},
+    {nom:'S2 — Service par en-dessous et réception',objSeance:'Acquérir le service par en-dessous ; s\'organiser pour recevoir en manchette'},
+    {nom:'S3 — Construction de l\'attaque (passe-manchette-smash)',objSeance:'Enchaîner réception, passe haute et attaque ; notion de 3 touches'},
+    {nom:'S4 — Jeu en 3×3 et occupation de l\'espace',objSeance:'Jouer en 3×3 ; occuper les zones (avants/arrières) et appliquer les 3 touches'},
+    {nom:'S5 — Service flottant et tactique de base',objSeance:'Introduire le service flottant ; lire le jeu adverse et adapter sa réception'},
+    {nom:'S6 — Tournoi 4×4 et évaluation',objSeance:'Tournoi 4×4 avec arbitrage ; bilan des acquisitions du cycle'},
+  ],
+  'rugby': [
+    {nom:'S1 — Initiation : passe en retraite et port du ballon',objSeance:'Comprendre la règle du en-avant ; effectuer des passes latérales en déplacement'},
+    {nom:'S2 — Toucher/plaquer : aplatir et jeu au sol',objSeance:'Découvrir le plaquage sécurisé et l\'aplatissement ; maintenir la continuité du jeu'},
+    {nom:'S3 — Ruck et maul simplifiés',objSeance:'Comprendre les regroupements (ruck/maul) ; notion de soutien et d\'aide au porteur'},
+    {nom:'S4 — Jeu en espace réduit (toucher-rugby)',objSeance:'Appliquer les règles en toucher-rugby 5×5 ; créer des décalages pour avancer'},
+    {nom:'S5 — Mêlée simulée et touche',objSeance:'Découvrir la mêlée ordonnée et la touche ; gérer les remises en jeu'},
+    {nom:'S6 — Match complet et bilan du cycle',objSeance:'Match en règles réelles sur terrain adapté ; évaluation des fondamentaux acquis'},
+  ],
+  'handball': [
+    {nom:'S1 — Prise en main et passes (chest, rebond, en cloche)',objSeance:'Découvrir les 3 types de passe ; enchaîner passes et déplacements'},
+    {nom:'S2 — Dribble et conduite de balle vers le but',objSeance:'Maîtriser le dribble en déplacement ; notion de couloir de jeu'},
+    {nom:'S3 — Tir en appui et en suspension',objSeance:'Acquérir le tir en appui (pied gauche-droite) et le tir en suspension'},
+    {nom:'S4 — Jeu 4×4 + gardien',objSeance:'Appliquer dans un jeu à effectif réduit ; garder de but, couverture du porteur'},
+    {nom:'S5 — Défense zone (1-5) et contre-attaque',objSeance:'Adopter la défense en zone 1-5 ; initier la contre-attaque rapide'},
+    {nom:'S6 — Match complet 7×7 et évaluation',objSeance:'Match en 7×7 avec règles officielles simplifiées ; bilan du cycle'},
+  ],
+  'ultimate': [
+    {nom:'S1 — Lancer et réception du frisbee',objSeance:'Maîtriser le lancer revers (backhand) et attractionne (forehand) ; attraper en sécurité'},
+    {nom:'S2 — Règles fondamentales (arrêt, défense marque)',objSeance:'Comprendre l\'arrêt avec le disque, la marque défensive, le stall count'},
+    {nom:'S3 — Jeu en 3×3 : espace et mouvement',objSeance:'Créer des espaces libres, coupé, se démarquer ; appliquer le spirit of the game'},
+    {nom:'S4 — Attaque et stratégie verticale',objSeance:'Structurer une attaque verticale simple ; timing des coupes'},
+    {nom:'S5 — Défense homme à homme et interception',objSeance:'Marquer son adversaire direct ; anticiper et intercepter les disques'},
+    {nom:'S6 — Tournoi avec spirit of the game',objSeance:'Tournoi autogéré ; évaluer le fair-play et la progression technique'},
+  ],
+  'football': [
+    {nom:'S1 — Contrôle et passe (intérieur du pied)',objSeance:'Maîtriser le contrôle plat et la passe courte à l\'intérieur du pied'},
+    {nom:'S2 — Conduite de balle et dribble',objSeance:'Conduire le ballon en ligne droite, puis avec changement de direction ; feinte simple'},
+    {nom:'S3 — Tir cadré et notion de gardien',objSeance:'Tirer avec de la puissance et de la précision ; posture du gardien de but'},
+    {nom:'S4 — Jeu 4×4 + gardiens',objSeance:'Appliquer dans un match à effectif réduit ; chercher l\'espace et le triangle de passe'},
+    {nom:'S5 — Jeu collectif : pressing et soutien',objSeance:'Comprendre le pressing collectif défensif et la notion de soutien offensif'},
+    {nom:'S6 — Match 7×7 et bilan',objSeance:'Match réglementaire adapté 7×7 ; bilan des acquisitions du cycle'},
+  ],
+  'foot-gaelique': [
+    {nom:'S1 — Manipulations spécifiques (solo, handpass)',objSeance:'Découvrir le handpass (passe main ouverte) et le solo (rebond sur pied en courant)'},
+    {nom:'S2 — Tir en suspension et jeu au sol',objSeance:'Apprendre le tir en suspension vers le but haut ; ramasser le ballon au sol'},
+    {nom:'S3 — Marque (défense) et règles du jeu',objSeance:'Comprendre le marquage défensif, les zones du terrain et les règles de base'},
+    {nom:'S4 — Jeu en espace réduit 5×5',objSeance:'Appliquer handpass, solo et tir dans un match à effectif réduit'},
+    {nom:'S5 — Jeu combiné football/hand : spécificités tactiques',objSeance:'Développer la lecture du jeu hybride ; transition défense-attaque'},
+    {nom:'S6 — Match complet et bilan',objSeance:'Match sur terrain adapté avec règles officielles simplifiées ; évaluation du cycle'},
+  ],
+  'foot-us': [
+    {nom:'S1 — Prise en main du ballon ovale américain',objSeance:'Tenir, lancer et attraper le ballon (spiral) ; rôles de base QB / receveur'},
+    {nom:'S2 — Flag football : règles et jeu sans contact',objSeance:'Comprendre le flag football ; arracher le flag, notion de down et de yard'},
+    {nom:'S3 — Tracés de routes (routes running)',objSeance:'Apprendre les routes simples (slant, post, out) ; timing passe-réception'},
+    {nom:'S4 — Jeu offensif en 5×5 (flag)',objSeance:'Construire une séquence offensive simple ; snap, fuite, passe ou course'},
+    {nom:'S5 — Défense de zone et blitz',objSeance:'Organiser une défense de zone simple ; notion de blitz et couverture'},
+    {nom:'S6 — Mini-tournoi flag football et bilan',objSeance:'Tournoi en 5×5 avec officiels ; bilan du cycle'},
+  ],
+  'tchoukball': [
+    {nom:'S1 — Lancer sur cadre et réception',objSeance:'Maîtriser le tir sur le cadre rebondisseur ; attraper le retour en sécurité'},
+    {nom:'S2 — Règles et zones interdites',objSeance:'Comprendre la zone de tir, l\'interdit de contact défensif et le score'},
+    {nom:'S3 — Jeu en 3×3 : circulation de balle',objSeance:'Trouver le joueur libre, créer du mouvement ; utiliser les 2 cadres'},
+    {nom:'S4 — Stratégies offensives : tir croisé et tir en coin',objSeance:'Varier les angles de tir pour mettre l\'équipe adverse en difficulté'},
+    {nom:'S5 — Organisation défensive : zone de récupération',objSeance:'Anticiper le retour du cadre ; placer les défenseurs pour récupérer la balle'},
+    {nom:'S6 — Tournoi et bilan',objSeance:'Tournoi avec arbitrage ; évaluation des compétences du cycle'},
+  ],
+  'sunathon': [
+    {nom:'S1 — Découverte de l\'activité et des règles',objSeance:'Comprendre les principes du sunathon (combiné natation/course) ; gestion de l\'effort'},
+    {nom:'S2 — Technique de nage (crawl) et endurance',objSeance:'Améliorer la technique du crawl ; nager sans s\'arrêter sur une distance fixée'},
+    {nom:'S3 — Technique de course et VMA',objSeance:'Travail en fartlek ; allure de course confortable sur 10-15 min'},
+    {nom:'S4 — Enchaînement natation/course (transition)',objSeance:'Maîtriser la transition rapide piscine→piste ; gestion des efforts cumulés'},
+    {nom:'S5 — Stratégie de course et gestion de l\'énergie',objSeance:'Définir son allure optimale pour la partie natation et la partie course'},
+    {nom:'S6 — Épreuve complète et bilan',objSeance:'Réaliser l\'épreuve complète chronométrée ; analyse de la performance'},
+  ],
+  'poulball': [
+    {nom:'S1 — Découverte et règles fondamentales',objSeance:'Comprendre le jeu du poulball (ballon frappé en hauteur) ; manipulations de base'},
+    {nom:'S2 — Frappe et contrôle du ballon',objSeance:'Apprendre à frapper le ballon avec précision ; contrôle de réception'},
+    {nom:'S3 — Jeu en espace réduit 3×3',objSeance:'Appliquer les règles dans un jeu réduit ; créer de l\'espace'},
+    {nom:'S4 — Stratégies offensives simples',objSeance:'Organiser une attaque coordonnée à 3 joueurs'},
+    {nom:'S5 — Défense et récupération du ballon',objSeance:'Bloquer les frappes adverses ; récupérer et relancer rapidement'},
+    {nom:'S6 — Tournoi et évaluation',objSeance:'Tournoi complet ; bilan du cycle'},
+  ],
+  'kinball': [
+    {nom:'S1 — Découverte du ballon géant et règles',objSeance:'Manipuler le ballon de Kinball ; comprendre les 3 équipes et l\'appel de couleur'},
+    {nom:'S2 — Frappe et réception collective',objSeance:'Maîtriser la frappe à plat main ouverte ; organiser la réception à plusieurs'},
+    {nom:'S3 — Jeu en conditions réelles 3 équipes',objSeance:'Jouer en 3 équipes ; gérer l\'appel, la frappe et l\'arbitrage auto'},
+    {nom:'S4 — Placement et stratégie de frappe',objSeance:'Viser une zone précise ; anticiper le déplacement de l\'équipe adverse'},
+    {nom:'S5 — Défense collective et communication',objSeance:'Coordonner la réception à 4 joueurs ; communication (prénom, touche)'},
+    {nom:'S6 — Tournoi officiel et bilan',objSeance:'Tournoi avec règles officielles ; évaluation et bilan du cycle'},
+  ],
+  'sctachball': [
+    {nom:'S1 — Découverte du sctachball (scratch ball)',objSeance:'Comprendre le principe du sctachball ; lancer et attraper avec la raquette scratch'},
+    {nom:'S2 — Échanges et précision du lancer',objSeance:'Enchaîner des échanges à 2 ; améliorer la précision du lancer en scratch'},
+    {nom:'S3 — Jeu en espace réduit (2×2)',objSeance:'Introduire la compétition dans un espace réduit ; règles simplifiées'},
+    {nom:'S4 — Stratégies de jeu (angle, vitesse)',objSeance:'Varier les angles et la vitesse du lancer pour déstabiliser l\'adversaire'},
+    {nom:'S5 — Jeu collectif 3×3',objSeance:'Coordonner une équipe de 3 ; soutien, placement, appel de balle'},
+    {nom:'S6 — Tournoi et évaluation',objSeance:'Tournoi sctachball ; bilan des acquisitions'},
+  ],
+  'bumball': [
+    {nom:'S1 — Initiation bumball et sécurité',objSeance:'Découvrir le bumball (ballon mousse géant) ; règles de sécurité et d\'espace'},
+    {nom:'S2 — Manipulation et passes',objSeance:'Effectuer des passes précises avec le bumball ; contrôle et réception'},
+    {nom:'S3 — Jeu en 3×3 et espace',objSeance:'Créer de l\'espace, trouver le joueur libre ; premiers échanges en match'},
+    {nom:'S4 — Tir et défense',objSeance:'Organiser le tir vers la cible ; se positionner en défense'},
+    {nom:'S5 — Stratégies collectives',objSeance:'Construire une action collective offensive à 3 ; transition défense-attaque'},
+    {nom:'S6 — Tournoi et bilan',objSeance:'Tournoi complet ; évaluation du cycle'},
+  ],
+  'spikeball': [
+    {nom:'S1 — Découverte du spikeball',objSeance:'Comprendre le fonctionnement du trampoline Spikeball ; règles de base (2×2)'},
+    {nom:'S2 — Service et réception',objSeance:'Maîtriser le service (rebond filet) ; anticiper et positionner la réception'},
+    {nom:'S3 — Les 3 touches en équipe',objSeance:'Organiser les 3 touches avant le retour ; communiquer avec son partenaire'},
+    {nom:'S4 — Stratégies offensives (angle, puissance)',objSeance:'Varier les angles de frappe ; mettre l\'adversaire en difficulté'},
+    {nom:'S5 — Défense et repositionnement',objSeance:'Anticiper la frappe adverse ; se repositionner rapidement autour du filet'},
+    {nom:'S6 — Tournoi 2×2 et bilan',objSeance:'Tournoi 2×2 ; évaluation des compétences acquises'},
+  ],
+  'courir-vite': [
+    {nom:'S1 — Posture de départ et accélération',objSeance:'Adopter le départ debout puis accroupi ; comprendre la phase de poussée'},
+    {nom:'S2 — Foulée et fréquence gestuelle',objSeance:'Travailler la montée de genoux, la foulée athlétique, l\'action des bras'},
+    {nom:'S3 — Course en ligne et couloir',objSeance:'Courir en ligne droite dans son couloir ; notion de course de vitesse'},
+    {nom:'S4 — Départ réaction et 30m',objSeance:'Réagir au signal ; courir le 30m avec chronométrage'},
+    {nom:'S5 — Relais vitesse (passage de témoin)',objSeance:'Apprendre la zone de passage du témoin ; courir un relais 4×30m'},
+    {nom:'S6 — Compétition 50m et bilan',objSeance:'Course officielle 50m chronométrée ; bilan du cycle'},
+  ],
+  'course-longue': [
+    {nom:'S1 — Allure modérée et respiration',objSeance:'Trouver une allure de course confortable ; coordonner la respiration'},
+    {nom:'S2 — Fartlek : alternance rapide/lent',objSeance:'Alterner allures rapides et lentes sur 15 min ; gérer ses ressources'},
+    {nom:'S3 — Mesure VMA et test Luc Léger',objSeance:'Réaliser le test Luc Léger ou navette ; estimer la VMA'},
+    {nom:'S4 — Course continue 20 min',objSeance:'Courir 20 min sans s\'arrêter ; progresser par rapport à la S1'},
+    {nom:'S5 — Allure objectif et régularité',objSeance:'Courir à une allure ciblée (% VMA) sur 2 boucles mesurées'},
+    {nom:'S6 — Course de bilan (30 min ou distance)',objSeance:'Épreuve finale chronométrée ; bilan et auto-évaluation'},
+  ],
+  'lancers': [
+    {nom:'S1 — Découverte des 3 lancers (poids, javelot, disque)',objSeance:'Manipuler les 3 engins ; comprendre les règles de sécurité de chaque lancer'},
+    {nom:'S2 — Lancer du poids : poussé-glissé',objSeance:'Maîtriser la tenue du poids ; exécuter le poussé de base puis le glissé'},
+    {nom:'S3 — Lancer du javelot : course d\'élan',objSeance:'Saisir le javelot correctement ; enchaîner la course d\'élan et la détente bras'},
+    {nom:'S4 — Lancer du disque : rotation',objSeance:'Tenir le disque, effectuer la rotation sur place puis en déplacement'},
+    {nom:'S5 — Mesure des performances et comparaison',objSeance:'Lancer en conditions compétitives ; mesure officielle et comparaison S1/S5'},
+    {nom:'S6 — Compétition et bilan du cycle',objSeance:'Épreuve finale dans les 3 disciplines ; bilan du cycle'},
+  ],
+  'sauts': [
+    {nom:'S1 — Saut en longueur : appel et réception',objSeance:'Maîtriser l\'appel à 1 pied, le vol groupé et la réception en sable'},
+    {nom:'S2 — Saut en hauteur (Fosbury) : élan et franchissement',objSeance:'Apprendre l\'élan en courbe et le franchissement dorsal'},
+    {nom:'S3 — Triple saut : cloche-pied, foulée bondissante, saut',objSeance:'Enchaîner les 3 phases du triple saut avec rythme'},
+    {nom:'S4 — Saut à la perche simplifié',objSeance:'Découvrir la perche en sécurité ; impulsion et envol assisté'},
+    {nom:'S5 — Mesures officielles et records personnels',objSeance:'Sauts en conditions compétitives ; mesure et comparaison de progression'},
+    {nom:'S6 — Compétition et bilan',objSeance:'Épreuve finale en 2 disciplines au choix ; bilan du cycle'},
+  ],
+  'epreuves-comb': [
+    {nom:'S1 — Introduction au pentathlon/décathlon adapté',objSeance:'Présenter les 5 épreuves du cycle ; tester chaque épreuve en découverte'},
+    {nom:'S2 — Épreuves de vitesse et sauts',objSeance:'Approfondir le 60m et le saut en longueur ; scoring partiel'},
+    {nom:'S3 — Épreuves de lancers',objSeance:'Travail du lancer du poids et/ou javelot ; mesures officielles'},
+    {nom:'S4 — Course de demi-fond',objSeance:'Courir le 1000m ou 600m en gestion d\'allure ; stratégie de course'},
+    {nom:'S5 — Simulation complète de l\'épreuve combinée',objSeance:'Enchaîner les 5 épreuves en une session ; gestion de l\'énergie sur l\'ensemble'},
+    {nom:'S6 — Compétition épreuve combinée et bilan',objSeance:'Épreuve finale comptabilisée sur 5 disciplines ; bilan du cycle'},
+  ],
+  'gouren': [
+    {nom:'S1 — Introduction au gouren (lutte bretonne)',objSeance:'Découvrir la culture et les règles du gouren ; prises de contact sécurisées'},
+    {nom:'S2 — Prises debout fondamentales',objSeance:'Apprendre la prise à bras-le-corps et le déséquilibre arrière'},
+    {nom:'S3 — Projections et chutes roulées',objSeance:'Effectuer une projection sécurisée et une chute roulée (ukemi adapté)'},
+    {nom:'S4 — Techniques au sol : immobilisation',objSeance:'Maintenir son adversaire au sol ; résister à une immobilisation'},
+    {nom:'S5 — Combat à effectif réduit (tournoi interne)',objSeance:'Appliquer les techniques dans des combats courts de 1 min'},
+    {nom:'S6 — Tournoi et bilan',objSeance:'Tournoi gouren avec arbitrage ; bilan du cycle'},
+  ],
+  'escrime': [
+    {nom:'S1 — Tenue, posture de garde et déplacements',objSeance:'Adopter la posture de garde (fleuret) ; avancer et reculer correctement'},
+    {nom:'S2 — Attaque simple : fente et touche',objSeance:'Exécuter la fente avant ; toucher la cible valide adversaire'},
+    {nom:'S3 — Parade et riposte',objSeance:'Parer une attaque (quarte/sixte) ; riposter immédiatement'},
+    {nom:'S4 — Feinte et attaque composée',objSeance:'Effectuer une feinte d\'attaque ; enchaîner en dégagement'},
+    {nom:'S5 — Assaut chronométré (1 min)',objSeance:'Réaliser des assauts de 1 min avec décompte des touches'},
+    {nom:'S6 — Tournoi poule et bilan',objSeance:'Tournoi en poule ; évaluation du cycle'},
+  ],
+  'lutte': [
+    {nom:'S1 — Sécurité, chutes et prises de contact',objSeance:'Apprendre à chuter correctement ; prendre contact en toute sécurité'},
+    {nom:'S2 — Déséquilibre et saisie de base',objSeance:'Déséquilibrer son adversaire (avant, arrière, côté) ; saisie jambe/hanche'},
+    {nom:'S3 — Projections debout',objSeance:'Réaliser 2 projections de base (épaule, hanche) ; enchaîner avec l\'immobilisation'},
+    {nom:'S4 — Combat au sol : immobilisation et retournement',objSeance:'Immobiliser l\'adversaire au sol 3 secondes ; le retourner face au sol'},
+    {nom:'S5 — Combats courts toutes positions',objSeance:'Combats de 1 min30 ; appliquer toutes les techniques du cycle'},
+    {nom:'S6 — Tournoi et bilan du cycle',objSeance:'Tournoi avec arbitrage officiel ; bilan individuel'},
+  ],
+  'hockey': [
+    {nom:'S1 — Prise en main de la crosse et du palet',objSeance:'Tenir la crosse correctement ; contrôler le palet/balle en ligne droite'},
+    {nom:'S2 — Passes et réceptions',objSeance:'Passer avec précision (revers et coup droit) ; arrêter le palet'},
+    {nom:'S3 — Tir cadré et notion de gardien',objSeance:'Tirer avec puissance et précision ; posture du gardien'},
+    {nom:'S4 — Jeu en espace réduit 3×3',objSeance:'Appliquer passes, conduite et tir dans un match à effectif réduit'},
+    {nom:'S5 — Défense et couverture de zone',objSeance:'Se placer entre le palet et le but ; défense individuelle et en zone'},
+    {nom:'S6 — Match complet et bilan',objSeance:'Match 5×5 + gardien avec règles officielles simplifiées ; bilan'},
+  ],
+  'boxe': [
+    {nom:'S1 — Posture de garde et déplacements',objSeance:'Adopter la garde de boxe ; se déplacer (avant, arrière, latéral) sans croiser les pieds'},
+    {nom:'S2 — Directs : jab et cross',objSeance:'Exécuter le jab (main avant) et le cross (main arrière) avec rotation du bassin'},
+    {nom:'S3 — Esquives et blocages',objSeance:'Esquiver (latérale, bascule) et bloquer les coups adverses'},
+    {nom:'S4 — Enchaînements jab-cross-crochet',objSeance:'Combiner jab + cross + crochet gauche ; fluidité et puissance'},
+    {nom:'S5 — Shadow boxing et travail au sac',objSeance:'Shadow boxing de 3×2 min ; travail au sac avec combinaisons apprises'},
+    {nom:'S6 — Assaut codifié et bilan',objSeance:'Assaut avec gants mousse (no contact or light) ; évaluation du cycle'},
+  ],
+  'bad': [
+    {nom:'S1 — Prise de raquette et frappe de base',objSeance:'Adopter la prise universelle ; frapper le volant côté coup droit'},
+    {nom:'S2 — Coup droit et revers au fond du court',objSeance:'Renvoyer le volant côté revers ; se repositionner au centre'},
+    {nom:'S3 — Amorti et dégagement',objSeance:'Exécuter l\'amorti net et le dégagement au fond ; notion de montée au filet'},
+    {nom:'S4 — Service long et service court',objSeance:'Effectuer le service long revers et le service court filet'},
+    {nom:'S5 — Jeu en simple (règles officielles)',objSeance:'Jouer en simple avec service, décompte des points et rotations'},
+    {nom:'S6 — Tournoi double mixte et bilan',objSeance:'Tournoi en double mixte ; bilan du cycle'},
+  ],
+  'tennis': [
+    {nom:'S1 — Prise de raquette et frappe coup droit',objSeance:'Adopter la prise Eastern coup droit ; frapper la balle sur la tranche'},
+    {nom:'S2 — Revers à 2 mains',objSeance:'Maîtriser le revers à 2 mains ; enchaîner coup droit / revers'},
+    {nom:'S3 — Service plat',objSeance:'Apprendre le mouvement du service plat ; lancer de balle et frappe au-dessus'},
+    {nom:'S4 — Jeu à la volée et filet',objSeance:'Monter au filet ; effectuer une volée de coup droit et de revers'},
+    {nom:'S5 — Match en simple (règles officielles)',objSeance:'Jouer un set complet avec décompte des points officiels'},
+    {nom:'S6 — Tournoi et bilan du cycle',objSeance:'Mini-tournoi ; évaluation des compétences acquises'},
+  ],
+  'tt': [
+    {nom:'S1 — Prise de raquette et coup droit',objSeance:'Adopter la prise de raquette standard ; effectuer un coup droit régulier'},
+    {nom:'S2 — Revers et échange régulier',objSeance:'Maîtriser le revers ; maintenir un échange coup droit / revers'},
+    {nom:'S3 — Service et retour de service',objSeance:'Apprendre le service de base ; retourner le service en régularité'},
+    {nom:'S4 — Top-spin coup droit',objSeance:'Introduire le top-spin côté coup droit ; effet et trajectoire de la balle'},
+    {nom:'S5 — Match en simple avec décompte',objSeance:'Jouer 3 sets de 11 points ; arbitrage et comptage autonome'},
+    {nom:'S6 — Tournoi et bilan',objSeance:'Tournoi en poule ; évaluation du cycle'},
+  ],
+  'speedminton': [
+    {nom:'S1 — Découverte du speedminton',objSeance:'Comprendre les règles du speedminton ; manipuler le speeder et la raquette'},
+    {nom:'S2 — Échange régulier sans filet',objSeance:'Maintenir un échange à 2 en espace ouvert ; vitesse et précision'},
+    {nom:'S3 — Jeu dans les carrés de jeu',objSeance:'Jouer dans les 2 carrés officiels (5m²) ; décompte des points'},
+    {nom:'S4 — Smash et amorti',objSeance:'Exécuter un smash et un amorti dans le carré ; tactique de jeu'},
+    {nom:'S5 — Simple officiel',objSeance:'Match officiel en single avec règles complètes'},
+    {nom:'S6 — Tournoi et bilan',objSeance:'Tournoi ; évaluation finale du cycle'},
+  ],
+  'vincepong': [
+    {nom:'S1 — Règles et matériel spécifique',objSeance:'Découvrir le vincepong (ping-pong vertical) ; manipulations de base'},
+    {nom:'S2 — Frappe de face et latérale',objSeance:'Effectuer la frappe de face et latérale avec la palette'},
+    {nom:'S3 — Échange en continuité',objSeance:'Maintenir l\'échange face au mur ou avec partenaire'},
+    {nom:'S4 — Jeu en duel',objSeance:'Jouer en duel avec décompte de points ; règles officielles'},
+    {nom:'S5 — Effets et stratégie',objSeance:'Introduire l\'effet coupé et le liftant ; déstabiliser l\'adversaire'},
+    {nom:'S6 — Tournoi et bilan',objSeance:'Tournoi ; évaluation du cycle'},
+  ],
+  'peteca': [
+    {nom:'S1 — Découverte de la pétéca',objSeance:'Comprendre les règles du jeu ; frapper la pétéca avec la paume'},
+    {nom:'S2 — Échange régulier et placement',objSeance:'Maintenir un échange à 2 ; se replacer au centre après chaque frappe'},
+    {nom:'S3 — Service et retour',objSeance:'Apprendre le service (à la main) ; retourner le service en sécurité'},
+    {nom:'S4 — Jeu en simple et double',objSeance:'Jouer en simple puis en double ; couvrir son espace de jeu'},
+    {nom:'S5 — Smash et amorti',objSeance:'Exécuter un smash depuis la ligne et un amorti au filet'},
+    {nom:'S6 — Tournoi et bilan du cycle',objSeance:'Tournoi ; évaluation finale'},
+  ],
+
+  // ===== APEC =====
+  'renfo-strech': [
+    {nom:'S1 — Échauffement global et gainage',objSeance:'Comprendre les principes du renforcement musculaire ; gainage planche, latéral, ponte'},
+    {nom:'S2 — Renforcement membres supérieurs',objSeance:'Pompes, dips, tirages élastique ; notion de séries/répétitions'},
+    {nom:'S3 — Renforcement membres inférieurs',objSeance:'Squats, fentes, soulevé de terre léger ; posture et sécurité'},
+    {nom:'S4 — Stretching statique et proprioception',objSeance:'Étirements majeurs (ischio, quad, pec, épaule) ; équilibre unipodal'},
+    {nom:'S5 — Circuit complet de renforcement',objSeance:'Circuit 6 ateliers chrono ; enchaîner renfo + stretching'},
+    {nom:'S6 — Évaluation et programme personnel',objSeance:'Test final (nb pompes, gainage, squat) ; construire son programme personnel'},
+  ],
+  'crosstraining': [
+    {nom:'S1 — Introduction au crosstraining et aux mouvements fondamentaux',objSeance:'Découvrir les mouvements de base (burpee, kettlebell swing, box jump) ; sécurité'},
+    {nom:'S2 — Travail cardio-musculaire (AMRAP)',objSeance:'AMRAP 15 min : squat, push-up, sauts étoile ; gestion de l\'effort'},
+    {nom:'S3 — Haltérophilie adaptée (snatch, clean)',objSeance:'Apprendre le clean barre légère et le kettlebell snatch simplifié'},
+    {nom:'S4 — WOD chronométré (EMOM)',objSeance:'EMOM 12 min : 5 thrusters, 5 pull-ups élastique ; maintenir le rythme'},
+    {nom:'S5 — WOD long (chipper)',objSeance:'Chipper 3 exercices : 30-20-10 ; gestion de l\'effort sur la durée'},
+    {nom:'S6 — WOD final et évaluation',objSeance:'WOD bilan ; comparaison des performances S1/S6'},
+  ],
+  'gymnastique': [
+    {nom:'S1 — Initiation aux éléments acrobatiques (roulade avant)',objSeance:'Maîtriser la roulade avant groupée sur tapis ; notion de gainage'},
+    {nom:'S2 — Roulade arrière et appui tendu renversé (ATR) assisté',objSeance:'Enchaîner roulade avant-arrière ; ATR contre le mur avec aide du prof'},
+    {nom:'S3 — Roue et grand écart',objSeance:'Apprendre la roue en sécurité ; travailler le grand écart facial et latéral'},
+    {nom:'S4 — Mini-trampoline et salto avant (assisté)',objSeance:'Utiliser le mini-tramp ; effectuer un salto avant groupé avec sécurité'},
+    {nom:'S5 — Enchaînement au sol (libre)',objSeance:'Construire un enchaînement de 6 éléments avec entrée-sortie'},
+    {nom:'S6 — Présentation de l\'enchaînement et bilan',objSeance:'Présenter l\'enchaînement devant la classe ; évaluation du cycle'},
+  ],
+  'double-dutch': [
+    {nom:'S1 — Découverte de la corde et entrées',objSeance:'Comprendre le timing du double dutch ; entrer et sortir d\'une corde simple'},
+    {nom:'S2 — Entrée dans le double dutch',objSeance:'Entrer dans 2 cordes en rotation alternée ; synchroniser avec les tourneurs'},
+    {nom:'S3 — Sauter en rythme (30 sec)',objSeance:'Sauter 30 sec sans faute ; trouver son rythme dans le double dutch'},
+    {nom:'S4 — Figures de base (tourner, figures bras)',objSeance:'Effectuer une figure simple (bras croisés, demi-tour) dans la corde'},
+    {nom:'S5 — Enchaînement chorégraphique',objSeance:'Créer un enchaînement de 3 figures avec entrée-sortie'},
+    {nom:'S6 — Présentation et bilan',objSeance:'Présentation de l\'enchaînement ; bilan du cycle'},
+  ],
+  'gr': [
+    {nom:'S1 — Initiation aux engins (ruban, cerceau)',objSeance:'Manipuler le ruban (moulinets, serpents) et le cerceau (rotation) en sécurité'},
+    {nom:'S2 — Éléments corporels de base (souplesse, équilibre)',objSeance:'Travail de la souplesse et de l\'équilibre ; liaison corps-engin'},
+    {nom:'S3 — Enchaînement simple avec engin au sol',objSeance:'Construire un enchaînement de 4 éléments avec ruban ou cerceaux'},
+    {nom:'S4 — Sauts et tours',objSeance:'Travailler les sauts (grand jeté, écart) et les tours (pirouette)'},
+    {nom:'S5 — Enchaînement complet (musicalisé)',objSeance:'Mettre l\'enchaînement en musique ; entrée-sortie scénographiée'},
+    {nom:'S6 — Présentation et évaluation',objSeance:'Présentation devant la classe ; évaluation critériée'},
+  ],
+  'cirque': [
+    {nom:'S1 — Initiation jonglage (foulards, balles)',objSeance:'Jongler à 1 puis 2 foulards ; passer à 2 balles en cascade'},
+    {nom:'S2 — Acrobatie de base (pyramides à 2)',objSeance:'Construire des pyramides à 2 (portée simple) en sécurité'},
+    {nom:'S3 — Équilibre (monocycle, fil plat)',objSeance:'S\'initier au monocycle ou au fil tendu bas ; notion d\'équilibre sur support instable'},
+    {nom:'S4 — Expression et mime clown',objSeance:'Créer un personnage clown ; travailler l\'entrée en piste et la chute comique'},
+    {nom:'S5 — Numéro de cirque en duo/trio',objSeance:'Créer un numéro mêlant jonglage, acrobatie et expression'},
+    {nom:'S6 — Représentation et bilan',objSeance:'Représentation de chaque numéro devant la classe ; bilan du cycle'},
+  ],
+  'expression-corp': [
+    {nom:'S1 — Corps dans l\'espace (kinesphère)',objSeance:'Explorer les niveaux (sol, debout, aérien) et les directions de l\'espace'},
+    {nom:'S2 — Qualités de mouvement (Laban)',objSeance:'Travailler le temps (soudain/soutenu), le poids (fort/léger), l\'espace'},
+    {nom:'S3 — Improvisation guidée et contact',objSeance:'Improviser seul puis à 2 avec contact ; écoute du partenaire'},
+    {nom:'S4 — Création chorégraphique (ABA)',objSeance:'Construire une phrase de mouvement en ABA (thème-contraste-retour)'},
+    {nom:'S5 — Musicalité et rythme',objSeance:'Danser sur des extraits musicaux variés ; jouer avec la pulsation'},
+    {nom:'S6 — Présentation et évaluation',objSeance:'Présenter la chorégraphie ; grille d\'évaluation partagée'},
+  ],
+  'accro': [
+    {nom:'S1 — Initiation acrosport : portée simple à 2',objSeance:'Réaliser 3 portées à 2 (voltigeur/porteur) sur tapis ; sécurité et alignement'},
+    {nom:'S2 — Pyramides à 3 (trio)',objSeance:'Construire 2 pyramides à 3 avec entrée-sortie synchronisée'},
+    {nom:'S3 — Éléments dynamiques (lancers assistés)',objSeance:'Effectuer un lancer simple assisté de foulard ou voltigeur léger'},
+    {nom:'S4 — Enchaînement acrosport (4 éléments)',objSeance:'Construire un enchaînement de 4 figures avec transitions'},
+    {nom:'S5 — Musicalisé et finitions esthétiques',objSeance:'Mettre l\'enchaînement en musique ; soigner les transitions et les poses'},
+    {nom:'S6 — Présentation et évaluation',objSeance:'Présentation devant jury ; évaluation critériée'},
+  ],
+  'baby-gym': [
+    {nom:'S1 — Découverte du milieu gymnique (maternelle/6 ans)',objSeance:'Explorer les agrès simplement (poutre basse, tapis, tremplin) ; sécurité'},
+    {nom:'S2 — Roulades et culbutes',objSeance:'Maîtriser la culbute avant et arrière sur plan incliné'},
+    {nom:'S3 — Sauts variés et réceptions',objSeance:'Sauter avec impulsion 2 pieds ; réceptionner en souplesse de genoux'},
+    {nom:'S4 — Agrès : poutre, barres asymétriques (adapté)',objSeance:'Monter et descendre d\'une poutre basse ; prise en suspension sur barre'},
+    {nom:'S5 — Parcours d\'obstacles',objSeance:'Enchaîner un parcours de 6 ateliers variés ; autonomie et confiance'},
+    {nom:'S6 — Parcours final et bilan',objSeance:'Parcours bilan chronométré ; célébration des progrès'},
+  ],
+  'step': [
+    {nom:'S1 — Initiation step : rythme de base',objSeance:'Monter et descendre du step en rythme ; notion de temps musical (4/4)'},
+    {nom:'S2 — Pas de base et variations (V-step, tour)',objSeance:'Enchaîner les pas de base (basic step, V-step, tour) sur 2×8 temps'},
+    {nom:'S3 — Chorégraphie simple (32 temps)',objSeance:'Apprendre une chorégraphie de 32 temps sur musique ; répétition'},
+    {nom:'S4 — Bras et coordination',objSeance:'Intégrer les mouvements de bras coordonnés aux pas de step'},
+    {nom:'S5 — Chorégraphie complète (2×32 temps)',objSeance:'Assembler 2 blocs de 32 temps en chorégraphie continue'},
+    {nom:'S6 — Présentation et évaluation',objSeance:'Présenter la chorégraphie ; bilan de l\'enchaînement step'},
+  ],
+  'parkour': [
+    {nom:'S1 — Sécurité, chute roulée et déplacement de base',objSeance:'Maîtriser la chute roulée (parkour roll) ; courir, sauter, atterrir en sécurité'},
+    {nom:'S2 — Saut de précision et réception',objSeance:'Sauter d\'un plot à l\'autre avec précision ; réceptionner en silence'},
+    {nom:'S3 — Franchissement d\'obstacles (saut de chat)',objSeance:'Effectuer le saut de chat sur plinth ; franchir une barre basse'},
+    {nom:'S4 — Passement de barre (under bar)',objSeance:'Passer sous une barre (under bar) ; enchaîner avec un déplacement'},
+    {nom:'S5 — Parcours de parkour complet',objSeance:'Enchaîner 6 obstacles en fluidité ; notion de flow'},
+    {nom:'S6 — Démonstration parcours et bilan',objSeance:'Démonstration filmée du parcours ; bilan du cycle'},
+  ],
+
+  // ===== APPN =====
+  'co': [
+    {nom:'S1 — Lecture de carte et orientation de la carte',objSeance:'Lire une carte topographique simple ; orienter la carte avec la boussole'},
+    {nom:'S2 — Prise d\'azimut et déplacement à l\'azimut',objSeance:'Prendre un azimut sur boussole ; marcher 50m dans une direction donnée'},
+    {nom:'S3 — Course d\'orientation sur petit terrain (5 balises)',objSeance:'Trouver 5 balises sur un circuit court chrono ; choix d\'itinéraire'},
+    {nom:'S4 — Lecture de relief et points d\'appui',objSeance:'Identifier les courbes de niveau ; utiliser les points remarquables du terrain'},
+    {nom:'S5 — Course d\'orientation chronométrée (10 balises)',objSeance:'Réaliser un CO 10 balises avec classement par temps/nombre de balises'},
+    {nom:'S6 — Score O (balises libres) et bilan',objSeance:'Score O 20 min ; évaluation de la progression du cycle'},
+  ],
+  'escalade': [
+    {nom:'S1 — Initiation sécurité et manipulation du matériel',objSeance:'Comprendre le nœud de huit, le baudrier et le relais ; grimper en moulinette'},
+    {nom:'S2 — Grimper en dalle et en dévers',objSeance:'Appliquer les techniques de pied (adherence, technique) sur 2 types de paroi'},
+    {nom:'S3 — Lecture de voie et blocage',objSeance:'Lire une voie avant de grimper ; bloquer et reposer sur un prise'},
+    {nom:'S4 — Initiation à l\'assurage (GriGri/tube)',objSeance:'Assurer son partenaire avec GriGri ou tube ; donner du mou et freiner'},
+    {nom:'S5 — Grimper en tête (avec dégaine)',objSeance:'Grimper en tête sur voie facile (5a-5b) ; clipper les dégaines'},
+    {nom:'S6 — Voie projet et bilan',objSeance:'Grimper une voie choisie comme projet ; évaluation de la progression'},
+  ],
+  'velo': [
+    {nom:'S1 — Équilibre et freinage',objSeance:'Maîtriser l\'équilibre en mouvement ; freiner progressivement avec les 2 freins'},
+    {nom:'S2 — Changement de vitesses et gestion du développement',objSeance:'Comprendre la logique des vitesses ; adapter le développement à la pente'},
+    {nom:'S3 — Virage et slalom',objSeance:'Enchaîner des virages serrés en slalom ; regard loin et corps incliné'},
+    {nom:'S4 — Techniques tout-terrain (VTT)',objSeance:'Rouler sur terrain varié ; descente, montée, franchissement de petits obstacles'},
+    {nom:'S5 — Randonnée vélo (10-15 km)',objSeance:'Sortie route ou voie verte de 10-15 km ; gestion de l\'effort et de la fatigue'},
+    {nom:'S6 — Parcours final et bilan',objSeance:'Parcours techniques évalué ; bilan du cycle'},
+  ],
+  'tal': [
+    {nom:'S1 — Découverte du TAL (Tir à l\'arc)',objSeance:'Sécurité sur le terrain ; tenir l\'arc, encoche, zone de tir'},
+    {nom:'S2 — Position de tir et visée',objSeance:'Adopter la position FITA ; pointer et viser le centre sans flèche puis avec'},
+    {nom:'S3 — Tir groupé à 5m',objSeance:'Tirer 3 volées de 3 flèches à 5m ; groupement des impacts'},
+    {nom:'S4 — Tir à 10m avec viseur',objSeance:'Régler le viseur ; tirer à 10m avec notation du score'},
+    {nom:'S5 — Parcours 3D ou cibles variées',objSeance:'Tirer sur des cibles animales 3D ou des cibles géométriques à distances variables'},
+    {nom:'S6 — Compétition TAL et bilan',objSeance:'Compétition chronométrée avec score ; bilan du cycle'},
+  ],
+  'disc-golf': [
+    {nom:'S1 — Découverte et lancer revers (backhand)',objSeance:'Comprendre le parcours de disc golf ; maîtriser le lancer revers'},
+    {nom:'S2 — Lancer forehand et précision',objSeance:'Apprendre le lancer forehand ; viser une cible à 15m'},
+    {nom:'S3 — Putt et approche',objSeance:'Maîtriser le putt (5m du panier) ; approche avec disque de mid-range'},
+    {nom:'S4 — Jeu en 3 trous (score)',objSeance:'Jouer 3 trous avec score ; notions de par, bogey, birdie'},
+    {nom:'S5 — Stratégie de parcours (draw/fade)',objSeance:'Choisir son disque selon la trajectoire souhaitée (understable/overstable)'},
+    {nom:'S6 — Parcours complet 9 trous et bilan',objSeance:'Parcours complet 9 trous chronométré ; bilan du cycle'},
+  ],
+  'derives-golf': [
+    {nom:'S1 — Découverte du golf (rules, matériel)',objSeance:'Comprendre les règles et le matériel ; grip et posture de base'},
+    {nom:'S2 — Putting (courtes distances)',objSeance:'Maîtriser le putting linéaire de 1 à 3m ; lecture du green'},
+    {nom:'S3 — Chip et approche',objSeance:'Effectuer le chip (approche courte) ; balle dans le green en peu de coups'},
+    {nom:'S4 — Swing complet (7 fer)',objSeance:'Apprendre le swing complet avec le 7 fer ; rotation bassin et épaules'},
+    {nom:'S5 — Jeu en 3 trous (parcours pitch & putt)',objSeance:'Jouer 3 trous en pitch & putt ; appliquer toutes les techniques'},
+    {nom:'S6 — Parcours et bilan',objSeance:'Parcours complet ; bilan du cycle'},
+  ],
+  'marche-nord': [
+    {nom:'S1 — Initiation à la marche nordique et utilisation des bâtons',objSeance:'Apprendre à tenir et planter les bâtons ; coordination bâtons-jambes (croisé)'},
+    {nom:'S2 — Technique de poussée et amplitude',objSeance:'Amplifier la poussée arrière des bâtons ; augmenter la longueur de foulée'},
+    {nom:'S3 — Sortie terrain (30 min)',objSeance:'Appliquer la technique en condition réelle sur 30 min ; gestion de l\'effort'},
+    {nom:'S4 — Côtes et descentes avec bâtons',objSeance:'Adapter la technique en montée (bâtons plus courts) et descente (freinage)'},
+    {nom:'S5 — Cardio et VMA en marche nordique',objSeance:'Fartlek en marche nordique (5×3 min vite/lent) ; FC cible'},
+    {nom:'S6 — Sortie longue (45 min) et bilan',objSeance:'Sortie 45 min à allure objectif ; bilan du cycle et auto-évaluation'},
+  ],
+  'randonnee': [
+    {nom:'S1 — Lecture de carte IGN et sécurité',objSeance:'Lire une carte IGN 1:25000 ; équipement et règles de sécurité en randonnée'},
+    {nom:'S2 — Boussole et orientation',objSeance:'Utiliser la boussole (azimut, orientation carte) ; se repérer sur le terrain'},
+    {nom:'S3 — Randonnée découverte (5 km / 200 D+)',objSeance:'Sortie terrain 5 km ; prendre les points de repère, gérer le rythme de groupe'},
+    {nom:'S4 — Technique de marche en dénivelé',objSeance:'Adapter le pas en montée (V inversé) et descente ; utiliser les bâtons'},
+    {nom:'S5 — Lecture de paysage et faune/flore',objSeance:'Identifier les éléments naturels ; tenir un carnet de bord de randonnée'},
+    {nom:'S6 — Randonnée bilan (8 km)',objSeance:'Randonnée complète 8 km avec dénivelé ; bilan du cycle'},
+  ],
+  'roller': [
+    {nom:'S1 — Équipement et premiers glissés',objSeance:'Mettre et régler les patins ; effectuer un premier glissé en sécurité'},
+    {nom:'S2 — Freinage (T-stop et frein talon)',objSeance:'Maîtriser le T-stop et le frein talon ; s\'arrêter en toute sécurité'},
+    {nom:'S3 — Virages et slalom',objSeance:'Tourner en C et en S ; slalom en ciseaux entre les cônes'},
+    {nom:'S4 — Skating arrière',objSeance:'Glisser en marche arrière ; virer en reculant'},
+    {nom:'S5 — Roller hockey ou artistique simplifié',objSeance:'Découvrir une discipline dérivée (hockey, artistique, slalom)'},
+    {nom:'S6 — Parcours chronométré et bilan',objSeance:'Parcours complet chronométré ; bilan de la progression du cycle'},
+  ],
+  'slackline': [
+    {nom:'S1 — Installation et sécurité',objSeance:'Installer une slackline à 30 cm ; monter et descendre en sécurité'},
+    {nom:'S2 — Premiers pas sur la sangle',objSeance:'Effectuer 5 pas consécutifs sans pause ; stabiliser le genou levé'},
+    {nom:'S3 — Traversée complète (5m)',objSeance:'Traverser la sangle de bout en bout sans tombe ; régulation des bras'},
+    {nom:'S4 — Demi-tour sur la sangle',objSeance:'Effectuer un demi-tour sur la sangle en équilibre'},
+    {nom:'S5 — Tricks de base (rebond, position assise)',objSeance:'Introduire le rebond contrôlé et la position assise sur sangle'},
+    {nom:'S6 — Défi traversée et bilan',objSeance:'Traversée chronométrée sans tomber ; bilan du cycle'},
+  ],
+  'geocaching': [
+    {nom:'S1 — Introduction au géocaching et au GPS',objSeance:'Comprendre le principe du géocaching ; lire des coordonnées GPS'},
+    {nom:'S2 — Prise en main de l\'appli et premiers waypoints',objSeance:'Utiliser l\'application sur smartphone ; trouver 2 caches traditionnelles'},
+    {nom:'S3 — Cache mystère et multi-cache',objSeance:'Décoder une cache mystère ; suivre une multi-cache en 3 étapes'},
+    {nom:'S4 — Créer sa propre cache',objSeance:'Planifier et créer une cache (contenu, boîte, coordonnées) ; la déposer'},
+    {nom:'S5 — Géocaching nocturne ou thématique',objSeance:'Chasse nocturne ou cache à thème (nature, patrimoine) ; log de la trouvaille'},
+    {nom:'S6 — Grand parcours et bilan',objSeance:'Chasse finale de 5 caches en groupe ; bilan du cycle'},
+  ],
+  'longe-cote': [
+    {nom:'S1 — Découverte et sécurité en mer',objSeance:'Comprendre les règles de sécurité en longe côte ; marcher dans l\'eau'},
+    {nom:'S2 — Technique de déplacement aquatique',objSeance:'Optimiser la foulée dans l\'eau (bascule bassin, bras) ; résistance des vagues'},
+    {nom:'S3 — Sortie 20 min (mer calme)',objSeance:'Effectuer une sortie de 20 min à allure régulière'},
+    {nom:'S4 — Gestion de l\'effort et des conditions',objSeance:'Adapter son allure aux courants et aux vagues ; récupération active'},
+    {nom:'S5 — Sortie 30 min en groupe',objSeance:'Sortie groupe 30 min ; sécurité collective, communication'},
+    {nom:'S6 — Épreuve finale et bilan',objSeance:'Sortie bilan 35-40 min ; auto-évaluation de la progression'},
+  ],
+  'art-deplacement': [
+    {nom:'S1 — Bases du déplacement naturel (marche, ramper)',objSeance:'Explorer les modes de déplacement primitifs (marche pieds nus, quadrupédie)'},
+    {nom:'S2 — Sauts et réceptions en milieu naturel',objSeance:'Sauter de rocher en rocher (adapté) ; réceptionner en sécurité sur terrain varié'},
+    {nom:'S3 — Escalade naturelle (bloc bas)',objSeance:'Grimper sur blocs bas en extérieur ; notion de voie naturelle et d\'adhérence'},
+    {nom:'S4 — Portage et équilibre (transporter un partenaire)',objSeance:'Exercices de portage (pompier, bras) ; parcours d\'équilibre en milieu naturel'},
+    {nom:'S5 — Parcours nature complet',objSeance:'Enchaîner un parcours de 8 obstacles naturels ou construits'},
+    {nom:'S6 — Démonstration parcours et bilan',objSeance:'Démonstration filmée du parcours ; bilan du cycle'},
+  ],
+  'cerf-volant': [
+    {nom:'S1 — Découverte et premiers vols',objSeance:'Assembler un cerf-volant monofil ; le faire décoller et maintenir en l\'air'},
+    {nom:'S2 — Contrôle de la ligne et manœuvres',objSeance:'Contrôler la montée, la descente et les déplacements latéraux'},
+    {nom:'S3 — Cerf-volant deux lignes (pilotage)',objSeance:'Piloter un cerf-volant de pilotage 2 lignes ; virages et figures'},
+    {nom:'S4 — Figures de base (loop, plongeon)',objSeance:'Exécuter un loop et un plongeon contrôlé avec le cerf-volant 2 lignes'},
+    {nom:'S5 — Création d\'une figure chorégraphiée',objSeance:'Composer une courte routine chorégraphiée avec musique'},
+    {nom:'S6 — Festival de cerfs-volants et bilan',objSeance:'Démonstration libre ; bilan du cycle'},
+  ],
+  'kayak': [
+    {nom:'S1 — Sécurité et équipement (gilet, pagaie)',objSeance:'Comprendre le matériel et les règles de sécurité ; pagaie en eaux calmes'},
+    {nom:'S2 — Pagayage avant et arrière',objSeance:'Maîtriser la pagaie avant puissante et le recul en ligne droite'},
+    {nom:'S3 — Virement et esquimautage simplifié',objSeance:'Effectuer un virement plat et une godille de rive ; s\'échouer sans tomber'},
+    {nom:'S4 — Lecture de rivière (eaux vives niveau 1)',objSeance:'Identifier les zones calmes (contre-courant, queue de rapide) ; descente niveau 1'},
+    {nom:'S5 — Technique eskimo roll (initiation)',objSeance:'Découvrir le roll assisté en eau chaude ; retournement et redressement'},
+    {nom:'S6 — Parcours complet et bilan',objSeance:'Descente parcours avec obstacles ; bilan du cycle'},
+  ],
+};
+
+// ============================================================
+// INIT DES CYCLES MODÈLES (1 seul appel au premier lancement)
+// ============================================================
+function initCyclesModeles() {
+  if (localStorage.getItem('cyclesModelesInit')) return; // déjà fait
+  const today = new Date().toISOString().split('T')[0];
+  sports.forEach(sport => {
+    const modeles = CYCLES_MODELES[sport.id];
+    if (!modeles) return;
+    // Créer le cycle
+    const cycleId = 'cycle-modele-' + sport.id;
+    const existingCycle = cycles.find(c => c.id === cycleId);
+    if (!existingCycle) {
+      cycles.push({ id: cycleId, sportId: sport.id, nom: 'Cycle ' + sport.name + ' (6 séances)', ficheIds: [] });
+    }
+    // Créer les 6 fiches modèles
+    modeles.forEach((m, idx) => {
+      const ficheId = 'fiche-modele-' + sport.id + '-' + idx;
+      if (fiches.find(f => f.id === ficheId)) return;
+      const fiche = {
+        id: ficheId,
+        nom: m.nom,
+        sport: sport.id,
+        sportName: sport.name,
+        sportEmoji: sport.emoji,
+        date: today,
+        duree: '45 min',
+        lieu: '',
+        educateur: '',
+        public: '',
+        materiel: '',
+        vigilance: '',
+        objSeance: m.objSeance || '',
+        objCycle: m.objCycle || (idx === 0 ? `Cycle ${sport.name} 6×45min : progression Initiation → Intermédiaire` : ''),
+        valeurs: [],
+        exercices: [],
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        isModele: true,
+      };
+      fiches.push(fiche);
+      // Assigner au cycle
+      const cycle = cycles.find(c => c.id === cycleId);
+      if (cycle && !cycle.ficheIds.includes(ficheId)) cycle.ficheIds.push(ficheId);
+    });
+  });
+  save();
+  saveCycles();
+  localStorage.setItem('cyclesModelesInit', 'true');
+}
+
   const list = document.getElementById('sports-list');
-  list.innerHTML = sports.map((s,i) => `
-    <div class="fiche-card" style="align-items:center">
-      <div class="fiche-sport-icon">${s.emoji}</div>
-      <div class="fiche-info"><div class="fiche-name">${s.name}</div></div>
-      <button onclick="deleteSport(${i})" style="background:none;border:none;font-size:20px;cursor:pointer;color:var(--accent2)">🗑</button>
-    </div>
-  `).join('');
+  const familles = ['AJS', 'APEC', 'APPN'];
+  let html = '';
+
+  familles.forEach(fam => {
+    const cfg = FAMILLES_CONFIG[fam];
+    const sportsDeFamille = sports.filter(s => (s.famille || 'AJS') === fam);
+    if (sportsDeFamille.length === 0) return;
+
+    html += `
+      <div style="margin-bottom:20px">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;padding:10px 14px;background:${cfg.bg};border-radius:12px;border-left:4px solid ${cfg.color}">
+          <span style="font-size:22px">${cfg.emoji}</span>
+          <div>
+            <div style="font-family:'Rubik Dirt',cursive;font-size:15px;color:${cfg.color}">${cfg.label}</div>
+            <div style="font-size:11px;color:var(--muted)">${cfg.fullLabel}</div>
+          </div>
+          <span style="margin-left:auto;background:${cfg.color};color:white;border-radius:20px;padding:2px 10px;font-size:12px;font-weight:600">${sportsDeFamille.length}</span>
+        </div>
+        ${sportsDeFamille.map(s => {
+          const i = sports.indexOf(s);
+          return `<div class="fiche-card" style="align-items:center;margin-bottom:8px">
+            <div class="fiche-sport-icon">${s.emoji}</div>
+            <div class="fiche-info"><div class="fiche-name">${s.name}</div><div style="font-size:11px;color:var(--muted)">${fam}</div></div>
+            <button onclick="deleteSport(${i})" style="background:none;border:none;font-size:20px;cursor:pointer;color:var(--accent2)">🗑</button>
+          </div>`;
+        }).join('')}
+      </div>
+    `;
+  });
+
+  // Sports sans famille (custom)
+  const sansFamily = sports.filter(s => !s.famille || !['AJS','APEC','APPN'].includes(s.famille));
+  if (sansFamily.length > 0) {
+    html += `
+      <div style="margin-bottom:20px">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;padding:10px 14px;background:#f5f5f5;border-radius:12px;border-left:4px solid #999">
+          <span style="font-size:22px">🏅</span>
+          <div>
+            <div style="font-family:'Rubik Dirt',cursive;font-size:15px;color:#555">Personnalisés</div>
+            <div style="font-size:11px;color:var(--muted)">Sports ajoutés manuellement</div>
+          </div>
+          <span style="margin-left:auto;background:#999;color:white;border-radius:20px;padding:2px 10px;font-size:12px;font-weight:600">${sansFamily.length}</span>
+        </div>
+        ${sansFamily.map(s => {
+          const i = sports.indexOf(s);
+          return `<div class="fiche-card" style="align-items:center;margin-bottom:8px">
+            <div class="fiche-sport-icon">${s.emoji}</div>
+            <div class="fiche-info"><div class="fiche-name">${s.name}</div></div>
+            <button onclick="deleteSport(${i})" style="background:none;border:none;font-size:20px;cursor:pointer;color:var(--accent2)">🗑</button>
+          </div>`;
+        }).join('')}
+      </div>
+    `;
+  }
+
+  list.innerHTML = html;
 }
 
 function deleteSport(i) {
@@ -3064,15 +3728,9 @@ function assignCycle(ficheId, e) {
 function renderFiches() {
   const list = document.getElementById('fiches-list');
   const empty = document.getElementById('fiches-empty');
-  if (fiches.length === 0) {
-    list.innerHTML = '';
-    empty.style.display = 'block';
-    return;
-  }
   empty.style.display = 'none';
 
-  // MODIFICATION: Grouper les fiches par sport (utiliser f.sport au lieu de f.sportId)
-  // Organisation: 1 sport = 1 dossier contenant les fiches associées
+  // ---- Grouper les fiches par sport ----
   const groups = {};
   fiches.forEach(f => {
     const key = f.sport || 'autre';
@@ -3080,9 +3738,9 @@ function renderFiches() {
     groups[key].fiches.push(f);
   });
 
-  list.innerHTML = Object.entries(groups).map(([sportId, g]) => {
+  // ---- Construire le HTML d'un dossier sport ----
+  function renderDossierSport(sportId, g) {
     const sportCycles = cycles.filter(c => c.sportId === sportId);
-    // Fiches sans cycle
     const assignedIds = new Set(sportCycles.flatMap(c => c.ficheIds));
     const noCycleFiches = g.fiches.filter(f => !assignedIds.has(f.id));
     const total = g.fiches.length;
@@ -3105,31 +3763,91 @@ function renderFiches() {
     }).join('');
 
     const noCycleHTML = noCycleFiches.length ? `
-      <div class="no-cycle-fiches">
-        ${noCycleFiches.map(f => renderFicheCard(f)).join('')}
-      </div>` : '';
+      <div class="no-cycle-fiches">${noCycleFiches.map(f => renderFicheCard(f)).join('')}</div>` : '';
+
+    const emptyMsg = total === 0 ? `<div style="padding:10px 0 6px 4px;font-size:13px;color:var(--muted)">Aucune fiche — <span onclick="goCreate()" style="color:var(--primary);cursor:pointer;font-weight:600">+ Créer</span></div>` : '';
 
     return `
-      <div class="dossier-block">
-        <div class="dossier-header" onclick="toggleDossier('${sportId}')">
-          <div class="dossier-emoji">${g.emoji}</div>
+      <div class="dossier-block" style="margin-left:4px;margin-bottom:8px">
+        <div class="dossier-header" onclick="toggleDossier('${sportId}')" style="padding:10px 14px">
+          <div class="dossier-emoji" style="font-size:20px">${g.emoji}</div>
           <div class="dossier-info">
-            <div class="dossier-name">${g.name}</div>
+            <div class="dossier-name" style="font-size:13px">${g.name}</div>
             <div class="dossier-count">${total} fiche${total!==1?'s':''}</div>
           </div>
           <div class="dossier-chevron" id="dossier-chevron-${sportId}">›</div>
         </div>
         <div class="dossier-content" id="dossier-content-${sportId}">
+          ${emptyMsg}
           ${cyclesHTML}
           ${cyclesHTML ? `<button class="btn-add-cycle" onclick="addCycle('${sportId}')">＋ Nouveau cycle</button>` : `
-            <div style="padding:8px 0 4px 0">
+            <div style="padding:4px 0 4px 0">
               ${noCycleHTML}
               <button class="btn-add-cycle" onclick="addCycle('${sportId}')">＋ Nouveau cycle</button>
             </div>`}
           ${cyclesHTML ? noCycleHTML : ''}
         </div>
       </div>`;
-  }).join('');
+  }
+
+  // ---- Construire les 3 dossiers famille (toujours visibles) ----
+  const FAMILLES_ORDER = ['AJS', 'APEC', 'APPN'];
+  let html = '';
+
+  FAMILLES_ORDER.forEach(fam => {
+    const cfg = FAMILLES_CONFIG[fam];
+    const sportsDeFamille = sports.filter(s => (s.famille || 'AJS') === fam);
+    if (sportsDeFamille.length === 0) return;
+
+    const totalFam = sportsDeFamille.reduce((acc, s) => acc + (groups[s.id]?.fiches.length || 0), 0);
+    const nbSportsAvecFiches = sportsDeFamille.filter(s => groups[s.id]).length;
+
+    html += `
+      <div class="dossier-block" style="margin-bottom:14px">
+        <div class="dossier-header" onclick="toggleDossier('fam-${fam}')"
+             style="background:${cfg.bg};border-left:4px solid ${cfg.color};padding:14px 16px">
+          <div class="dossier-emoji" style="font-size:28px">${cfg.emoji}</div>
+          <div class="dossier-info">
+            <div class="dossier-name" style="font-family:'Rubik Dirt',cursive;color:${cfg.color};font-size:16px">${cfg.label}</div>
+            <div class="dossier-count" style="font-size:11px">${cfg.fullLabel} · ${sportsDeFamille.length} sport${sportsDeFamille.length!==1?'s':''} · ${totalFam} fiche${totalFam!==1?'s':''}</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px">
+            ${totalFam > 0 ? `<span style="background:${cfg.color};color:white;border-radius:20px;padding:2px 9px;font-size:11px;font-weight:700">${totalFam}</span>` : ''}
+            <div class="dossier-chevron" id="dossier-chevron-fam-${fam}" style="color:${cfg.color}">›</div>
+          </div>
+        </div>
+        <div class="dossier-content" id="dossier-content-fam-${fam}" style="padding-left:8px;border-left:3px solid ${cfg.bg};margin-left:12px">
+          ${sportsDeFamille.map(s => {
+            const g = groups[s.id] || { name: s.name, emoji: s.emoji, fiches: [] };
+            return renderDossierSport(s.id, g);
+          }).join('')}
+        </div>
+      </div>`;
+  });
+
+  // Sports sans famille connus (custom) qui ont des fiches
+  const famSportsIds = sports.filter(s => ['AJS','APEC','APPN'].includes(s.famille)).map(s => s.id);
+  const autreIds = Object.keys(groups).filter(id => !famSportsIds.includes(id));
+  if (autreIds.length > 0) {
+    const totalAutre = autreIds.reduce((acc, id) => acc + groups[id].fiches.length, 0);
+    html += `
+      <div class="dossier-block" style="margin-bottom:14px">
+        <div class="dossier-header" onclick="toggleDossier('fam-autre')"
+             style="background:#f5f5f5;border-left:4px solid #999;padding:14px 16px">
+          <div class="dossier-emoji" style="font-size:28px">🏅</div>
+          <div class="dossier-info">
+            <div class="dossier-name" style="font-family:'Rubik Dirt',cursive;color:#555;font-size:16px">Autres</div>
+            <div class="dossier-count" style="font-size:11px">Sports personnalisés · ${totalAutre} fiche${totalAutre!==1?'s':''}</div>
+          </div>
+          <div class="dossier-chevron" id="dossier-chevron-fam-autre" style="color:#999">›</div>
+        </div>
+        <div class="dossier-content" id="dossier-content-fam-autre" style="padding-left:8px;border-left:3px solid #eee;margin-left:12px">
+          ${autreIds.map(id => renderDossierSport(id, groups[id])).join('')}
+        </div>
+      </div>`;
+  }
+
+  list.innerHTML = html || `<div class="empty"><div class="empty-icon">📋</div><div class="empty-title">Aucune fiche</div><div class="empty-text">Crée ta première fiche en appuyant sur "+ Nouvelle"</div></div>`;
 }
 
 // ============================================================
@@ -4130,13 +4848,10 @@ function notify(msg) {
 })();
 
 // ============================================================
-// MODIFICATION: INJECTION DES 12 NOUVEAUX SPORTS AVEC CYCLES DE 6 SÉANCES
-// Famille AJS: Ultimate, Tchoukball, Kinball, Dodgeball
-// Famille APEN: Pilates, Cross Training, Stretching, Circuit Training  
-// Famille APEC: Course d'orientation, Escalade, Tir à l'arc, Slackline
-// Progression: Initiation → Intermédiaire (6 séances par sport)
+// ANCIEN BLOC SUPPRIMÉ — remplacé par initCyclesModeles()
 // ============================================================
 (function injectNewSportsCycles() {
+  return; // désactivé
   const existing = JSON.parse(localStorage.getItem('fiches') || '[]');
   const alreadyInjected = existing.some(f => f.id && f.id.startsWith('new-sport-'));
   if (alreadyInjected) return;
@@ -4643,7 +5358,7 @@ function setFilter(filter, el) {
 }
 
 function filterFiches() {
-  searchQuery = document.getElementById('search-input').value.toLowerCase().trim();
+  searchQuery = document.getElementById('search-input')?.value.toLowerCase().trim() || '';
   renderFiches();
 }
 
@@ -4651,34 +5366,38 @@ function filterFiches() {
 const originalRenderFiches = renderFiches;
 renderFiches = function() {
   let filteredFiches = [...fiches];
-  
+
   // Appliquer la recherche
   if (searchQuery) {
-    filteredFiches = filteredFiches.filter(f => 
+    filteredFiches = filteredFiches.filter(f =>
       (f.nom || '').toLowerCase().includes(searchQuery) ||
       (f.sportName || '').toLowerCase().includes(searchQuery) ||
       (f.lieu || '').toLowerCase().includes(searchQuery) ||
       (f.public || '').toLowerCase().includes(searchQuery)
     );
   }
-  
+
   // Appliquer les filtres
   if (currentFilter === 'recent') {
     filteredFiches = filteredFiches.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0)).slice(0, 10);
+  } else if (currentFilter === 'echauffement') {
+    filteredFiches = filteredFiches.filter(f =>
+      (f.exercices || []).some(ex => ex.phase === 'Échauffement')
+    );
   } else if (currentFilter === 'seniors') {
-    filteredFiches = filteredFiches.filter(f => 
-      (f.public || '').toLowerCase().includes('senior') || 
+    filteredFiches = filteredFiches.filter(f =>
+      (f.public || '').toLowerCase().includes('senior') ||
       (f.public || '').toLowerCase().includes('60') ||
       (f.sport || '').includes('gym-douce')
     );
   } else if (currentFilter === 'enfants') {
-    filteredFiches = filteredFiches.filter(f => 
-      (f.public || '').toLowerCase().includes('enfant') || 
+    filteredFiches = filteredFiches.filter(f =>
+      (f.public || '').toLowerCase().includes('enfant') ||
       (f.public || '').toLowerCase().includes('6-') ||
       (f.public || '').toLowerCase().includes('9-')
     );
   }
-  
+
   // Sauvegarder temporairement et restaurer
   const originalFichesRef = fiches;
   fiches = filteredFiches;
@@ -5154,19 +5873,24 @@ if ('serviceWorker' in navigator) {
 const originalRenderFicheCard = renderFicheCard;
 renderFicheCard = function(f) {
   const card = originalRenderFicheCard(f);
-  // Ajouter le bouton dupliquer dans la carte
-  return card.replace('</div></div></div>', `<button class="duplicate-btn" onclick="event.stopPropagation();duplicateFiche('${f.id}')" style="position:absolute;top:8px;right:8px;padding:4px 8px;font-size:10px">📋</button></div></div></div>`);
+  let extra = '';
+  if (f.isModele) {
+    extra = `<span style="position:absolute;top:8px;left:8px;background:#1d3557;color:white;font-size:9px;padding:2px 7px;border-radius:10px;font-weight:700;letter-spacing:0.3px">MODÈLE</span>`;
+  }
+  return card.replace('<div class="fiche-card"', `<div class="fiche-card" style="position:relative"`) + extra;
 };
 
+// Initialiser les cycles modèles au premier lancement
+initCyclesModeles();
 renderFiches();
 
 // ============================================================
 // V7: VERSION INFO
 // ============================================================
-console.log('%c Mat&Co v7.2.1 ', 'background: linear-gradient(135deg, #1a6b3c, #2d9e5f); color: white; font-size: 16px; font-weight: bold; padding: 10px 20px; border-radius: 8px;');
-console.log('v7.2.1 - 24 sports, Bibliothèque avec fiches, 50 valeurs morales');
+console.log('%c Mat&Co v7.4.0 ', 'background: linear-gradient(135deg, #1a6b3c, #2d9e5f); color: white; font-size: 16px; font-weight: bold; padding: 10px 20px; border-radius: 8px;');
+console.log('v7.4.0 - 57 sports AJS/APEC/APPN — cycles modèles 6 séances pré-titrés');
 console.log('© ' + new Date().getFullYear() + ' SAAD Matis - Tous droits réservés');
-console.log('Fonctionnalités: Vidéos, PWA, Export/Import, Timer, Bibliothèque, Recherche, Filtres, Duplication');
+console.log('Fonctionnalités: Vidéos, PWA, Export/Import, Timer, Bibliothèque, Recherche, Filtres, Duplication, Familles, Cycles Modèles');
 </script>
 </body>
 </html>
