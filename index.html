@@ -9,7 +9,13 @@
 <!-- PWA Meta Tags -->
 <meta name="theme-color" content="#1a6b3c">
 <meta name="description" content="Mat&Co - Application de fiches de séances sportives par SAAD Matis">
-<link rel="manifest" href="data:application/json;base64,ewogICJuYW1lIjogIk1hdCZDbyAtIEZpY2hlU3BvcnQiLAogICJzaG9ydF9uYW1lIjogIk1hdCZDbyIsCiAgInN0YXJ0X3VybCI6ICIuIiwKICAiZGlzcGxheSI6ICJzdGFuZGFsb25lIiwKICAiYmFja2dyb3VuZF9jb2xvciI6ICIjZjBmNGYxIiwKICAidGhlbWVfY29sb3IiOiAiIzFhNmIzYyIsCiAgImljb25zIjogW3sic3JjIjogImRhdGE6aW1hZ2Uvc3ZnK3htbCw8c3ZnIHhtbG5zPSdodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2Zycgdmlld0JveD0nMCAwIDEwMCAxMDAnPjxyZWN0IHdpZHRoPScxMDAnIGhlaWdodD0nMTAwJyByeD0nMjAnIGZpbGw9JyMxYTZiM2MnLz48dGV4dCB4PSc1MCcgeT0nNjUnIGZvbnQtc2l6ZT0nNTAnIHRleHQtYW5jaG9yPSdtaWRkbGUnIGZpbGw9J3doaXRlJz7wn4+FPC90ZXh0Pjwvc3ZnPiIsICJzaXplcyI6ICIxOTJ4MTkyIiwgInR5cGUiOiAiaW1hZ2Uvc3ZnK3htbCJ9XQp9">
+<link rel="manifest" href="/manifest.json">
+<link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/icons/icon-96x96.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/icons/icon-72x72.png">
+<!-- iOS Splash Screens -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<link rel="apple-touch-startup-image" href="/icons/icon-512x512.png">
 <title>Mat&Co - FicheSport v7.5</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Rubik+Dirt&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -5280,11 +5286,42 @@ window.addEventListener('offline', () => {
   document.getElementById('offline-bar').classList.add('show');
 });
 
-// Service Worker registration (pour le cache hors-ligne)
+// Service Worker registration
 if ('serviceWorker' in navigator) {
-  // Le SW serait dans un fichier séparé en production
-  // Pour cette version standalone, on utilise le localStorage
-  console.log('[Mat&Co] PWA ready - données sauvegardées localement');
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js')
+      .then((registration) => {
+        console.log('[Mat&Co] Service Worker enregistré, scope:', registration.scope);
+        
+        // Check for updates
+        registration.addEventListener('updatefound', () => {
+          const newWorker = registration.installing;
+          newWorker.addEventListener('statechange', () => {
+            if (newWorker.state === 'activated') {
+              notify('✅ Mat&Co mis à jour ! Rechargez pour voir les changements.');
+            }
+          });
+        });
+      })
+      .catch((error) => {
+        console.log('[Mat&Co] Erreur SW:', error);
+      });
+  });
+}
+
+// iOS standalone detection (Safari doesn't support beforeinstallprompt)
+if (window.navigator.standalone === undefined && /iPhone|iPad|iPod/.test(navigator.userAgent)) {
+  // iOS but not in standalone mode — show install tip
+  if (!window.navigator.standalone && !localStorage.getItem('pwa-dismissed')) {
+    setTimeout(() => {
+      const banner = document.getElementById('pwa-banner');
+      if (banner) {
+        const desc = banner.querySelector('.pwa-banner-desc');
+        if (desc) desc.textContent = 'Appuie sur Partager ⎋ puis "Sur l\'écran d\'accueil"';
+        banner.classList.add('show');
+      }
+    }, 4000);
+  }
 }
 
 // ============================================================
@@ -5422,3 +5459,164 @@ console.log('Fonctionnalités: Vidéos, PWA, Export/Import, Timer, Bibliothèque
 </script>
 </body>
 </html>
+
+{
+  "name": "Mat&Co - FicheSport",
+  "short_name": "Mat&Co",
+  "description": "Application de fiches de séances sportives — 57 sports, cycles modèles, export PDF. Par SAAD Matis.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f0f4f1",
+  "theme_color": "#1a6b3c",
+  "lang": "fr",
+  "categories": ["sports", "education", "productivity"],
+  "icons": [
+    { "src": "/icons/icon-72x72.png", "sizes": "72x72", "type": "image/png" },
+    { "src": "/icons/icon-96x96.png", "sizes": "96x96", "type": "image/png" },
+    { "src": "/icons/icon-128x128.png", "sizes": "128x128", "type": "image/png" },
+    { "src": "/icons/icon-144x144.png", "sizes": "144x144", "type": "image/png" },
+    { "src": "/icons/icon-152x152.png", "sizes": "152x152", "type": "image/png" },
+    { "src": "/icons/icon-192x192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-384x384.png", "sizes": "384x384", "type": "image/png" },
+    { "src": "/icons/icon-512x512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-maskable-192x192.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
+    { "src": "/icons/icon-maskable-512x512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "screenshots": [],
+  "shortcuts": [
+    {
+      "name": "Nouvelle fiche",
+      "short_name": "Nouvelle",
+      "url": "/?action=new",
+      "icons": [{ "src": "/icons/icon-96x96.png", "sizes": "96x96" }]
+    }
+  ]
+}
+
+// Mat&Co Service Worker v7.5.0
+const CACHE_NAME = 'matco-v7.5.0';
+const ASSETS_TO_CACHE = [
+  '/',
+  '/index.html',
+  '/manifest.json',
+  '/icons/icon-192x192.png',
+  '/icons/icon-512x512.png',
+  '/icons/apple-touch-icon.png'
+];
+
+// External resources to cache
+const EXTERNAL_ASSETS = [
+  'https://fonts.googleapis.com/css2?family=Rubik+Dirt&family=DM+Sans:wght@300;400;500;600;700&display=swap',
+  'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js',
+  'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js',
+  'https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js'
+];
+
+// Install: cache core assets
+self.addEventListener('install', (event) => {
+  console.log('[SW] Installing Mat&Co v7.5.0...');
+  event.waitUntil(
+    caches.open(CACHE_NAME).then((cache) => {
+      // Cache local assets first
+      return cache.addAll(ASSETS_TO_CACHE).then(() => {
+        // Try to cache external assets (non-blocking)
+        return Promise.allSettled(
+          EXTERNAL_ASSETS.map(url => 
+            cache.add(url).catch(err => {
+              console.log('[SW] Could not cache external:', url, err);
+            })
+          )
+        );
+      });
+    }).then(() => {
+      console.log('[SW] All core assets cached');
+      return self.skipWaiting();
+    })
+  );
+});
+
+// Activate: clean old caches
+self.addEventListener('activate', (event) => {
+  console.log('[SW] Activating...');
+  event.waitUntil(
+    caches.keys().then((cacheNames) => {
+      return Promise.all(
+        cacheNames
+          .filter((name) => name !== CACHE_NAME)
+          .map((name) => {
+            console.log('[SW] Deleting old cache:', name);
+            return caches.delete(name);
+          })
+      );
+    }).then(() => {
+      console.log('[SW] Now controlling all clients');
+      return self.clients.claim();
+    })
+  );
+});
+
+// Fetch: Network first, fallback to cache (for HTML/API)
+// Cache first for static assets (fonts, libs, icons)
+self.addEventListener('fetch', (event) => {
+  const url = new URL(event.request.url);
+  
+  // Skip non-GET requests
+  if (event.request.method !== 'GET') return;
+  
+  // Skip chrome-extension and other non-http(s) requests
+  if (!url.protocol.startsWith('http')) return;
+
+  // Static assets: Cache first
+  const isStaticAsset = 
+    url.pathname.startsWith('/icons/') ||
+    url.hostname === 'cdnjs.cloudflare.com' ||
+    url.hostname === 'fonts.googleapis.com' ||
+    url.hostname === 'fonts.gstatic.com';
+
+  if (isStaticAsset) {
+    event.respondWith(
+      caches.match(event.request).then((cached) => {
+        if (cached) return cached;
+        return fetch(event.request).then((response) => {
+          if (response.ok) {
+            const clone = response.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
+          }
+          return response;
+        });
+      })
+    );
+    return;
+  }
+
+  // HTML/App: Network first, fallback to cache
+  event.respondWith(
+    fetch(event.request)
+      .then((response) => {
+        if (response.ok) {
+          const clone = response.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
+        }
+        return response;
+      })
+      .catch(() => {
+        return caches.match(event.request).then((cached) => {
+          if (cached) return cached;
+          // Fallback to index.html for navigation requests
+          if (event.request.mode === 'navigate') {
+            return caches.match('/index.html');
+          }
+          return new Response('Offline', { status: 503, statusText: 'Offline' });
+        });
+      })
+  );
+});
+
+// Handle messages (e.g., skip waiting)
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
+});
