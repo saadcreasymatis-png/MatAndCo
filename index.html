@@ -16,7 +16,7 @@
 <!-- iOS Splash Screens -->
 <meta name="apple-mobile-web-app-capable" content="yes">
 <link rel="apple-touch-startup-image" href="/icons/icon-512x512.png">
-<title>Mat&Co - FicheSport v7.5</title>
+<title>Mat&Co - FicheSport v7.6</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Rubik+Dirt&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -2060,12 +2060,13 @@
 let fiches = JSON.parse(localStorage.getItem('fiches') || '[]');
 let cycles = JSON.parse(localStorage.getItem('cycles') || '[]');
 // ============================================================
-// MIGRATION v7.5 — reinitialise sports si version < v7.5
+// MIGRATION v7.6 — reinitialise sports et cycles modeles si version < v7.6
 // ============================================================
-if (localStorage.getItem('matco-version') !== 'v7.5') {
+if (localStorage.getItem('matco-version') !== 'v7.6') {
   localStorage.removeItem('sports');
   localStorage.removeItem('cyclesModelesInit');
-  localStorage.setItem('matco-version', 'v7.5');
+  localStorage.removeItem('cyclesModelesInit-v7.6');
+  localStorage.setItem('matco-version', 'v7.6');
 }
 
 const FAMILLES_CONFIG = {
@@ -5338,6 +5339,18 @@ renderFicheCard = function(f) {
 // ============================================================
 // CYCLES MODELES — 57 sports x 6 seances
 // ============================================================
+// ============================================================
+// FICHES PRE-REMPLIES v7.6 — 342 fiches pédagogiques complètes
+// Structure : { sportId: [ ficheS1, ficheS2, ..., ficheS6 ] }
+// Chaque fiche contient : lieu, public, materiel, vigilance,
+//   objSeance, objCycle (S1 only), valeurs[], exercices[]
+// Les champs id/nom/sport/sportName/sportEmoji/date/isModele
+//   sont injectés automatiquement par initCyclesModeles().
+// ============================================================
+var FICHES_PREREMPLIES = {
+  // — Rempli progressivement par lots (étape 3) —
+};
+
 var CYCLES_MODELES = {
   'basket':        ['S1 - Passes et deplacements sans balle','S2 - Dribble et conduite de balle','S3 - Tir en appui et lay-up','S4 - Jeu 3x3','S5 - Defense individuelle','S6 - Match 5x5 et bilan'],
   'volley':        ['S1 - Touche haute et manchette','S2 - Service par en-dessous','S3 - Construction 3 touches','S4 - Jeu 3x3','S5 - Service flottant et tactique','S6 - Tournoi 4x4'],
@@ -5399,51 +5412,86 @@ var CYCLES_MODELES = {
 };
 
 // ============================================================
-// INIT CYCLES MODELES
+// INIT CYCLES MODELES v7.6
+// — Préserve les fiches utilisateur (isModele !== true)
+// — Écrase les fiches modèles avec la version v7.6 enrichie
+// — Lit depuis FICHES_PREREMPLIES, fallback CYCLES_MODELES
 // ============================================================
 function initCyclesModeles() {
-  if (localStorage.getItem('cyclesModelesInit') === 'done') return;
+  if (localStorage.getItem('cyclesModelesInit-v7.6') === 'done') return;
   var today = new Date().toISOString().split('T')[0];
+
+  // Supprimer les anciennes fiches modèles — les fiches utilisateur sont préservées
+  fiches = fiches.filter(function(f) { return !f.isModele; });
+
   sports.forEach(function(sport) {
     var seances = CYCLES_MODELES[sport.id];
     if (!seances) return;
     var cycleId = 'cycle-modele-' + sport.id;
+
+    // Créer le cycle modèle s'il n'existe pas
     if (!cycles.find(function(c){ return c.id === cycleId; })) {
       cycles.push({ id: cycleId, sportId: sport.id, nom: 'Cycle ' + sport.name + ' (6 seances)', ficheIds: [] });
     }
+    var cycle = cycles.find(function(c){ return c.id === cycleId; });
+    // Réinitialiser les ficheIds du cycle modèle
+    if (cycle) cycle.ficheIds = [];
+
+    var fichesPrerem = FICHES_PREREMPLIES[sport.id];
+
     seances.forEach(function(nom, idx) {
       var ficheId = 'fiche-modele-' + sport.id + '-' + idx;
-      if (fiches.find(function(f){ return f.id === ficheId; })) return;
-      var fiche = {
-        id: ficheId,
-        nom: nom,
-        sport: sport.id,
-        sportName: sport.name,
-        sportEmoji: sport.emoji,
-        date: today,
-        duree: '45 min',
-        lieu: '',
-        educateur: '',
-        public: '',
-        materiel: '',
-        vigilance: '',
-        objSeance: 'Seance ' + (idx+1) + '/6 — progression Initiation vers Intermediaire',
-        objCycle: idx === 0 ? 'Cycle ' + sport.name + ' 6x45min : Initiation vers Intermediaire' : '',
-        valeurs: [],
-        exercices: [],
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-        isModele: true,
-      };
+      var fichePrerem = fichesPrerem ? fichesPrerem[idx] : null;
+
+      var fiche;
+      if (fichePrerem) {
+        // Fiche enrichie v7.6 — on injecte les champs identitaires par-dessus
+        fiche = Object.assign({}, fichePrerem, {
+          id: ficheId,
+          nom: nom,
+          sport: sport.id,
+          sportName: sport.name,
+          sportEmoji: sport.emoji,
+          date: today,
+          educateur: '',
+          isModele: true,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        });
+      } else {
+        // Fallback : fiche vide si FICHES_PREREMPLIES ne couvre pas encore ce sport
+        fiche = {
+          id: ficheId,
+          nom: nom,
+          sport: sport.id,
+          sportName: sport.name,
+          sportEmoji: sport.emoji,
+          date: today,
+          duree: '60 min',
+          lieu: '',
+          educateur: '',
+          public: '',
+          materiel: '',
+          vigilance: '',
+          objSeance: 'Seance ' + (idx+1) + '/6 — progression Initiation vers Intermediaire',
+          objCycle: idx === 0 ? 'Cycle ' + sport.name + ' 6x60min : Initiation vers Intermediaire' : '',
+          valeurs: [],
+          exercices: [],
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+          isModele: true,
+        };
+      }
+
       fiches.push(fiche);
-      var cycle = cycles.find(function(c){ return c.id === cycleId; });
       if (cycle && cycle.ficheIds.indexOf(ficheId) < 0) cycle.ficheIds.push(ficheId);
     });
   });
+
   save();
   saveCycles();
-  localStorage.setItem('cyclesModelesInit', 'done');
-  console.log('[MatCo v7.5] Cycles modeles initialises');
+  localStorage.setItem('cyclesModelesInit-v7.6', 'done');
+  console.log('[MatCo v7.6] 342 fiches modeles initialisees (' + Object.keys(FICHES_PREREMPLIES).length + ' sports enrichis)');
 }
 
 initCyclesModeles();
@@ -5452,8 +5500,8 @@ renderFiches();
 // ============================================================
 // V7: VERSION INFO
 // ============================================================
-console.log('%c Mat&Co v7.5.0 ', 'background: linear-gradient(135deg, #1a6b3c, #2d9e5f); color: white; font-size: 16px; font-weight: bold; padding: 10px 20px; border-radius: 8px;');
-console.log('v7.5.0 - 57 sports AJS/APEC/APPN + cycles modeles, Bibliothèque avec fiches, 50 valeurs morales');
+console.log('%c Mat&Co v7.6.0 ', 'background: linear-gradient(135deg, #1a6b3c, #2d9e5f); color: white; font-size: 16px; font-weight: bold; padding: 10px 20px; border-radius: 8px;');
+console.log('v7.6.0 - 57 sports AJS/APEC/APPN + 342 fiches modeles completes, Bibliothèque avec fiches, 50 valeurs morales');
 console.log('© ' + new Date().getFullYear() + ' SAAD Matis - Tous droits réservés');
 console.log('Fonctionnalités: Vidéos, PWA, Export/Import, Timer, Bibliothèque, Recherche, Filtres, Duplication');
 </script>

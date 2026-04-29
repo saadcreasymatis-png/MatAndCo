@@ -1,5 +1,5 @@
-// Mat&Co Service Worker v7.5.0
-const CACHE_NAME = 'matco-v7.5.0';
+// Mat&Co Service Worker v7.6.0
+const CACHE_NAME = 'matco-v7.6.0';
 const ASSETS_TO_CACHE = [
   '/',
   '/index.html',
@@ -19,7 +19,7 @@ const EXTERNAL_ASSETS = [
 
 // Install: cache core assets
 self.addEventListener('install', (event) => {
-  console.log('[SW] Installing Mat&Co v7.5.0...');
+  console.log('[SW] Installing Mat&Co v7.6.0...');
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
       // Cache local assets first
