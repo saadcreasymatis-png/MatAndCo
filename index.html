@@ -51,9 +51,7 @@
 
   /* BANNER */
   .banner {
-    position: sticky;
-    top: 0;
-    z-index: 100;
+    position: relative;
     width: 100%;
     height: 140px;
     overflow: hidden;
@@ -142,8 +140,25 @@
   .nav-icon { font-size: 22px; line-height: 1; }
 
   /* PAGES */
-  .page { display: none; padding: 20px 16px; }
-  .page.active { display: block; }
+  /* GRID VIEW */
+  .fiches-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .fiches-grid .fiche-card { flex-direction: column; align-items: flex-start; }
+  .fiches-grid .fiche-card .fiche-sport-icon { font-size: 28px; margin-bottom: 8px; }
+  /* STATUS BADGES */
+  .status-badge { display: inline-block; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 10px; margin-left: 6px; vertical-align: middle; }
+  .status-brouillon { background: #FEF3C7; color: #92400E; }
+  .status-prete { background: #D1FAE5; color: #065F46; }
+  .status-utilisee { background: #EDE9FE; color: #5B21B6; }
+  /* QUICK DUPLICATE */
+  .dup-btn { position:absolute; top:8px; right:8px; background:var(--warm); border:1px solid var(--border); border-radius:8px; padding:4px 8px; font-size:11px; cursor:pointer; }
+  .dup-btn:active { background:var(--border); }
+  /* FOCUS VISIBLE */
+  :focus-visible { outline: 3px solid var(--primary); outline-offset: 2px; border-radius: 4px; }
+  .nav-btn:focus-visible { outline-offset: -2px; }
+
+  .page { display: none; padding: 20px 16px; opacity: 0; transform: translateY(8px); transition: opacity 0.22s ease, transform 0.22s ease; }
+  .page.active { display: block; opacity: 1; transform: translateY(0); }
+  .page.page-entering { display: block; }
 
   /* CARDS */
   .card {
@@ -1654,7 +1669,7 @@
   
   <!-- MODIFICATION V7: Barre de recherche et filtres -->
   <div class="search-bar">
-    <input type="text" class="search-input" id="search-input" placeholder="🔍 Rechercher une fiche..." oninput="filterFiches()">
+    <input type="text" class="search-input" id="search-input" placeholder="🔍 Rechercher une fiche..." oninput="debouncedFilter()">
     <button class="filter-btn" id="filter-toggle" onclick="toggleFilters()">⚙️</button>
   </div>
   <div class="filter-panel" id="filter-panel">
@@ -1663,6 +1678,16 @@
     <div class="filter-chip" data-filter="echauffement" onclick="setFilter('echauffement',this)">🔥 Échauffement</div>
     <div class="filter-chip" data-filter="seniors" onclick="setFilter('seniors',this)">🧓 Seniors</div>
     <div class="filter-chip" data-filter="enfants" onclick="setFilter('enfants',this)">🧒 Enfants</div>
+  </div>
+  <div style="display:flex;gap:8px;align-items:center;margin-bottom:12px;flex-wrap:wrap">
+    <select id="sort-select" onchange="renderFiches()" style="flex:1;min-width:120px;margin-bottom:0">
+      <option value="date-desc">📅 Plus récentes</option>
+      <option value="date-asc">📅 Plus anciennes</option>
+      <option value="sport">🏅 Par sport</option>
+      <option value="duree">⏱ Par durée</option>
+      <option value="nom">🔤 Par nom</option>
+    </select>
+    <button id="view-toggle" onclick="toggleViewMode()" style="background:var(--warm);border:1px solid var(--border);border-radius:10px;padding:9px 14px;cursor:pointer;font-size:16px" title="Changer la vue">☰</button>
   </div>
   
   <!-- V7.2: Section Outils avec toggle -->
@@ -1713,6 +1738,16 @@
         <input type="text" id="custom-sport-emoji" placeholder="🏐" style="width:60px;text-align:center">
         <button class="btn btn-outline btn-sm" onclick="addCustomSport()">+</button>
       </div>
+
+      <label>Tags (séparés par virgule)</label>
+      <input type="text" id="tags-seance" placeholder="Ex: cardio, débutant, plein air">
+
+      <label>Statut de la séance</label>
+      <select id="status-seance">
+        <option value="brouillon">📝 Brouillon</option>
+        <option value="prete" selected>✅ Prête</option>
+        <option value="utilisee">🎯 Utilisée</option>
+      </select>
 
       <div class="field-row">
         <div>
@@ -1771,6 +1806,8 @@
   <div id="step-2" class="step-content" style="display:none">
     <div id="exercices-list"></div>
     <button class="btn btn-outline" onclick="addExercice()">+ Ajouter un exercice</button>
+    <label style="margin-top:16px">📝 Notes post-séance</label>
+    <textarea id="notes-post" placeholder="Observations après la séance, points à améliorer..." rows="3"></textarea>
     <div style="height:10px"></div>
     <button class="btn btn-primary" onclick="nextStep()">Suivant →</button>
     <button class="btn btn-outline" onclick="prevStep()">← Retour</button>
@@ -1798,6 +1835,7 @@
     <button class="btn btn-primary" onclick="exportPDF()">📄 Exporter en PDF</button>
     <button class="btn btn-accent" onclick="shareSheet()">📤 Partager</button>
     <button class="btn btn-outline" onclick="editFiche()" style="border-color:var(--primary);color:var(--primary)">✏️ Modifier la fiche</button>
+    <button class="btn btn-outline" onclick="exportJSON()" style="border-color:var(--muted);color:var(--muted)">📦 Exporter JSON</button>
     <button class="btn btn-danger" id="delete-btn" onclick="deleteFiche()">🗑 Supprimer</button>
   </div>
 </div>
@@ -1814,6 +1852,20 @@
     </div>
   </div>
   <div id="sports-list"></div>
+</div>
+
+<!-- PAGE: BIBLIOTHÈQUE -->
+<div class="page" id="page-bibliotheque">
+  <h2 style="font-family:'Rubik Dirt',cursive;font-size:26px;letter-spacing:0.5px;margin-bottom:16px">📚 Bibliothèque</h2>
+  <div class="search-bar" style="margin-bottom:12px">
+    <input type="text" class="search-input" id="biblio-search" placeholder="🔍 Rechercher..." oninput="renderBiblioPage()">
+  </div>
+  <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap" id="biblio-filters">
+    <div class="filter-chip active" data-biblio="all" onclick="setBiblioFilter('all',this)">Toutes</div>
+    <div class="filter-chip" data-biblio="exercices" onclick="setBiblioFilter('exercices',this)">💪 Exercices</div>
+    <div class="filter-chip" data-biblio="fiches" onclick="setBiblioFilter('fiches',this)">📋 Fiches</div>
+  </div>
+  <div id="biblio-content"></div>
 </div>
 
 <!-- EXERCISE MODAL -->
@@ -2039,17 +2091,21 @@
 
 <!-- NAV -->
 <nav class="nav">
-  <button class="nav-btn active" id="nav-fiches" onclick="showPage('fiches')">
+  <button class="nav-btn active" id="nav-fiches" onclick="showPage('fiches')" aria-label="Mes fiches">
     <span class="nav-icon">📋</span>
     Mes fiches
   </button>
-  <button class="nav-btn" id="nav-create" onclick="goCreate()">
+  <button class="nav-btn" id="nav-create" onclick="goCreate()" aria-label="Créer une fiche">
     <span class="nav-icon">➕</span>
     Créer
   </button>
-  <button class="nav-btn" id="nav-sports" onclick="showPage('sports')">
+  <button class="nav-btn" id="nav-sports" onclick="showPage('sports')" aria-label="Sports">
     <span class="nav-icon">🏟</span>
     Sports
+  </button>
+  <button class="nav-btn" id="nav-bibliotheque" onclick="showPage('bibliotheque')" aria-label="Bibliothèque">
+    <span class="nav-icon">📚</span>
+    Biblio
   </button>
 </nav>
 
@@ -2057,6 +2113,8 @@
 // ============================================================
 // DATA
 // ============================================================
+function haptic(pattern = [30]) { try { navigator.vibrate && navigator.vibrate(pattern); } catch(e){} }
+
 let fiches = JSON.parse(localStorage.getItem('fiches') || '[]');
 let cycles = JSON.parse(localStorage.getItem('cycles') || '[]');
 // ============================================================
@@ -2202,16 +2260,20 @@ function saveCycles() {
 // NAV
 // ============================================================
 function showPage(name) {
-  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  document.getElementById('page-' + name).classList.add('active');
+  const prev = document.querySelector('.page.active');
+  const next = document.getElementById('page-' + name);
+  if (!next || next === prev) return;
+  if (prev) { prev.classList.remove('active'); prev.style.display = 'none'; }
+  next.style.display = 'block';
+  requestAnimationFrame(() => { requestAnimationFrame(() => { next.classList.add('active'); }); });
   document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
   const nav = document.getElementById('nav-' + name);
   if (nav) nav.classList.add('active');
-  // Show banner only on main pages
   const banner = document.getElementById('main-banner');
-  banner.style.display = ['fiches','sports'].includes(name) ? 'block' : 'none';
+  banner.style.display = ['fiches','sports','bibliotheque'].includes(name) ? 'block' : 'none';
   if (name === 'fiches') renderFiches();
   if (name === 'sports') renderSports();
+  if (name === 'bibliotheque') renderBiblioPage();
 }
 
 function goCreate() {
@@ -2254,6 +2316,11 @@ function renderCreatePage() {
   if (!document.getElementById('date-seance').value) {
     document.getElementById('date-seance').value = new Date().toISOString().split('T')[0];
   }
+  // Autosave sur tous les inputs du formulaire
+  document.querySelectorAll('#page-create input, #page-create textarea, #page-create select').forEach(el => {
+    el.removeEventListener('input', scheduleAutosave);
+    el.addEventListener('input', scheduleAutosave);
+  });
 }
 
 function nextStep() {
@@ -2294,6 +2361,10 @@ function resetForm() {
     if (el) el.value = '';
   });
   document.getElementById('create-title').textContent = 'Nouvelle fiche';
+  if (document.getElementById('tags-seance')) document.getElementById('tags-seance').value = '';
+  if (document.getElementById('status-seance')) document.getElementById('status-seance').value = 'prete';
+  if (document.getElementById('notes-post')) document.getElementById('notes-post').value = '';
+  localStorage.removeItem('matco-draft');
 }
 
 // ============================================================
@@ -2505,6 +2576,14 @@ function renderExercicesList() {
       </div>
     </div>
   `).join('');
+  // Suggestion durée
+  if (exercices.length > 0) {
+    const suggested = exercices.length * 12;
+    const dureeEl = document.getElementById('duree-seance');
+    if (dureeEl && !dureeEl.value) {
+      dureeEl.placeholder = `Ex: ${suggested} min (estimé)`;
+    }
+  }
 }
 
 function addExercice() {
@@ -3062,6 +3141,9 @@ function saveFiche() {
     objSeance: document.getElementById('obj-seance').value,
     objCycle: document.getElementById('obj-cycle').value,
     valeurs: [...selectedValeurs],
+    tags: (document.getElementById('tags-seance')?.value || '').split(',').map(t => t.trim()).filter(Boolean),
+    status: document.getElementById('status-seance')?.value || 'prete',
+    notesPost: document.getElementById('notes-post')?.value || '',
     exercices: [...exercices],
     createdAt: existingFiche ? existingFiche.createdAt : new Date().toISOString(),
     updatedAt: new Date().toISOString(),
@@ -3076,9 +3158,11 @@ function saveFiche() {
   }
   save();
   if (isEdit) {
+    haptic([20, 40, 20]);
     notify('✅ Fiche modifiée !');
     setTimeout(() => { viewFiche(fiche.id); }, 600);
   } else {
+    haptic([20, 40, 20]);
     notify('✅ Fiche sauvegardée !');
     setTimeout(() => showPage('fiches'), 600);
   }
@@ -3089,11 +3173,13 @@ function saveFiche() {
 // ============================================================
 function renderFicheCard(f) {
   const dateFormatted = f.date ? new Date(f.date).toLocaleDateString('fr-FR',{day:'numeric',month:'short'}) : '';
+  const statusMap = { brouillon: ['📝','status-brouillon'], prete: ['✅','status-prete'], utilisee: ['🎯','status-utilisee'] };
+  const [statusIcon, statusClass] = statusMap[f.status||'prete'] || statusMap.prete;
   return `
     <div class="fiche-card" style="position:relative" onclick="viewFiche('${f.id}')">
       <div class="fiche-sport-icon">${f.sportEmoji||'🏅'}</div>
       <div class="fiche-info">
-        <div class="fiche-name">${f.nom}</div>
+        <div class="fiche-name">${f.nom}<span class="status-badge ${statusClass}">${statusIcon}</span></div>
         <div class="fiche-meta">
           ${f.duree ? `<span>⏱ ${f.duree}</span>` : ''}
           ${dateFormatted ? `<span>📅 ${dateFormatted}</span>` : ''}
@@ -3101,10 +3187,12 @@ function renderFicheCard(f) {
         </div>
         <div style="margin-top:6px;display:flex;gap:4px;flex-wrap:wrap">
           ${(f.exercices||[]).slice(0,3).map(ex=>`<span class="tag">${ex.phase}</span>`).join('')}
+          ${(f.tags||[]).slice(0,2).map(t=>`<span class="tag" style="background:var(--warm);color:var(--primary)">🏷 ${t}</span>`).join('')}
         </div>
       </div>
       <div style="font-size:20px;color:var(--muted)">›</div>
-        </div>
+      <button class="dup-btn" onclick="event.stopPropagation();duplicateFiche('${f.id}')" aria-label="Dupliquer">📋</button>
+    </div>
     ${f.isModele ? '<span class="badge-modele">MODELE</span>' : ''}
   `;
 }
@@ -3389,6 +3477,7 @@ function deleteFiche() {
   fiches = fiches.filter(f => f.id !== viewingFicheId);
   save();
   showPage('fiches');
+  haptic([60]);
   notify('🗑 Fiche supprimée');
 }
 
@@ -3423,6 +3512,9 @@ function editFiche() {
   document.getElementById('obj-seance').value = f.objSeance || '';
   document.getElementById('obj-cycle').value  = f.objCycle  || '';
   selectedValeurs = f.valeurs ? [...f.valeurs] : [];
+  if (document.getElementById('tags-seance')) document.getElementById('tags-seance').value = (f.tags||[]).join(', ');
+  if (document.getElementById('status-seance')) document.getElementById('status-seance').value = f.status || 'prete';
+  if (document.getElementById('notes-post')) document.getElementById('notes-post').value = f.notesPost || '';
 
   // 5. Remplir étape 2 : Exercices
   exercices = f.exercices ? JSON.parse(JSON.stringify(f.exercices)) : [];
@@ -3738,16 +3830,22 @@ async function exportPDF() {
 // ============================================================
 // SHARE
 // ============================================================
-function shareSheet() {
+async function shareSheet() {
   const f = fiches.find(x => x.id === viewingFicheId);
   if (!f) return;
-  const dateFormatted = f.date ? new Date(f.date).toLocaleDateString('fr-FR') : '';
-  const text = `🏅 Fiche séance : ${f.nom}\n${f.sportEmoji} ${f.sportName} • ${dateFormatted}\nÉducateur : ${f.educateur||'?'} | Durée : ${f.duree||'?'}\nPublic : ${f.public||'?'}\n\n${(f.exercices||[]).map((ex,i)=>`${i+1}. ${ex.titre} (${ex.phase} - ${ex.duree||'?'})`).join('\n')}`;
+  const text = `📋 ${f.nom}\n🏅 ${f.sportName||''} ${f.duree ? '• ⏱ '+f.duree : ''}\n📅 ${f.date || ''}\n\nObjectif : ${f.objSeance||''}\n${f.exercices?.length||0} exercice(s)\n\nPartagé depuis Mat&Co`;
   if (navigator.share) {
-    navigator.share({ title: f.nom, text });
-  } else {
-    navigator.clipboard.writeText(text);
-    notify('📋 Copié dans le presse-papier !');
+    try {
+      await navigator.share({ title: f.nom, text });
+      return;
+    } catch(e) { if (e.name === 'AbortError') return; }
+  }
+  // Fallback: copier dans le presse-papier
+  try {
+    await navigator.clipboard.writeText(text);
+    notify('📋 Fiche copiée dans le presse-papier !');
+  } catch(e) {
+    notify('📤 Partage non disponible sur ce navigateur');
   }
 }
 
@@ -4800,11 +4898,13 @@ renderFiches = function() {
   
   // Appliquer la recherche
   if (searchQuery) {
-    filteredFiches = filteredFiches.filter(f => 
+    filteredFiches = filteredFiches.filter(f =>
       (f.nom || '').toLowerCase().includes(searchQuery) ||
       (f.sportName || '').toLowerCase().includes(searchQuery) ||
       (f.lieu || '').toLowerCase().includes(searchQuery) ||
-      (f.public || '').toLowerCase().includes(searchQuery)
+      (f.public || '').toLowerCase().includes(searchQuery) ||
+      (f.objSeance || '').toLowerCase().includes(searchQuery) ||
+      (f.tags || []).some(t => t.toLowerCase().includes(searchQuery))
     );
   }
   
@@ -4825,6 +4925,14 @@ renderFiches = function() {
     );
   }
   
+  // Appliquer le tri
+  const sortVal = document.getElementById('sort-select')?.value || 'date-desc';
+  if (sortVal === 'date-desc') filteredFiches.sort((a, b) => new Date(b.updatedAt||b.date||0) - new Date(a.updatedAt||a.date||0));
+  else if (sortVal === 'date-asc') filteredFiches.sort((a, b) => new Date(a.updatedAt||a.date||0) - new Date(b.updatedAt||b.date||0));
+  else if (sortVal === 'sport') filteredFiches.sort((a, b) => (a.sportName||'').localeCompare(b.sportName||''));
+  else if (sortVal === 'nom') filteredFiches.sort((a, b) => (a.nom||'').localeCompare(b.nom||''));
+  else if (sortVal === 'duree') filteredFiches.sort((a, b) => (parseInt(a.duree)||0) - (parseInt(b.duree)||0));
+
   // Sauvegarder temporairement et restaurer
   const originalFichesRef = fiches;
   fiches = filteredFiches;
@@ -5325,15 +5433,6 @@ if (window.navigator.standalone === undefined && /iPhone|iPad|iPod/.test(navigat
   }
 }
 
-// ============================================================
-// V7: MISE À JOUR renderFicheCard AVEC BOUTON DUPLIQUER
-// ============================================================
-const originalRenderFicheCard = renderFicheCard;
-renderFicheCard = function(f) {
-  const card = originalRenderFicheCard(f);
-  // Ajouter le bouton dupliquer dans la carte
-  return card.replace('</div></div></div>', `<button class="duplicate-btn" onclick="event.stopPropagation();duplicateFiche('${f.id}')" style="position:absolute;top:8px;right:8px;padding:4px 8px;font-size:10px">📋</button></div></div></div>`);
-};
 
 
 // ============================================================
@@ -8400,6 +8499,158 @@ var CYCLES_MODELES = {
 };
 
 // ============================================================
+// BIBLIOTHÈQUE PAGE
+// ============================================================
+let biblioFilter = 'all';
+
+function setBiblioFilter(f, el) {
+  biblioFilter = f;
+  document.querySelectorAll('[data-biblio]').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  renderBiblioPage();
+}
+
+function renderBiblioPage() {
+  const q = (document.getElementById('biblio-search')?.value || '').toLowerCase().trim();
+  const container = document.getElementById('biblio-content');
+  if (!container) return;
+  let html = '';
+
+  if (biblioFilter !== 'fiches') {
+    // Exercices
+    let exos = exerciseLibrary || [];
+    if (q) exos = exos.filter(e => e.titre.toLowerCase().includes(q) || (e.descriptif||'').toLowerCase().includes(q) || (e.phase||'').toLowerCase().includes(q));
+    if (exos.length) {
+      html += `<div class="section-title" style="margin-bottom:10px">💪 Exercices (${exos.length})</div>`;
+      html += exos.map(ex => `
+        <div class="card" style="margin-bottom:10px;cursor:pointer" onclick="addLibraryExercise('${ex.id}')">
+          <div style="font-weight:600;font-size:14px">${ex.titre}</div>
+          <div style="font-size:12px;color:var(--muted);margin-top:4px">${ex.phase||''} ${ex.duree ? '• '+ex.duree : ''}</div>
+          ${ex.descriptif ? `<div style="font-size:13px;margin-top:6px;color:var(--text)">${ex.descriptif.substring(0,100)}${ex.descriptif.length>100?'…':''}</div>` : ''}
+          <div style="margin-top:8px"><span style="background:var(--primary);color:white;padding:3px 10px;border-radius:10px;font-size:11px;font-weight:600">+ Ajouter à la séance</span></div>
+        </div>`).join('');
+    }
+  }
+
+  if (biblioFilter !== 'exercices') {
+    // Fiches
+    let flist = [...fiches];
+    if (q) flist = flist.filter(f =>
+      f.nom.toLowerCase().includes(q) ||
+      (f.sportName||'').toLowerCase().includes(q) ||
+      (f.objSeance||'').toLowerCase().includes(q) ||
+      (f.tags||[]).some(t => t.toLowerCase().includes(q))
+    );
+    flist = flist.slice(0, 50);
+    if (flist.length) {
+      html += `<div class="section-title" style="margin:16px 0 10px">📋 Fiches (${flist.length})</div>`;
+      html += flist.map(f => `
+        <div class="fiche-card" onclick="viewFiche('${f.id}')" style="cursor:pointer">
+          <div class="fiche-sport-icon">${f.sportEmoji||'🏅'}</div>
+          <div class="fiche-info">
+            <div class="fiche-name">${f.nom}</div>
+            <div class="fiche-meta">${f.sportName||''} ${f.duree ? '• ⏱ '+f.duree : ''}</div>
+            ${(f.tags||[]).length ? `<div style="margin-top:4px;display:flex;gap:4px;flex-wrap:wrap">${f.tags.map(t=>`<span class="tag" style="background:var(--warm);color:var(--primary)">${t}</span>`).join('')}</div>` : ''}
+          </div>
+          <div style="font-size:20px;color:var(--muted)">›</div>
+        </div>`).join('');
+    }
+  }
+
+  if (!html) html = `<div class="empty"><div class="empty-icon">📚</div><div class="empty-title">${q ? 'Aucun résultat' : 'Bibliothèque vide'}</div><div class="empty-text">${q ? 'Essaie un autre terme' : 'Crée des fiches et sauvegarde des exercices'}</div></div>`;
+  container.innerHTML = html;
+}
+
+// ============================================================
+// SWIPE NAVIGATION
+// ============================================================
+(function() {
+  const TAB_ORDER = ['fiches', 'create', 'sports', 'bibliotheque'];
+  let touchStartX = 0, touchStartY = 0;
+  document.addEventListener('touchstart', e => {
+    touchStartX = e.touches[0].clientX;
+    touchStartY = e.touches[0].clientY;
+  }, { passive: true });
+  document.addEventListener('touchend', e => {
+    const dx = e.changedTouches[0].clientX - touchStartX;
+    const dy = e.changedTouches[0].clientY - touchStartY;
+    if (Math.abs(dx) < 60 || Math.abs(dy) > Math.abs(dx) * 0.8) return;
+    const activePage = document.querySelector('.page.active');
+    if (!activePage) return;
+    const currentId = activePage.id.replace('page-', '');
+    // Ne pas swiper sur les pages de formulaire ou de vue
+    if (currentId === 'create' || currentId === 'view') return;
+    const mainTabs = ['fiches', 'sports', 'bibliotheque'];
+    const idx = mainTabs.indexOf(currentId);
+    if (idx === -1) return;
+    if (dx < -60 && idx < mainTabs.length - 1) showPage(mainTabs[idx + 1]);
+    else if (dx > 60 && idx > 0) showPage(mainTabs[idx - 1]);
+  }, { passive: true });
+})();
+
+// ============================================================
+// AUTOSAVE DRAFT
+// ============================================================
+let autosaveTimer = null;
+function scheduleAutosave() {
+  clearTimeout(autosaveTimer);
+  autosaveTimer = setTimeout(() => {
+    const draft = {
+      nom: document.getElementById('nom-seance')?.value || '',
+      sport: selectedSport,
+      date: document.getElementById('date-seance')?.value || '',
+      duree: document.getElementById('duree-seance')?.value || '',
+      lieu: document.getElementById('lieu-seance')?.value || '',
+      educateur: document.getElementById('edu-seance')?.value || '',
+      public: document.getElementById('public-seance')?.value || '',
+      materiel: document.getElementById('materiel-seance')?.value || '',
+      vigilance: document.getElementById('vigilance-seance')?.value || '',
+      objSeance: document.getElementById('obj-seance')?.value || '',
+      objCycle: document.getElementById('obj-cycle')?.value || '',
+      tags: document.getElementById('tags-seance')?.value || '',
+      status: document.getElementById('status-seance')?.value || 'prete',
+      valeurs: [...selectedValeurs],
+      exercices: [...exercices],
+    };
+    if (draft.nom || draft.exercices.length) {
+      localStorage.setItem('matco-draft', JSON.stringify(draft));
+    }
+  }, 1000);
+}
+
+// ============================================================
+// TRI + VUE GRILLE
+// ============================================================
+let viewMode = 'list'; // 'list' ou 'grid'
+function toggleViewMode() {
+  viewMode = viewMode === 'list' ? 'grid' : 'list';
+  document.getElementById('view-toggle').textContent = viewMode === 'grid' ? '⊞' : '☰';
+  renderFiches();
+}
+
+// ============================================================
+// DEBOUNCE FILTRE
+// ============================================================
+const debouncedFilter = (function() {
+  let t; return function() { clearTimeout(t); t = setTimeout(filterFiches, 250); };
+})();
+
+// ============================================================
+// EXPORT JSON
+// ============================================================
+function exportJSON() {
+  const f = fiches.find(x => x.id === viewingFicheId);
+  if (!f) return;
+  const blob = new Blob([JSON.stringify(f, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `matco-fiche-${f.nom.replace(/[^a-z0-9]/gi,'_').toLowerCase()}.json`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+  notify('📦 JSON exporté !');
+}
+
+// ============================================================
 // INIT CYCLES MODELES v7.6
 // — Préserve les fiches utilisateur (isModele !== true)
 // — Écrase les fiches modèles avec la version v7.6 enrichie
@@ -8488,10 +8739,9 @@ renderFiches();
 // ============================================================
 // V7: VERSION INFO
 // ============================================================
-console.log('%c Mat&Co v7.6.0 ', 'background: linear-gradient(135deg, #5B21B6, #8B5CF6); color: white; font-size: 16px; font-weight: bold; padding: 10px 20px; border-radius: 8px;');
-console.log('v7.6.0 - 57 sports AJS/APEC/APPN + 342 fiches modeles completes, Bibliothèque avec fiches, 50 valeurs morales');
+console.log('%c Mat&Co v8.0.0 ', 'background: linear-gradient(135deg, #5B21B6, #8B5CF6); color: white; font-size: 16px; font-weight: bold; padding: 10px 20px; border-radius: 8px;');
+console.log('v8.0.0 - Bibliothèque dédiée, transitions, swipe, tags, statuts, tri, vue grille, autosave, export JSON, Share API, haptic');
 console.log('© ' + new Date().getFullYear() + ' SAAD Matis - Tous droits réservés');
-console.log('Fonctionnalités: Vidéos, PWA, Export/Import, Timer, Bibliothèque, Recherche, Filtres, Duplication');
 </script>
 </body>
 </html>
