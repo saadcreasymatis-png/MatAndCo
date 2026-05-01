@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Mat&Co">
 <!-- PWA Meta Tags -->
-<meta name="theme-color" content="#1a6b3c">
+<meta name="theme-color" content="#5B21B6">
 <meta name="description" content="Mat&Co - Application de fiches de séances sportives par SAAD Matis">
 <link rel="manifest" href="/manifest.json">
 <link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon.png">
@@ -26,18 +26,18 @@
 <style>
   :root {
     --font-title: 'Rubik Dirt', cursive;
-    --primary: #1a6b3c;
-    --primary-light: #2d9e5f;
+    --primary: #5B21B6;
+    --primary-light: #8B5CF6;
     --accent: #f5a623;
     --accent2: #e84040;
-    --bg: #f0f4f1;
+    --bg: #F5F3FF;
     --card: #ffffff;
-    --text: #1a2420;
-    --muted: #6b8075;
-    --border: #dde8e2;
-    --warm: #e8f2ec;
+    --text: #1E1433;
+    --muted: #7C6B99;
+    --border: #DDD6FE;
+    --warm: #EDE9FE;
     --radius: 16px;
-    --shadow: 0 4px 24px rgba(26,107,60,0.10);
+    --shadow: 0 4px 24px rgba(91,33,182,0.10);
   }
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
   body {
@@ -272,7 +272,7 @@
     position: relative;
     border: 1.5px dashed var(--border);
     border-radius: 10px;
-    background: #fafff9;
+    background: #FAFAFF;
     margin-bottom: 10px;
     overflow: hidden;
   }
@@ -415,7 +415,7 @@
     display: inline-block;
     margin: 3px;
   }
-  .valeur-chip.selected { background: #1a6b3c11; color: var(--primary); border-color: var(--primary); }
+  .valeur-chip.selected { background: #5B21B611; color: var(--primary); border-color: var(--primary); }
 
   /* STEPS */
   .step-indicator {
@@ -562,7 +562,7 @@
     border-radius: 16px;
     padding: 14px;
     margin-bottom: 14px;
-    background: linear-gradient(135deg, #f0faf5 0%, #e8f5ee 100%);
+    background: linear-gradient(135deg, #F5F3FF 0%, #EDE9FE 100%);
     position: relative;
     overflow: hidden;
   }
@@ -571,7 +571,7 @@
     position: absolute;
     top: -30px; right: -30px;
     width: 80px; height: 80px;
-    background: radial-gradient(circle, #1a6b3c22 0%, transparent 70%);
+    background: radial-gradient(circle, #5B21B622 0%, transparent 70%);
     border-radius: 50%;
   }
   .ai-schema-header {
@@ -618,7 +618,7 @@
   .ai-prompt-input:focus {
     outline: none;
     border-color: var(--primary);
-    box-shadow: 0 0 0 3px #1a6b3c18;
+    box-shadow: 0 0 0 3px #5B21B618;
   }
   .btn-ai-gen {
     background: var(--primary);
@@ -636,7 +636,7 @@
     transition: all 0.2s;
     font-family: 'DM Sans', sans-serif;
   }
-  .btn-ai-gen:hover { background: #155c32; transform: scale(1.02); }
+  .btn-ai-gen:hover { background: #4C1D95; transform: scale(1.02); }
   .btn-ai-gen:disabled { background: var(--muted); transform: none; cursor: not-allowed; }
   .ai-public-chips {
     display: flex;
@@ -688,7 +688,7 @@
   }
   .ai-spinner {
     width: 32px; height: 32px;
-    border: 3px solid #e8f2ec;
+    border: 3px solid #EDE9FE;
     border-top-color: var(--primary);
     border-radius: 50%;
     animation: spin 0.8s linear infinite;
@@ -1357,20 +1357,20 @@
 
   /* DARK MODE */
   body.dark {
-    --primary: #4ade80;
-    --primary-light: #86efac;
+    --primary: #A78BFA;
+    --primary-light: #C4B5FD;
     --accent: #fbbf24;
     --accent2: #f87171;
-    --bg: #0f1412;
-    --card: #1a2420;
-    --text: #e8f0ec;
-    --muted: #7d9e8c;
-    --border: #2d3e35;
-    --warm: #1a2e24;
+    --bg: #0D0A1F;
+    --card: #1A0F3C;
+    --text: #EDE9FE;
+    --muted: #9B8EC4;
+    --border: #2D1F5C;
+    --warm: #1A0F3C;
     --shadow: 0 4px 24px rgba(0,0,0,0.3);
   }
   body.dark .nav {
-    background: #141e1a;
+    background: #110B2D;
     border-top-color: var(--border);
   }
   body.dark input, body.dark textarea, body.dark select {
@@ -1379,20 +1379,20 @@
     border-color: var(--border);
   }
   body.dark input:focus, body.dark textarea:focus, body.dark select:focus {
-    background: #0f1412;
+    background: #0D0A1F;
     border-color: var(--primary);
   }
-  body.dark .modal { background: #1a2420; }
+  body.dark .modal { background: #1A0F3C; }
   body.dark .exercise-block { background: var(--card); }
   body.dark .exercise-header { background: var(--warm); }
-  body.dark .canvas-container { background: #0f1a14; border-color: var(--border); }
+  body.dark .canvas-container { background: #0D0A1F; border-color: var(--border); }
   body.dark .dossier-header { background: var(--card); }
   body.dark .fiche-card { background: var(--card); }
   body.dark .sport-item { background: var(--card); }
   body.dark .chip { background: var(--card); color: var(--muted); }
   body.dark .valeur-chip { background: var(--card); }
   body.dark .btn-outline { background: var(--card); }
-  body.dark .ai-schema-section { background: linear-gradient(135deg, #0f2a1a 0%, #0f1a14 100%); border-color: var(--primary); }
+  body.dark .ai-schema-section { background: linear-gradient(135deg, #1A0F3C 0%, #0D0A1F 100%); border-color: var(--primary); }
   body.dark .ai-schema-preview { background: var(--card); }
   body.dark .ai-prompt-input { background: var(--card); }
   body.dark .tool-btn { background: var(--card); border-color: var(--border); }
@@ -1407,7 +1407,7 @@
   body.dark .btn-add-cycle:hover { background: var(--warm); }
   body.dark .dark-toggle { border-color: var(--border); }
   body.dark .dark-toggle:hover { background: var(--warm); }
-  body.dark .notif { background: var(--primary); color: #0f1412; }
+  body.dark .notif { background: var(--primary); color: #0D0A1F; }
 
   /* ============================================================
      V7.2 NOUVEAUX STYLES
@@ -1581,7 +1581,7 @@
     background: var(--warm);
     transition: all 0.2s;
   }
-  .valeur-category-header:hover { background: #dde8e2; }
+  .valeur-category-header:hover { background: #DDD6FE; }
   .valeur-category-chevron {
     transition: transform 0.3s;
     font-size: 11px;
@@ -8488,7 +8488,7 @@ renderFiches();
 // ============================================================
 // V7: VERSION INFO
 // ============================================================
-console.log('%c Mat&Co v7.6.0 ', 'background: linear-gradient(135deg, #1a6b3c, #2d9e5f); color: white; font-size: 16px; font-weight: bold; padding: 10px 20px; border-radius: 8px;');
+console.log('%c Mat&Co v7.6.0 ', 'background: linear-gradient(135deg, #5B21B6, #8B5CF6); color: white; font-size: 16px; font-weight: bold; padding: 10px 20px; border-radius: 8px;');
 console.log('v7.6.0 - 57 sports AJS/APEC/APPN + 342 fiches modeles completes, Bibliothèque avec fiches, 50 valeurs morales');
 console.log('© ' + new Date().getFullYear() + ' SAAD Matis - Tous droits réservés');
 console.log('Fonctionnalités: Vidéos, PWA, Export/Import, Timer, Bibliothèque, Recherche, Filtres, Duplication');
