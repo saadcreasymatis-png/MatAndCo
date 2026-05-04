@@ -1636,6 +1636,16 @@
   body.dark .valeur-category-header { background: var(--warm); }
   body.dark .valeurs-search input { background: var(--warm); border-color: var(--border); color: var(--text); }
 
+  /* UC4 PRINT */
+  @media print {
+    .nav, #main-banner, .notif, #pwa-banner, #offline-bar { display: none !important; }
+    .page { display: block !important; opacity: 1 !important; transform: none !important; }
+    .page:not(#page-uc4) { display: none !important; }
+    body { padding-bottom: 0; background: white !important; color: black !important; }
+    .uc4-no-print { display: none !important; }
+    .uc4-card { break-inside: avoid; }
+  }
+
 </style>
 </head>
 <body>
@@ -1866,6 +1876,486 @@
     <div class="filter-chip" data-biblio="fiches" onclick="setBiblioFilter('fiches',this)">📋 Fiches</div>
   </div>
   <div id="biblio-content"></div>
+</div>
+
+<!-- PAGE: UC4 BASKETBALL -->
+<div class="page" id="page-uc4" style="padding:0;background:#0a0a0a;min-height:100vh;color:#fff">
+
+  <!-- BOUTONS HAUT -->
+  <div class="uc4-no-print" style="display:flex;justify-content:space-between;align-items:center;padding:12px 16px;background:#111;border-bottom:1px solid #1E3A8A">
+    <button onclick="showPage('fiches')" style="background:none;border:1px solid #555;color:#ccc;border-radius:8px;padding:6px 14px;cursor:pointer;font-size:13px">← Accueil</button>
+    <span style="font-family:'Rubik Dirt',cursive;color:#8B5CF6;font-size:14px">Mat&amp;Co</span>
+    <button onclick="window.print()" style="background:#1E3A8A;border:none;color:white;border-radius:8px;padding:6px 14px;cursor:pointer;font-size:13px">🖨 Imprimer</button>
+  </div>
+
+  <!-- EN-TÊTE -->
+  <div style="background:#1E3A8A;padding:20px 16px;text-align:center">
+    <div style="font-size:22px;font-weight:700;color:white;letter-spacing:1px">FICHE DE SÉANCE — BASKETBALL</div>
+    <div style="font-size:14px;color:rgba(255,255,255,0.85);font-style:italic;margin-top:4px">Découverte technique &amp; jeu collectif</div>
+  </div>
+
+  <div style="padding:16px;max-width:900px;margin:0 auto">
+
+    <!-- INFOS GÉNÉRALES -->
+    <div class="uc4-card" style="background:#111827;border:1px solid #1E3A8A;border-radius:12px;margin-bottom:16px;overflow:hidden">
+      <div style="background:#1E3A8A;padding:10px 16px;font-weight:700;font-size:15px;color:white">ℹ️ Informations générales</div>
+      <div style="padding:14px;display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div style="background:#1f2937;border-radius:8px;padding:10px">
+          <div style="font-size:11px;color:#93C5FD;font-weight:600;margin-bottom:3px">PUBLIC</div>
+          <div style="font-size:13px">Jeunes joueurs débutants / initiés (10–14 ans)</div>
+        </div>
+        <div style="background:#1f2937;border-radius:8px;padding:10px">
+          <div style="font-size:11px;color:#93C5FD;font-weight:600;margin-bottom:3px">EFFECTIF</div>
+          <div style="font-size:13px">10 à 12 joueurs</div>
+        </div>
+        <div style="background:#1f2937;border-radius:8px;padding:10px">
+          <div style="font-size:11px;color:#93C5FD;font-weight:600;margin-bottom:3px">DURÉE TOTALE</div>
+          <div style="font-size:13px">60 minutes</div>
+        </div>
+        <div style="background:#1f2937;border-radius:8px;padding:10px">
+          <div style="font-size:11px;color:#93C5FD;font-weight:600;margin-bottom:3px">LIEU</div>
+          <div style="font-size:13px">Gymnase / terrain de basket</div>
+        </div>
+        <div style="background:#1f2937;border-radius:8px;padding:10px;grid-column:1/-1">
+          <div style="font-size:11px;color:#93C5FD;font-weight:600;margin-bottom:3px">MATÉRIEL</div>
+          <div style="font-size:13px">1 panier minimum, 2 ballons de basket, 6 plots, coupelles, chasubles 2 couleurs, sifflet, chronomètre</div>
+        </div>
+        <div style="background:#1f2937;border-radius:8px;padding:10px;grid-column:1/-1">
+          <div style="font-size:11px;color:#93C5FD;font-weight:600;margin-bottom:3px">OBJECTIFS GÉNÉRAUX</div>
+          <div style="font-size:13px">Travailler la circulation du ballon, le dribble (changement de main), le déplacement défensif, le tir et la mise en application en match</div>
+        </div>
+        <div style="background:#1f2937;border-radius:8px;padding:10px;grid-column:1/-1">
+          <div style="font-size:11px;color:#93C5FD;font-weight:600;margin-bottom:3px">COMPÉTENCES VISÉES</div>
+          <div style="font-size:13px">Coordination ballon-main, prise de décision, lecture du jeu, esprit d'équipe, respect des consignes</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TABLEAU DE PROGRESSION -->
+    <div class="uc4-card" style="background:#111827;border:1px solid #1E3A8A;border-radius:12px;margin-bottom:16px;overflow:hidden">
+      <div style="background:#1E3A8A;padding:10px 16px;font-weight:700;font-size:15px;color:white">📊 Tableau de progression</div>
+      <div style="overflow-x:auto">
+        <table style="width:100%;border-collapse:collapse;font-size:13px">
+          <thead>
+            <tr style="background:#1E3A8A">
+              <th style="padding:10px 12px;text-align:left;color:white;font-weight:700;white-space:nowrap">Phase</th>
+              <th style="padding:10px 12px;text-align:left;color:white;font-weight:700">Exercice / Situation</th>
+              <th style="padding:10px 12px;text-align:center;color:white;font-weight:700;white-space:nowrap">Durée</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr style="border-bottom:1px solid #374151">
+              <td style="padding:10px 12px"><span style="background:#1E3A8A;color:white;padding:3px 10px;border-radius:10px;font-size:11px;font-weight:700;white-space:nowrap">Échauffement</span></td>
+              <td style="padding:10px 12px;color:#E5E7EB">Passes en mouvement (2 colonnes face à face)</td>
+              <td style="padding:10px 12px;text-align:center;color:#93C5FD;font-weight:600">10 min</td>
+            </tr>
+            <tr style="border-bottom:1px solid #374151">
+              <td style="padding:10px 12px"><span style="background:#1E3A8A;color:white;padding:3px 10px;border-radius:10px;font-size:11px;font-weight:700;white-space:nowrap">Technique 1</span></td>
+              <td style="padding:10px 12px;color:#E5E7EB">Slalom en dribble — changement de main (cross-over)</td>
+              <td style="padding:10px 12px;text-align:center;color:#93C5FD;font-weight:600">12 min</td>
+            </tr>
+            <tr style="border-bottom:1px solid #374151">
+              <td style="padding:10px 12px"><span style="background:#1E3A8A;color:white;padding:3px 10px;border-radius:10px;font-size:11px;font-weight:700;white-space:nowrap">Technique 2</span></td>
+              <td style="padding:10px 12px;color:#E5E7EB">Slalom défensif en pas chassés (sans dribble)</td>
+              <td style="padding:10px 12px;text-align:center;color:#93C5FD;font-weight:600">10 min</td>
+            </tr>
+            <tr style="border-bottom:1px solid #374151">
+              <td style="padding:10px 12px"><span style="background:#C41E24;color:white;padding:3px 10px;border-radius:10px;font-size:11px;font-weight:700;white-space:nowrap">Jeu</span></td>
+              <td style="padding:10px 12px;color:#E5E7EB">Course aux coupelles — jeu de tirs</td>
+              <td style="padding:10px 12px;text-align:center;color:#93C5FD;font-weight:600">12 min</td>
+            </tr>
+            <tr style="border-bottom:1px solid #374151">
+              <td style="padding:10px 12px"><span style="background:#C41E24;color:white;padding:3px 10px;border-radius:10px;font-size:11px;font-weight:700;white-space:nowrap">Application</span></td>
+              <td style="padding:10px 12px;color:#E5E7EB">Match adapté (défense sans contact)</td>
+              <td style="padding:10px 12px;text-align:center;color:#93C5FD;font-weight:600">12 min</td>
+            </tr>
+            <tr>
+              <td style="padding:10px 12px"><span style="background:#16A34A;color:white;padding:3px 10px;border-radius:10px;font-size:11px;font-weight:700;white-space:nowrap">Retour calme</span></td>
+              <td style="padding:10px 12px;color:#E5E7EB">Cercle de parole — debrief</td>
+              <td style="padding:10px 12px;text-align:center;color:#93C5FD;font-weight:600">5 min</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- EXERCICE 1 -->
+    <div class="uc4-card" style="background:#111827;border-left:4px solid #1E3A8A;border-radius:12px;margin-bottom:14px;overflow:hidden">
+      <div style="background:#1E3A8A;padding:12px 16px;display:flex;justify-content:space-between;align-items:center">
+        <div>
+          <div style="font-size:11px;color:rgba(255,255,255,0.75);font-weight:600;margin-bottom:2px">EXERCICE 1 — ÉCHAUFFEMENT</div>
+          <div style="font-weight:700;color:white;font-size:15px">Passes en mouvement</div>
+        </div>
+        <div style="color:white;font-size:13px;white-space:nowrap">⏱ 10 min</div>
+      </div>
+      <div style="padding:14px">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">
+          <div style="background:#1f2937;border-radius:8px;padding:10px">
+            <div style="font-size:11px;color:#93C5FD;font-weight:600;margin-bottom:4px">MATÉRIEL</div>
+            <div style="font-size:13px">2 ballons, 2 plots</div>
+          </div>
+          <div style="background:#1f2937;border-radius:8px;padding:10px">
+            <div style="font-size:11px;color:#93C5FD;font-weight:600;margin-bottom:4px">ORGANISATION</div>
+            <div style="font-size:13px">2 colonnes face à face — 3 joueurs d'un côté, 2 de l'autre. 1 ballon par groupe.</div>
+          </div>
+        </div>
+        <div style="margin-bottom:12px">
+          <div style="font-size:12px;font-weight:700;color:#93C5FD;margin-bottom:6px">DESCRIPTIF</div>
+          <div style="font-size:13px;color:#D1D5DB;line-height:1.5">Les joueurs avancent en dribblant vers le joueur en face, font une passe à mi-chemin puis se replacent dans la colonne opposée. 3 passages par joueur pour découvrir les 3 types de passes.</div>
+        </div>
+        <div style="margin-bottom:12px">
+          <div style="font-size:12px;font-weight:700;color:#93C5FD;margin-bottom:6px">CONSIGNES</div>
+          <ul style="font-size:13px;color:#D1D5DB;list-style:none;padding:0;line-height:1.8">
+            <li>• Former 2 colonnes face à face (3 joueurs d'un côté, 2 de l'autre)</li>
+            <li>• 1 ballon par groupe ; les deux premiers de chaque colonne ont un ballon</li>
+            <li>• Avancer en dribblant vers le joueur en face</li>
+            <li>• À mi-chemin, faire la passe au joueur d'en face</li>
+            <li>• Varier les passes : directe, à terre, haute (au-dessus de la tête)</li>
+            <li>• Continuer sa course après la passe pour se replacer dans la colonne opposée</li>
+            <li>• 3 passages par joueur (un pour chaque type de passe)</li>
+          </ul>
+        </div>
+        <div style="margin-bottom:12px">
+          <div style="font-size:12px;font-weight:700;color:#4ADE80;margin-bottom:6px">CRITÈRES DE RÉUSSITE</div>
+          <ul style="font-size:13px;color:#D1D5DB;list-style:none;padding:0;line-height:1.8">
+            <li style="color:#4ADE80">✓ Le ballon arrive précis dans les mains du partenaire</li>
+            <li style="color:#4ADE80">✓ Le receveur n'a pas à se déplacer pour récupérer la passe</li>
+            <li style="color:#4ADE80">✓ Le dribbleur passe au bon moment (mi-chemin)</li>
+            <li style="color:#4ADE80">✓ Les 3 types de passes sont réalisés correctement</li>
+          </ul>
+        </div>
+        <div style="margin-bottom:12px">
+          <div style="font-size:12px;font-weight:700;color:#60A5FA;margin-bottom:6px">VARIANTES</div>
+          <ul style="font-size:13px;color:#D1D5DB;list-style:none;padding:0;line-height:1.8">
+            <li style="color:#60A5FA">→ Imposer la main faible pour le dribble</li>
+            <li style="color:#60A5FA">→ Réduire le nombre de dribbles avant la passe</li>
+            <li style="color:#60A5FA">→ Faire des passes avec rebond en cible (cône au sol)</li>
+          </ul>
+        </div>
+        <div style="background:#1f0000;border-left:3px solid #C41E24;border-radius:6px;padding:10px">
+          <div style="font-size:12px;font-weight:700;color:#F87171;margin-bottom:4px">⚠ POINT DE VIGILANCE</div>
+          <div style="font-size:13px;color:#FCA5A5;font-style:italic">Bien espacer les colonnes pour éviter les collisions à mi-chemin. Veiller à ce que les joueurs lèvent la tête pendant le dribble.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- EXERCICE 2 -->
+    <div class="uc4-card" style="background:#111827;border-left:4px solid #1E3A8A;border-radius:12px;margin-bottom:14px;overflow:hidden">
+      <div style="background:#1E3A8A;padding:12px 16px;display:flex;justify-content:space-between;align-items:center">
+        <div>
+          <div style="font-size:11px;color:rgba(255,255,255,0.75);font-weight:600;margin-bottom:2px">EXERCICE 2 — TECHNIQUE 1</div>
+          <div style="font-weight:700;color:white;font-size:15px">Slalom en dribble — cross-over</div>
+        </div>
+        <div style="color:white;font-size:13px;white-space:nowrap">⏱ 12 min</div>
+      </div>
+      <div style="padding:14px">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">
+          <div style="background:#1f2937;border-radius:8px;padding:10px">
+            <div style="font-size:11px;color:#93C5FD;font-weight:600;margin-bottom:4px">MATÉRIEL</div>
+            <div style="font-size:13px">1 ballon par joueur, 3 plots, 1 coupelle de départ, 1 panier</div>
+          </div>
+          <div style="background:#1f2937;border-radius:8px;padding:10px">
+            <div style="font-size:11px;color:#93C5FD;font-weight:600;margin-bottom:4px">ORGANISATION</div>
+            <div style="font-size:13px">1 colonne par coupelle. 3 plots en slalom entre la coupelle et le panier.</div>
+          </div>
+        </div>
+        <div style="margin-bottom:12px">
+          <div style="font-size:12px;font-weight:700;color:#93C5FD;margin-bottom:6px">DESCRIPTIF</div>
+          <div style="font-size:13px;color:#D1D5DB;line-height:1.5">Le joueur réalise le slalom en dribblant, en effectuant un cross-over (changement de main) à chaque plot, puis termine par un tir au panier.</div>
+        </div>
+        <div style="margin-bottom:12px">
+          <div style="font-size:12px;font-weight:700;color:#93C5FD;margin-bottom:6px">CONSIGNES</div>
+          <ul style="font-size:13px;color:#D1D5DB;list-style:none;padding:0;line-height:1.8">
+            <li>• Démarrer à la coupelle, ballon en main</li>
+            <li>• Dribbler jusqu'au 1er plot avec la main appropriée</li>
+            <li>• Faire un cross-over (changement de main) à chaque plot</li>
+            <li>• Dribbler jusqu'au 2ème, puis 3ème plot</li>
+            <li>• Après le 3ème cross-over, aller tirer au panier</li>
+            <li>• Se replacer dans la colonne opposée après le tir</li>
+          </ul>
+        </div>
+        <div style="margin-bottom:12px">
+          <div style="font-size:12px;font-weight:700;color:#4ADE80;margin-bottom:6px">CRITÈRES DE RÉUSSITE</div>
+          <ul style="font-size:13px;color:#D1D5DB;list-style:none;padding:0;line-height:1.8">
+            <li style="color:#4ADE80">✓ Le ballon ne touche pas les plots</li>
+            <li style="color:#4ADE80">✓ Le cross-over est réalisé proche du plot</li>
+            <li style="color:#4ADE80">✓ Le joueur dribble avec la main extérieure (côté opposé au plot)</li>
+            <li style="color:#4ADE80">✓ Le tir est tenté avec une bonne position d'équilibre</li>
+          </ul>
+        </div>
+        <div style="margin-bottom:12px">
+          <div style="font-size:12px;font-weight:700;color:#60A5FA;margin-bottom:6px">VARIANTES</div>
+          <ul style="font-size:13px;color:#D1D5DB;list-style:none;padding:0;line-height:1.8">
+            <li style="color:#60A5FA">→ Remplacer le cross-over par un dribble entre les jambes</li>
+            <li style="color:#60A5FA">→ Ajouter un dribble dans le dos sur le dernier plot</li>
+            <li style="color:#60A5FA">→ Imposer un nombre maximum de dribbles entre chaque plot</li>
+          </ul>
+        </div>
+        <div style="background:#1f0000;border-left:3px solid #C41E24;border-radius:6px;padding:10px">
+          <div style="font-size:12px;font-weight:700;color:#F87171;margin-bottom:4px">⚠ POINT DE VIGILANCE</div>
+          <div style="font-size:13px;color:#FCA5A5;font-style:italic">Insister sur la tête levée pendant le dribble. Le tir doit être maîtrisé : pas de précipitation après le 3ème plot.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- EXERCICE 3 -->
+    <div class="uc4-card" style="background:#111827;border-left:4px solid #1E3A8A;border-radius:12px;margin-bottom:14px;overflow:hidden">
+      <div style="background:#1E3A8A;padding:12px 16px;display:flex;justify-content:space-between;align-items:center">
+        <div>
+          <div style="font-size:11px;color:rgba(255,255,255,0.75);font-weight:600;margin-bottom:2px">EXERCICE 3 — TECHNIQUE 2</div>
+          <div style="font-weight:700;color:white;font-size:15px">Slalom défensif en pas chassés</div>
+        </div>
+        <div style="color:white;font-size:13px;white-space:nowrap">⏱ 10 min</div>
+      </div>
+      <div style="padding:14px">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">
+          <div style="background:#1f2937;border-radius:8px;padding:10px">
+            <div style="font-size:11px;color:#93C5FD;font-weight:600;margin-bottom:4px">MATÉRIEL</div>
+            <div style="font-size:13px">Cônes, coupelles, ballons (1 par joueur), 3 plots, 1 panier</div>
+          </div>
+          <div style="background:#1f2937;border-radius:8px;padding:10px">
+            <div style="font-size:11px;color:#93C5FD;font-weight:600;margin-bottom:4px">ORGANISATION</div>
+            <div style="font-size:13px">1 groupe par coupelle. Même disposition que l'ex. 2 (3 plots en slalom + panier).</div>
+          </div>
+        </div>
+        <div style="margin-bottom:12px">
+          <div style="font-size:12px;font-weight:700;color:#93C5FD;margin-bottom:6px">DESCRIPTIF</div>
+          <div style="font-size:13px;color:#D1D5DB;line-height:1.5">Le joueur réalise le slalom en position défensive, ballon tenu à 2 mains (sans dribble), puis termine par un tir au panier.</div>
+        </div>
+        <div style="margin-bottom:12px">
+          <div style="font-size:12px;font-weight:700;color:#93C5FD;margin-bottom:6px">CONSIGNES</div>
+          <ul style="font-size:13px;color:#D1D5DB;list-style:none;padding:0;line-height:1.8">
+            <li>• 1 groupe par coupelle</li>
+            <li>• Ballon tenu à 2 mains, trajet en pas chassés (position défensive)</li>
+            <li>• Position défensive : genoux fléchis, dos droit, appuis larges</li>
+            <li>• Enchaîner vers les autres plots de la même manière</li>
+            <li>• Après le 3ème plot, aller vers le panier pour tirer</li>
+            <li>• Se replacer dans la colonne opposée après le tir</li>
+          </ul>
+        </div>
+        <div style="margin-bottom:12px">
+          <div style="font-size:12px;font-weight:700;color:#4ADE80;margin-bottom:6px">CRITÈRES DE RÉUSSITE</div>
+          <ul style="font-size:13px;color:#D1D5DB;list-style:none;padding:0;line-height:1.8">
+            <li style="color:#4ADE80">✓ Les pieds ne se croisent jamais (vrais pas chassés)</li>
+            <li style="color:#4ADE80">✓ Le centre de gravité reste bas tout au long du parcours</li>
+            <li style="color:#4ADE80">✓ Le ballon reste tenu à 2 mains (aucun dribble)</li>
+            <li style="color:#4ADE80">✓ Le joueur regarde devant lui (pas le sol)</li>
+          </ul>
+        </div>
+        <div style="margin-bottom:12px">
+          <div style="font-size:12px;font-weight:700;color:#60A5FA;margin-bottom:6px">VARIANTES</div>
+          <ul style="font-size:13px;color:#D1D5DB;list-style:none;padding:0;line-height:1.8">
+            <li style="color:#60A5FA">→ Ajouter un partenaire attaquant qui dicte les déplacements</li>
+            <li style="color:#60A5FA">→ Imposer un slalom en marche arrière sur une partie du parcours</li>
+            <li style="color:#60A5FA">→ Terminer par un rebond simulé au lieu d'un tir</li>
+          </ul>
+        </div>
+        <div style="background:#1f0000;border-left:3px solid #C41E24;border-radius:6px;padding:10px">
+          <div style="font-size:12px;font-weight:700;color:#F87171;margin-bottom:4px">⚠ POINT DE VIGILANCE</div>
+          <div style="font-size:13px;color:#FCA5A5;font-style:italic">Surveiller la position des appuis pour éviter les torsions de cheville. Insister sur le bas du corps gainé.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- EXERCICE 4 -->
+    <div class="uc4-card" style="background:#111827;border-left:4px solid #C41E24;border-radius:12px;margin-bottom:14px;overflow:hidden">
+      <div style="background:#C41E24;padding:12px 16px;display:flex;justify-content:space-between;align-items:center">
+        <div>
+          <div style="font-size:11px;color:rgba(255,255,255,0.75);font-weight:600;margin-bottom:2px">EXERCICE 4 — JEU</div>
+          <div style="font-weight:700;color:white;font-size:15px">Course aux coupelles — jeu de tirs</div>
+        </div>
+        <div style="color:white;font-size:13px;white-space:nowrap">⏱ 12 min</div>
+      </div>
+      <div style="padding:14px">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">
+          <div style="background:#1f2937;border-radius:8px;padding:10px">
+            <div style="font-size:11px;color:#FCA5A5;font-weight:600;margin-bottom:4px">MATÉRIEL</div>
+            <div style="font-size:13px">Cônes, coupelles (tas au centre), ballons</div>
+          </div>
+          <div style="background:#1f2937;border-radius:8px;padding:10px">
+            <div style="font-size:11px;color:#FCA5A5;font-weight:600;margin-bottom:4px">ORGANISATION</div>
+            <div style="font-size:13px">Terrain entier, 2 équipes. Chaque équipe démarre à une extrémité de la ligne médiane.</div>
+          </div>
+        </div>
+        <div style="margin-bottom:12px">
+          <div style="font-size:12px;font-weight:700;color:#FCA5A5;margin-bottom:6px">DESCRIPTIF</div>
+          <div style="font-size:13px;color:#D1D5DB;line-height:1.5">À chaque tir marqué, le joueur prend une coupelle au centre pour symboliser le point et la ramène dans son camp. L'équipe avec le plus de coupelles à la fin gagne.</div>
+        </div>
+        <div style="margin-bottom:12px">
+          <div style="font-size:12px;font-weight:700;color:#FCA5A5;margin-bottom:6px">CONSIGNES</div>
+          <ul style="font-size:13px;color:#D1D5DB;list-style:none;padding:0;line-height:1.8">
+            <li>• 1 groupe par plot (par équipe)</li>
+            <li>• Dribbler vers le panier, tirer au panier</li>
+            <li>• Si panier marqué : prendre une coupelle au centre et la ramener</li>
+            <li>• Si panier raté : revenir sans coupelle et passer le ballon au suivant</li>
+            <li>• L'équipe avec le plus de coupelles à la fin du temps gagne</li>
+          </ul>
+        </div>
+        <div style="margin-bottom:12px">
+          <div style="font-size:12px;font-weight:700;color:#4ADE80;margin-bottom:6px">CRITÈRES DE RÉUSSITE</div>
+          <ul style="font-size:13px;color:#D1D5DB;list-style:none;padding:0;line-height:1.8">
+            <li style="color:#4ADE80">✓ Le joueur attend que le précédent ait franchi la ligne médiane</li>
+            <li style="color:#4ADE80">✓ Le tir est tenté en position équilibrée (pas en course pure)</li>
+            <li style="color:#4ADE80">✓ Les coupelles sont rangées proprement dans le camp</li>
+            <li style="color:#4ADE80">✓ L'équipe communique pour s'organiser</li>
+          </ul>
+        </div>
+        <div style="margin-bottom:12px">
+          <div style="font-size:12px;font-weight:700;color:#60A5FA;margin-bottom:6px">VARIANTES</div>
+          <ul style="font-size:13px;color:#D1D5DB;list-style:none;padding:0;line-height:1.8">
+            <li style="color:#60A5FA">→ Imposer un type de tir (lay-up uniquement, ou tir à mi-distance)</li>
+            <li style="color:#60A5FA">→ Donner 2 coupelles pour un panier à 3 points</li>
+            <li style="color:#60A5FA">→ Ajouter un défenseur sur la moitié de terrain</li>
+          </ul>
+        </div>
+        <div style="background:#1f0000;border-left:3px solid #C41E24;border-radius:6px;padding:10px">
+          <div style="font-size:12px;font-weight:700;color:#F87171;margin-bottom:4px">⚠ POINT DE VIGILANCE</div>
+          <div style="font-size:13px;color:#FCA5A5;font-style:italic">Veiller à ce que les deux équipes ne se croisent pas dans la zone centrale. Délimiter clairement les couloirs.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- EXERCICE 5 -->
+    <div class="uc4-card" style="background:#111827;border-left:4px solid #C41E24;border-radius:12px;margin-bottom:14px;overflow:hidden">
+      <div style="background:#C41E24;padding:12px 16px;display:flex;justify-content:space-between;align-items:center">
+        <div>
+          <div style="font-size:11px;color:rgba(255,255,255,0.75);font-weight:600;margin-bottom:2px">EXERCICE 5 — APPLICATION</div>
+          <div style="font-weight:700;color:white;font-size:15px">Match adapté — défense sans contact</div>
+        </div>
+        <div style="color:white;font-size:13px;white-space:nowrap">⏱ 12 min</div>
+      </div>
+      <div style="padding:14px">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">
+          <div style="background:#1f2937;border-radius:8px;padding:10px">
+            <div style="font-size:11px;color:#FCA5A5;font-weight:600;margin-bottom:4px">MATÉRIEL</div>
+            <div style="font-size:13px">Cônes, chasubles (2 couleurs), ballons</div>
+          </div>
+          <div style="background:#1f2937;border-radius:8px;padding:10px">
+            <div style="font-size:11px;color:#FCA5A5;font-weight:600;margin-bottom:4px">ORGANISATION</div>
+            <div style="font-size:13px">Terrain entier, match 5×5 (ou selon effectif). Coach sur la touche.</div>
+          </div>
+        </div>
+        <div style="margin-bottom:12px">
+          <div style="font-size:12px;font-weight:700;color:#FCA5A5;margin-bottom:6px">DESCRIPTIF</div>
+          <div style="font-size:13px;color:#D1D5DB;line-height:1.5">Mise en situation réelle de match. La défense n'a pas le droit au contact. Débrief à la mi-temps (5 min de jeu) pour ajuster la seconde mi-temps.</div>
+        </div>
+        <div style="margin-bottom:12px">
+          <div style="font-size:12px;font-weight:700;color:#FCA5A5;margin-bottom:6px">CONSIGNES</div>
+          <ul style="font-size:13px;color:#D1D5DB;list-style:none;padding:0;line-height:1.8">
+            <li>• Défense sans contact (zone à respecter autour de l'attaquant)</li>
+            <li>• Règles de basket simplifiées</li>
+            <li>• 2 mi-temps de 5 minutes</li>
+            <li>• Tous les joueurs doivent avoir reçu le ballon au moins une fois avant le tir</li>
+            <li>• Débrief de 1 minute à la mi-temps pour ajuster</li>
+          </ul>
+        </div>
+        <div style="margin-bottom:12px">
+          <div style="font-size:12px;font-weight:700;color:#4ADE80;margin-bottom:6px">CRITÈRES DE RÉUSSITE</div>
+          <ul style="font-size:13px;color:#D1D5DB;list-style:none;padding:0;line-height:1.8">
+            <li style="color:#4ADE80">✓ Le ballon circule entre tous les joueurs avant chaque tir</li>
+            <li style="color:#4ADE80">✓ Les défenseurs respectent la distance de non-contact</li>
+            <li style="color:#4ADE80">✓ Les joueurs réutilisent les acquis (cross-over, passes variées)</li>
+            <li style="color:#4ADE80">✓ L'équipe communique sur le terrain</li>
+          </ul>
+        </div>
+        <div style="margin-bottom:12px">
+          <div style="font-size:12px;font-weight:700;color:#60A5FA;margin-bottom:6px">VARIANTES</div>
+          <ul style="font-size:13px;color:#D1D5DB;list-style:none;padding:0;line-height:1.8">
+            <li style="color:#60A5FA">→ Seconde mi-temps : autoriser le contact défensif léger</li>
+            <li style="color:#60A5FA">→ Imposer un minimum de 3 passes avant le tir</li>
+            <li style="color:#60A5FA">→ Bonus de point si le panier est marqué après un cross-over</li>
+          </ul>
+        </div>
+        <div style="background:#1f0000;border-left:3px solid #C41E24;border-radius:6px;padding:10px">
+          <div style="font-size:12px;font-weight:700;color:#F87171;margin-bottom:4px">⚠ POINT DE VIGILANCE</div>
+          <div style="font-size:13px;color:#FCA5A5;font-style:italic">Le coach intervient au sifflet pour rappeler la règle du non-contact. Veiller à un effectif équilibré dans chaque équipe.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- EXERCICE 6 -->
+    <div class="uc4-card" style="background:#111827;border-left:4px solid #16A34A;border-radius:12px;margin-bottom:14px;overflow:hidden">
+      <div style="background:#16A34A;padding:12px 16px;display:flex;justify-content:space-between;align-items:center">
+        <div>
+          <div style="font-size:11px;color:rgba(255,255,255,0.75);font-weight:600;margin-bottom:2px">EXERCICE 6 — RETOUR AU CALME</div>
+          <div style="font-weight:700;color:white;font-size:15px">Cercle de parole — debrief</div>
+        </div>
+        <div style="color:white;font-size:13px;white-space:nowrap">⏱ 5 min</div>
+      </div>
+      <div style="padding:14px">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">
+          <div style="background:#1f2937;border-radius:8px;padding:10px">
+            <div style="font-size:11px;color:#86EFAC;font-weight:600;margin-bottom:4px">MATÉRIEL</div>
+            <div style="font-size:13px">1 ballon</div>
+          </div>
+          <div style="background:#1f2937;border-radius:8px;padding:10px">
+            <div style="font-size:11px;color:#86EFAC;font-weight:600;margin-bottom:4px">ORGANISATION</div>
+            <div style="font-size:13px">En cercle avec l'éducateur. Joueurs assis ou debout, tous tournés vers l'intérieur.</div>
+          </div>
+        </div>
+        <div style="margin-bottom:12px">
+          <div style="font-size:12px;font-weight:700;color:#86EFAC;margin-bottom:6px">DESCRIPTIF</div>
+          <div style="font-size:13px;color:#D1D5DB;line-height:1.5">Chaque participant prend le ballon à tour de rôle pour exprimer une critique constructive. Le ballon devient l'objet de parole : seul celui qui le tient peut s'exprimer.</div>
+        </div>
+        <div style="margin-bottom:12px">
+          <div style="font-size:12px;font-weight:700;color:#86EFAC;margin-bottom:6px">CONSIGNES</div>
+          <ul style="font-size:13px;color:#D1D5DB;list-style:none;padding:0;line-height:1.8">
+            <li>• Chaque participant partage son ressenti une fois la balle en main</li>
+            <li>• Respecter le temps de parole de chacun</li>
+            <li>• Critique constructive uniquement (pas de jugement personnel)</li>
+            <li>• Faire la passe à un autre participant après sa parole</li>
+            <li>• Tous les joueurs doivent passer (au moins une fois)</li>
+          </ul>
+        </div>
+        <div style="margin-bottom:12px">
+          <div style="font-size:12px;font-weight:700;color:#4ADE80;margin-bottom:6px">CRITÈRES DE RÉUSSITE</div>
+          <ul style="font-size:13px;color:#D1D5DB;list-style:none;padding:0;line-height:1.8">
+            <li style="color:#4ADE80">✓ Tous les participants ont pris la parole</li>
+            <li style="color:#4ADE80">✓ Le climat reste bienveillant et respectueux</li>
+            <li style="color:#4ADE80">✓ L'éducateur a noté les retours pour ajuster les prochaines séances</li>
+            <li style="color:#4ADE80">✓ Les joueurs repartent dans un état d'esprit positif</li>
+          </ul>
+        </div>
+        <div style="margin-bottom:12px">
+          <div style="font-size:12px;font-weight:700;color:#60A5FA;margin-bottom:6px">VARIANTES</div>
+          <ul style="font-size:13px;color:#D1D5DB;list-style:none;padding:0;line-height:1.8">
+            <li style="color:#60A5FA">→ Imposer un thème : « ce que j'ai aimé » / « ce que j'ai trouvé difficile »</li>
+            <li style="color:#60A5FA">→ Faire un tour de « météo intérieure » (chacun donne un mot)</li>
+            <li style="color:#60A5FA">→ Terminer par un objectif personnel pour la prochaine séance</li>
+          </ul>
+        </div>
+        <div style="background:#001f0a;border-left:3px solid #16A34A;border-radius:6px;padding:10px">
+          <div style="font-size:12px;font-weight:700;color:#86EFAC;margin-bottom:4px">⚠ POINT DE VIGILANCE</div>
+          <div style="font-size:13px;color:#BBF7D0;font-style:italic">L'éducateur reste garant du respect de la parole et reformule si besoin. Aucun joueur ne doit se sentir jugé.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- BILAN DE SÉANCE -->
+    <div class="uc4-card" style="background:#111827;border:1px solid #374151;border-radius:12px;margin-bottom:16px;overflow:hidden">
+      <div style="background:#374151;padding:10px 16px;font-weight:700;font-size:15px;color:white">📝 Bilan de séance</div>
+      <div style="padding:14px">
+        <table style="width:100%;border-collapse:collapse;font-size:13px">
+          <tbody>
+            <tr style="border-bottom:1px solid #374151"><td style="padding:10px 8px;color:#93C5FD;font-weight:600;width:40%;white-space:nowrap">Date de la séance</td><td style="padding:10px 8px;border-bottom:1px dashed #4B5563;color:#9CA3AF">__________________</td></tr>
+            <tr style="border-bottom:1px solid #374151"><td style="padding:10px 8px;color:#93C5FD;font-weight:600">Effectif réel</td><td style="padding:10px 8px;border-bottom:1px dashed #4B5563;color:#9CA3AF">__________________</td></tr>
+            <tr style="border-bottom:1px solid #374151"><td style="padding:10px 8px;color:#93C5FD;font-weight:600">Météo / conditions</td><td style="padding:10px 8px;border-bottom:1px dashed #4B5563;color:#9CA3AF">__________________</td></tr>
+            <tr style="border-bottom:1px solid #374151"><td style="padding:10px 8px;color:#4ADE80;font-weight:600">Points positifs</td><td style="padding:10px 8px;border-bottom:1px dashed #4B5563;color:#9CA3AF">__________________</td></tr>
+            <tr style="border-bottom:1px solid #374151"><td style="padding:10px 8px;color:#F87171;font-weight:600">Points à améliorer</td><td style="padding:10px 8px;border-bottom:1px dashed #4B5563;color:#9CA3AF">__________________</td></tr>
+            <tr style="border-bottom:1px solid #374151"><td style="padding:10px 8px;color:#4ADE80;font-weight:600">Joueurs en progrès</td><td style="padding:10px 8px;border-bottom:1px dashed #4B5563;color:#9CA3AF">__________________</td></tr>
+            <tr style="border-bottom:1px solid #374151"><td style="padding:10px 8px;color:#FBBF24;font-weight:600">Joueurs en difficulté</td><td style="padding:10px 8px;border-bottom:1px dashed #4B5563;color:#9CA3AF">__________________</td></tr>
+            <tr><td style="padding:10px 8px;color:#93C5FD;font-weight:600">Adaptations prochaine séance</td><td style="padding:10px 8px;border-bottom:1px dashed #4B5563;color:#9CA3AF">__________________</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- FOOTER -->
+    <div style="border-top:2px solid #1E3A8A;padding:14px;text-align:center;color:#6B7280;font-style:italic;font-size:12px">
+      © Mat&amp;Co — SAAD Matis • FicheSport v7 • Fiche séance Basketball UC4
+    </div>
+
+  </div>
 </div>
 
 <!-- EXERCISE MODAL -->
@@ -2107,6 +2597,10 @@
     <span class="nav-icon">📚</span>
     Biblio
   </button>
+  <button class="nav-btn" id="nav-uc4" onclick="showPage('uc4')" aria-label="UC4 Basketball">
+    <span class="nav-icon">🏀</span>
+    UC4
+  </button>
 </nav>
 
 <script>
@@ -2270,7 +2764,7 @@ function showPage(name) {
   const nav = document.getElementById('nav-' + name);
   if (nav) nav.classList.add('active');
   const banner = document.getElementById('main-banner');
-  banner.style.display = ['fiches','sports','bibliotheque'].includes(name) ? 'block' : 'none';
+  banner.style.display = ['fiches','sports','bibliotheque','uc4'].includes(name) ? 'block' : 'none';
   if (name === 'fiches') renderFiches();
   if (name === 'sports') renderSports();
   if (name === 'bibliotheque') renderBiblioPage();
